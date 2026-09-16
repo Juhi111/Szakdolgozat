@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SqlPlanVisualizer.Core\SqlPlanVisualizer.Core.csproj" />
+    <ProjectReference Include="..\SqlPlanVisualizer.Infrastructure\SqlPlanVisualizer.Infrastructure.csproj" />
+    <ProjectReference Include="..\SqlPlanVisualizer.Tests\SqlPlanVisualizer.Tests.csproj" />
+  </ItemGroup>
+
+</Project>
