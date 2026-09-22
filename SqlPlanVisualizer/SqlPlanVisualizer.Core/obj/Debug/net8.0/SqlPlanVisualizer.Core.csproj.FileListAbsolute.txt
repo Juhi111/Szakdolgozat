@@ -1,0 +1,12 @@
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Core\bin\Debug\net8.0\SqlPlanVisualizer.Core.deps.json
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Core\bin\Debug\net8.0\SqlPlanVisualizer.Core.dll
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Core\bin\Debug\net8.0\SqlPlanVisualizer.Core.pdb
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Core\obj\Debug\net8.0\SqlPlanVisualizer.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Core\obj\Debug\net8.0\SqlPlanVisualizer.Core.AssemblyInfoInputs.cache
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Core\obj\Debug\net8.0\SqlPlanVisualizer.Core.AssemblyInfo.cs
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Core\obj\Debug\net8.0\SqlPlanVisualizer.Core.csproj.CoreCompileInputs.cache
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Core\obj\Debug\net8.0\SqlPlanVisualizer.Core.sourcelink.json
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Core\obj\Debug\net8.0\SqlPlanVisualizer.Core.dll
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Core\obj\Debug\net8.0\refint\SqlPlanVisualizer.Core.dll
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Core\obj\Debug\net8.0\SqlPlanVisualizer.Core.pdb
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Core\obj\Debug\net8.0\ref\SqlPlanVisualizer.Core.dll

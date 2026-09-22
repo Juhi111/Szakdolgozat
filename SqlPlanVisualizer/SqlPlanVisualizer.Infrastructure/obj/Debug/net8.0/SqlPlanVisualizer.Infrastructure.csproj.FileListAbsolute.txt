@@ -1,0 +1,12 @@
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Infrastructure\bin\Debug\net8.0\SqlPlanVisualizer.Infrastructure.deps.json
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Infrastructure\bin\Debug\net8.0\SqlPlanVisualizer.Infrastructure.dll
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Infrastructure\bin\Debug\net8.0\SqlPlanVisualizer.Infrastructure.pdb
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Infrastructure\obj\Debug\net8.0\SqlPlanVisualizer.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Infrastructure\obj\Debug\net8.0\SqlPlanVisualizer.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Infrastructure\obj\Debug\net8.0\SqlPlanVisualizer.Infrastructure.AssemblyInfo.cs
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Infrastructure\obj\Debug\net8.0\SqlPlanVisualizer.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Infrastructure\obj\Debug\net8.0\SqlPlanVisualizer.Infrastructure.sourcelink.json
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Infrastructure\obj\Debug\net8.0\SqlPlanVisualizer.Infrastructure.dll
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Infrastructure\obj\Debug\net8.0\refint\SqlPlanVisualizer.Infrastructure.dll
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Infrastructure\obj\Debug\net8.0\SqlPlanVisualizer.Infrastructure.pdb
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Infrastructure\obj\Debug\net8.0\ref\SqlPlanVisualizer.Infrastructure.dll
