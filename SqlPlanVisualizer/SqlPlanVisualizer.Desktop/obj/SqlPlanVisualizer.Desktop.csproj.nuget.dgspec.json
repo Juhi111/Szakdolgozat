@@ -239,7 +239,11 @@
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
-            "projectReferences": {}
+            "projectReferences": {
+              "C:\\Users\\juhad\\Desktop\\Szakdolgozat\\Implementáció\\Szakdolgozat\\SqlPlanVisualizer\\SqlPlanVisualizer.Infrastructure\\SqlPlanVisualizer.Infrastructure.csproj": {
+                "projectPath": "C:\\Users\\juhad\\Desktop\\Szakdolgozat\\Implementáció\\Szakdolgozat\\SqlPlanVisualizer\\SqlPlanVisualizer.Infrastructure\\SqlPlanVisualizer.Infrastructure.csproj"
+              }
+            }
           }
         },
         "warningProperties": {

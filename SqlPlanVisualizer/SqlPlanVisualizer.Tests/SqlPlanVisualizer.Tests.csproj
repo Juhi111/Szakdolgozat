@@ -17,13 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Xunit" />
+    <ProjectReference Include="..\\SqlPlanVisualizer.Infrastructure\\SqlPlanVisualizer.Infrastructure.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="AnalysisRuleTests\" />
-    <Folder Include="TestData\" />
-    <Folder Include="ParserTests\" />
-  </ItemGroup>
-
 </Project>

@@ -5,8 +5,210 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SqlPlanVisualizer.Desktop"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="SqlPlanVisualizer" 
+        Height="800"
+        Width="1200"
+        MinHeight="600"
+        MinWidth="900"
+        WindowStartupLocation="CenterScreen">
+    <Grid Background="#F3F4F6">
+    
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="180"/>
+        <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    
+    <StackPanel x:Name="ToolbarPanel"
+                Grid.Row="0"
+                Orientation="Horizontal"
+                MinHeight="55"
+                Margin="12">
+            <Button x:Name="OpenSqlButton" Content="SQL megnyitása" Width="150" Margin="2,8,2,8" Padding="16,8,16,8" VerticalAlignment="Center" Height="39" Command="{Binding OpenSqlCommand}"/>
+            <Button x:Name="OpenJsonButton" Content="JSON megnyitása" Width="150" VerticalAlignment="Center" Padding="16,8,16,8" Margin="2,8,2,8" Height="39" Command="{Binding OpenJsonCommand}"/>
+            <Button x:Name="AnalyzeButton" Content="Elemzés" Width="150" Padding="16,8,16,8" Margin="2,8,2,8" VerticalAlignment="Center" Height="39"/>
+        </StackPanel>
+        
+    <Grid Grid.Row="1" Margin="12,0,12,8">
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*" MinWidth="180"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="4*" MinWidth="220"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="3*" MinWidth="180"/>
+        </Grid.ColumnDefinitions>
+        
+            <Border Grid.Column="0"
+                 Background="White"
+                 BorderBrush="#D1D5DB"
+                 BorderThickness="1"
+                 CornerRadius="4"
+                 Margin="0,0,6,0">
+
+                <Grid x:Name="SqlPanel">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                        Text="SQL lekérdezés"
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Margin="12"/>
+
+                    <TextBox x:Name="SqlTextBox"
+                        Grid.Row="1"
+                        Text="{Binding SqlText, Mode=OneWay}"
+                        Margin="12,0,12,12"
+                        FontFamily="Consolas"
+                        FontSize="14"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        IsReadOnly="True"
+                        AcceptsReturn="True"
+                        TextWrapping="NoWrap"
+                        VerticalScrollBarVisibility="Auto"
+                        HorizontalScrollBarVisibility="Auto"/>
+                </Grid>
+            </Border>
+            
+        <GridSplitter Grid.Column="1"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"
+                      ResizeDirection="Columns"
+                      ResizeBehavior="PreviousAndNext"
+                      Background="#D1D5DB"/>
+        
+        <Border Grid.Column="2"
+                Background="White"
+                BorderBrush="#D1D5DB"
+                BorderThickness="1"
+                CornerRadius="4"
+                Margin="6,0">
+
+            <Grid x:Name="PlanPanel">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0"
+                           Text="Végrehajtási terv"
+                           FontSize="18"
+                           FontWeight="SemiBold"
+                           Margin="12"/>
+
+                    <TreeView x:Name="PlanTreeView"
+                        Grid.Row="1"
+                        Margin="12,0,12,12"
+                        ItemsSource="{Binding PlanRoots}">
+                        <TreeView.ItemTemplate>
+                            <HierarchicalDataTemplate ItemsSource="{Binding Plans}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding NodeType}"/>
+                                    <TextBlock Text="{Binding RelationName}"
+                                        Margin="8,0,0,0"
+                                        Foreground="Gray"/>
+                                </StackPanel>
+                            </HierarchicalDataTemplate>
+                        </TreeView.ItemTemplate>
+                    </TreeView>
+                
+                </Grid>
+        </Border>
+        
+        <GridSplitter Grid.Column="3"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"
+                      ResizeDirection="Columns"
+                      ResizeBehavior="PreviousAndNext"
+                      Background="#D1D5DB"/>
+        
+        <Border Grid.Column="4"
+                Background="White"
+                BorderBrush="#D1D5DB"
+                BorderThickness="1"
+                CornerRadius="4"
+                Margin="6,0,0,0">
+
+            <Grid x:Name="DetailsPanel">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0"
+                           Text="Művelet részletei"
+                           FontSize="18"
+                           FontWeight="SemiBold"
+                           Margin="12"/>
+
+                    <ScrollViewer Grid.Row="1"
+              Margin="12,0,12,12"
+              VerticalScrollBarVisibility="Auto"
+              HorizontalScrollBarVisibility="Disabled">
+
+                        <StackPanel>
+                            <TextBlock Text="Seq Scan"
+                   FontSize="20"
+                   FontWeight="SemiBold"
+                   Margin="0,0,0,16"/>
+
+                            <TextBlock Text="Tábla"
+                   Foreground="Gray"/>
+                            <TextBlock Text="orders"
+                   Margin="0,0,0,12"/>
+
+                            <TextBlock Text="Becsült sorok"
+                   Foreground="Gray"/>
+                            <TextBlock Text="50 000"
+                   Margin="0,0,0,12"/>
+
+                            <TextBlock Text="Tényleges sorok"
+                   Foreground="Gray"/>
+                            <TextBlock Text="50 000"
+                   Margin="0,0,0,12"/>
+
+                            <TextBlock Text="Leírás"
+                   Foreground="Gray"/>
+                            <TextBlock Text="A tábla sorainak szekvenciális beolvasása."
+                   TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+        </Border>
+
+    </Grid>
+    
+        <TabControl Grid.Row="2" Margin="12,0,12,8">
+            <TabItem Header="Javaslatok">
+                <Grid x:Name="SuggestionsPanel">
+                    <ListView x:Name="SuggestionsListView"
+                      Margin="8">
+                        <ListViewItem Content="Minta: a szekvenciális beolvasás önmagában nem jelent problémát."/>
+                    </ListView>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Üzenetek">
+                <Grid x:Name="MessagesPanel">
+                    <ListBox x:Name="MessagesListBox"
+                     Margin="8">
+                        <ListBoxItem Content="A felület jelenleg mintaadatokat jelenít meg."/>
+                        <ListBoxItem Content="Nincs betöltött fájl."/>
+                    </ListBox>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        
+    <StatusBar Grid.Row="3">
+        <StatusBarItem>
+                <TextBlock Text="{Binding StatusMessage}"/>
+            </StatusBarItem>
+    </StatusBar>
 
     </Grid>
 </Window>
