@@ -102,11 +102,12 @@
                            Margin="12"/>
 
                     <TreeView x:Name="PlanTreeView"
+                        SelectedItemChanged="PlanTreeView_SelectedItemChanged"
                         Grid.Row="1"
                         Margin="12,0,12,12"
                         ItemsSource="{Binding PlanRoots}">
                         <TreeView.ItemTemplate>
-                            <HierarchicalDataTemplate ItemsSource="{Binding Plans}">
+                            <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="{Binding NodeType}"/>
                                     <TextBlock Text="{Binding RelationName}"
@@ -134,52 +135,88 @@
                 CornerRadius="4"
                 Margin="6,0,0,0">
 
-            <Grid x:Name="DetailsPanel">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+                <Grid x:Name="DetailsPanel">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0"
-                           Text="Művelet részletei"
-                           FontSize="18"
-                           FontWeight="SemiBold"
-                           Margin="12"/>
+                    <TextBlock Grid.Row="0"
+                        Text="Művelet részletei"
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Margin="12"/>
 
-                    <ScrollViewer Grid.Row="1"
-              Margin="12,0,12,12"
-              VerticalScrollBarVisibility="Auto"
-              HorizontalScrollBarVisibility="Disabled">
+                    <ScrollViewer x:Name="Details"
+                         Grid.Row="1"
+                         Margin="12,0,12,12"
+                         VerticalScrollBarVisibility="Auto"
+                         HorizontalScrollBarVisibility="Disabled">
 
                         <StackPanel>
-                            <TextBlock Text="Seq Scan"
-                   FontSize="20"
-                   FontWeight="SemiBold"
-                   Margin="0,0,0,16"/>
+                            <TextBlock Text="{Binding SelectedNode.NodeType,
+                                      FallbackValue='Válassz egy műveletet',
+                                      TargetNullValue='Válassz egy műveletet'}"
+                                      FontSize="20"
+                                      FontWeight="SemiBold"
+                                      TextWrapping="Wrap"
+                                      Margin="0,0,0,16"/>
 
                             <TextBlock Text="Tábla"
-                   Foreground="Gray"/>
-                            <TextBlock Text="orders"
-                   Margin="0,0,0,12"/>
+                                Foreground="Gray"/>
+                            <TextBlock Text="{Binding SelectedNode.RelationName,
+                                      FallbackValue='—',
+                                      TargetNullValue='—'}"
+                                TextWrapping="Wrap"
+                                Margin="0,0,0,12"/>
 
-                            <TextBlock Text="Becsült sorok"
-                   Foreground="Gray"/>
-                            <TextBlock Text="50 000"
-                   Margin="0,0,0,12"/>
+                            <TextBlock Text="Becsült kimeneti sorok"
+                                Foreground="Gray"/>
+                            <TextBlock Text="{Binding SelectedNode.PlanRows,
+                                      FallbackValue='—',
+                                      TargetNullValue='—'}"
+                                Margin="0,0,0,12"/>
 
-                            <TextBlock Text="Tényleges sorok"
-                   Foreground="Gray"/>
-                            <TextBlock Text="50 000"
-                   Margin="0,0,0,12"/>
+                            <TextBlock Text="Tényleges kimeneti sorok / végrehajtás"
+                                TextWrapping="Wrap"
+                                Foreground="Gray"/>
+                            <TextBlock Text="{Binding SelectedNode.ActualRows,
+                                      FallbackValue='—',
+                                      TargetNullValue='—'}"
+                                Margin="0,0,0,12"/>
 
-                            <TextBlock Text="Leírás"
-                   Foreground="Gray"/>
-                            <TextBlock Text="A tábla sorainak szekvenciális beolvasása."
-                   TextWrapping="Wrap"/>
+                            <TextBlock Text="Kezdő költség"
+                                Foreground="Gray"/>
+                            <TextBlock Text="{Binding SelectedNode.StartupCost,
+                                      FallbackValue='—',
+                                      TargetNullValue='—'}"
+                                Margin="0,0,0,12"/>
+
+                            <TextBlock Text="Teljes költség"
+                                Foreground="Gray"/>
+                            <TextBlock Text="{Binding SelectedNode.TotalCost,
+                                      FallbackValue='—',
+                                      TargetNullValue='—'}"
+                                Margin="0,0,0,12"/>
+
+                            <TextBlock Text="Idő / végrehajtás (ms)"
+                                TextWrapping="Wrap"
+                                Foreground="Gray"/>
+                            <TextBlock Text="{Binding SelectedNode.ActualTotalTime,
+                                      FallbackValue='—',
+                                      TargetNullValue='—'}"
+                                Margin="0,0,0,12"/>
+
+                            <TextBlock Text="Végrehajtások száma"
+                                Foreground="Gray"/>
+                            <TextBlock Text="{Binding SelectedNode.ActualLoops,
+                                      FallbackValue='—',
+                                      TargetNullValue='—'}"
+                                Margin="0,0,0,12"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Grid>
-        </Border>
+            </Border>
 
     </Grid>
     

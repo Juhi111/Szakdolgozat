@@ -1021,7 +1021,18 @@
         }
       },
       "xunit.runner.visualstudio/2.5.3": {},
+      "SqlPlanVisualizer.Core/1.0.0": {
+        "runtime": {
+          "SqlPlanVisualizer.Core.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
       "SqlPlanVisualizer.Infrastructure/1.0.0": {
+        "dependencies": {
+          "SqlPlanVisualizer.Core": "1.0.0"
+        },
         "runtime": {
           "SqlPlanVisualizer.Infrastructure.dll": {
             "assemblyVersion": "1.0.0.0",
@@ -1659,6 +1670,11 @@
       "sha512": "sha512-HFFL6O+QLEOfs555SqHii48ovVa4CqGYanY+B32BjLpPptdE+wEJmCFNXlLHdEOD5LYeayb9EroaUpydGpcybg==",
       "path": "xunit.runner.visualstudio/2.5.3",
       "hashPath": "xunit.runner.visualstudio.2.5.3.nupkg.sha512"
+    },
+    "SqlPlanVisualizer.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
     },
     "SqlPlanVisualizer.Infrastructure/1.0.0": {
       "type": "project",

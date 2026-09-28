@@ -101,3 +101,5 @@ C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualiz
 C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Tests\bin\Debug\net8.0\CoverletSourceRootsMapping_SqlPlanVisualizer.Tests
 C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Tests\bin\Debug\net8.0\SqlPlanVisualizer.Infrastructure.dll
 C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Tests\bin\Debug\net8.0\SqlPlanVisualizer.Infrastructure.pdb
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Tests\bin\Debug\net8.0\SqlPlanVisualizer.Core.dll
+C:\Users\juhad\Desktop\Szakdolgozat\Implementáció\Szakdolgozat\SqlPlanVisualizer\SqlPlanVisualizer.Tests\bin\Debug\net8.0\SqlPlanVisualizer.Core.pdb

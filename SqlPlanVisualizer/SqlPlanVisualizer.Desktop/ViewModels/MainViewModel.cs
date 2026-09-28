@@ -1,4 +1,5 @@
-﻿using SqlPlanVisualizer.Desktop.Commands;
+﻿using SqlPlanVisualizer.Core.Models;
+using SqlPlanVisualizer.Desktop.Commands;
 using SqlPlanVisualizer.Desktop.Services;
 using SqlPlanVisualizer.Infrastructure.FileSystem;
 using SqlPlanVisualizer.Infrastructure.PostgreSql;
@@ -11,8 +12,11 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 {
     internal class MainViewModel : ViewModelBase
     {
+        //mapper példány a PostgreSQL Explain JSON csomópontok és a belső PlanNode modellek közötti konverzióhoz
+        private readonly PostgreSqlPlanMapper _planMapper = new();
+
         //a betöltött planok gyökér csomópontjainak listája
-        private List<PostgreSqlPlanNodeDto> _planRoots = new();
+        private List<PlanNode> _planRoots = new();
 
         //sql text és status message propertyk, valamint a betöltött planok listája
         private string sqlText = string.Empty;
@@ -29,6 +33,9 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         private readonly JsonFileReader _jsonFileReader = new();
         private readonly PostgreSqlPlanParser _postgreSqlPlanParser = new();
 
+        //treeview kiválasztott node-ja
+        private PlanNode? _selectedNode;
+
         //command az sql és json file megnyitására
         public ICommand OpenSqlCommand { get; }
         public ICommand OpenJsonCommand { get; }
@@ -37,6 +44,16 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         {
             OpenSqlCommand = new AsyncRelayCommand(OpenSqlAsync);
             OpenJsonCommand = new AsyncRelayCommand(OpenJsonAsync);
+        }
+
+        public PlanNode? SelectedNode {
+            get { return _selectedNode;}
+            set {
+                if (value == _selectedNode)
+                    return;
+                _selectedNode = value;
+                OnPropertyChanged();
+            }
         }
 
         public string SqlText {
@@ -60,7 +77,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             }
         }
 
-        public List<PostgreSqlPlanNodeDto> PlanRoots
+        public List<PlanNode> PlanRoots
         {
             get { return _planRoots; }
             set
@@ -122,17 +139,18 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                     _loadedPlans = plans;
                     StatusMessage = $"Betöltve: {Path.GetFileName(path)} ({plans.Count} plan)";
 
-                    List<PostgreSqlPlanNodeDto> roots = new();
+                    List<PlanNode> roots = new();
                     foreach (var plan in plans)
                     {
                         if (plan.Plan != null)
                         {
-                            roots.Add(plan.Plan);
+                            var rootNode = _planMapper.MapNode(plan.Plan);
+                            roots.Add(rootNode);
                         }
                     }
+                    SelectedNode = null;
                     PlanRoots = roots;
                 }
-
             }
             catch (UnauthorizedAccessException ex)
             {
