@@ -5,6 +5,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="pgsqlparser" Version="1.0.0" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\SqlPlanVisualizer.Core\SqlPlanVisualizer.Core.csproj" />
   </ItemGroup>
 </Project>

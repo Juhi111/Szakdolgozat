@@ -1,8 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "HrHnMHoK+RI=",
+  "dgSpecHash": "YlesjCVXyao=",
   "success": true,
   "projectFilePath": "C:\\Users\\juhad\\Desktop\\Szakdolgozat\\Implementáció\\Szakdolgozat\\SqlPlanVisualizer\\SqlPlanVisualizer.Infrastructure\\SqlPlanVisualizer.Infrastructure.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\juhad\\.nuget\\packages\\google.protobuf\\3.33.0\\google.protobuf.3.33.0.nupkg.sha512",
+    "C:\\Users\\juhad\\.nuget\\packages\\pgsqlparser\\1.0.0\\pgsqlparser.1.0.0.nupkg.sha512"
+  ],
   "logs": []
 }

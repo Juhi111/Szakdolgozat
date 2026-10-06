@@ -4,6 +4,7 @@ using SqlPlanVisualizer.Desktop.Services;
 using SqlPlanVisualizer.Infrastructure.FileSystem;
 using SqlPlanVisualizer.Infrastructure.PostgreSql;
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Dtos;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 using System.Windows.Input;
@@ -12,6 +13,9 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 {
     internal class MainViewModel : ViewModelBase
     {
+        //query service példány a PostgreSQL SQL szöveg feldolgozásához
+        private readonly PostgreSqlQueryService _queryService = new();
+
         //mapper példány a PostgreSQL Explain JSON csomópontok és a belső PlanNode modellek közötti konverzióhoz
         private readonly PostgreSqlPlanMapper _planMapper = new();
 
@@ -36,14 +40,19 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         //treeview kiválasztott node-ja
         private PlanNode? _selectedNode;
 
+        //command a sql feldolgozására
+        public ICommand AnalyzeCommand { get; }
         //command az sql és json file megnyitására
         public ICommand OpenSqlCommand { get; }
         public ICommand OpenJsonCommand { get; }
+
+        public ObservableCollection<string> Messages { get; } = new ObservableCollection<string>();
 
         public MainViewModel()
         {
             OpenSqlCommand = new AsyncRelayCommand(OpenSqlAsync);
             OpenJsonCommand = new AsyncRelayCommand(OpenJsonAsync);
+            AnalyzeCommand = new AsyncRelayCommand(AnalyzeAsync);
         }
 
         public PlanNode? SelectedNode {
@@ -86,6 +95,23 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                     return;
                 _planRoots = value;
                 OnPropertyChanged();
+            }
+        }
+
+        private async Task AnalyzeAsync()
+        {
+            StatusMessage = "SQL feldolgozása…";
+            string sql = SqlText;
+
+            var summary = await Task.Run(() => _queryService.ParseSummary(sql));
+
+            if (summary.IsSuccess)
+            {
+                ReportMessage($"SQL feldolgozva. Utasítások száma: {summary.StatementCount}.");
+            }
+            else
+            {
+                ReportMessage($"Hiba az SQL feldolgozásakor: {summary.ErrorMessage}");
             }
         }
 
@@ -164,6 +190,11 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             {
                 StatusMessage = $"Nem sikerült feldolgozni az EXPLAIN JSON-t: {ex.Message}";
             }
+        }
+
+        private void ReportMessage(string message) { 
+            StatusMessage = message;
+            Messages.Add($"[{DateTime.Now:HH:mm:ss}] {message}");
         }
     }
 }

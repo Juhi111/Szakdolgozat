@@ -27,7 +27,7 @@
                 Margin="12">
             <Button x:Name="OpenSqlButton" Content="SQL megnyitása" Width="150" Margin="2,8,2,8" Padding="16,8,16,8" VerticalAlignment="Center" Height="39" Command="{Binding OpenSqlCommand}"/>
             <Button x:Name="OpenJsonButton" Content="JSON megnyitása" Width="150" VerticalAlignment="Center" Padding="16,8,16,8" Margin="2,8,2,8" Height="39" Command="{Binding OpenJsonCommand}"/>
-            <Button x:Name="AnalyzeButton" Content="Elemzés" Width="150" Padding="16,8,16,8" Margin="2,8,2,8" VerticalAlignment="Center" Height="39"/>
+            <Button x:Name="AnalyzeButton" Content="Elemzés" Width="150" Padding="16,8,16,8" Margin="2,8,2,8" VerticalAlignment="Center" Height="39" Command="{Binding AnalyzeCommand}"/>
         </StackPanel>
         
     <Grid Grid.Row="1" Margin="12,0,12,8">
@@ -219,12 +219,10 @@
             </Border>
 
     </Grid>
-    
         <TabControl Grid.Row="2" Margin="12,0,12,8">
             <TabItem Header="Javaslatok">
                 <Grid x:Name="SuggestionsPanel">
-                    <ListView x:Name="SuggestionsListView"
-                      Margin="8">
+                    <ListView x:Name="SuggestionsListView" Margin="8">
                         <ListViewItem Content="Minta: a szekvenciális beolvasás önmagában nem jelent problémát."/>
                     </ListView>
                 </Grid>
@@ -233,19 +231,17 @@
             <TabItem Header="Üzenetek">
                 <Grid x:Name="MessagesPanel">
                     <ListBox x:Name="MessagesListBox"
-                     Margin="8">
-                        <ListBoxItem Content="A felület jelenleg mintaadatokat jelenít meg."/>
-                        <ListBoxItem Content="Nincs betöltött fájl."/>
-                    </ListBox>
+                             Margin="8"
+                             ItemsSource="{Binding Messages}"/>
                 </Grid>
             </TabItem>
         </TabControl>
-        
-    <StatusBar Grid.Row="3">
-        <StatusBarItem>
+
+        <StatusBar Grid.Row="3">
+            <StatusBarItem>
                 <TextBlock Text="{Binding StatusMessage}"/>
             </StatusBarItem>
-    </StatusBar>
+        </StatusBar>
 
     </Grid>
 </Window>
