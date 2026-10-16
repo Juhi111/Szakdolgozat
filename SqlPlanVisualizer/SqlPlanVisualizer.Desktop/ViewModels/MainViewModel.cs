@@ -1,4 +1,5 @@
-﻿using SqlPlanVisualizer.Core.Models;
+﻿using SqlPlanVisualizer.Core.Analysis;
+using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Desktop.Commands;
 using SqlPlanVisualizer.Desktop.Services;
 using SqlPlanVisualizer.Infrastructure.FileSystem;
@@ -46,7 +47,11 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         public ICommand OpenSqlCommand { get; }
         public ICommand OpenJsonCommand { get; }
 
+        // ObservableCollection a log üzenetekhez
         public ObservableCollection<string> Messages { get; } = new ObservableCollection<string>();
+
+        private readonly SelectStarRule _selectStarRule = new();
+        public ObservableCollection<SqlAnalysisFinding> Suggestions { get; } = new();
 
         public MainViewModel()
         {
@@ -100,6 +105,8 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 
         private async Task AnalyzeAsync()
         {
+            Suggestions.Clear();
+
             StatusMessage = "SQL feldolgozása…";
             string sql = SqlText;
 
@@ -108,6 +115,14 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             if (summary.IsSuccess)
             {
                 ReportMessage($"SQL feldolgozva. Utasítások száma: {summary.StatementCount}.");
+                foreach (var statement in summary.Statements)
+                {
+                    foreach (var finding in _selectStarRule.Analyze(statement))
+                    {
+                        Suggestions.Add(finding);
+                    }
+                }
+                ReportMessage("Elemzés elkészült");
             }
             else
             {
@@ -117,9 +132,12 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 
         // A kiválasztott SQL-fájl megnyitása és beolvasása
         private async Task OpenSqlAsync() {
-
+            
             var path = _fileDialogService.SelectSqlFile();
             if (path == null) return;
+
+            SqlText = string.Empty;
+            Suggestions.Clear();
 
             try
             {
