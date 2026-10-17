@@ -78,8 +78,23 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
                         }
                     }
                 }
+                CollectWildcardsInExpression(target.ResTarget?.Val, $"{location} / SELECT-kifejezés", occurrences);
+
             }
-            if(selectStatement.Larg != null)
+
+            CollectWildcardsInExpression(selectStatement.WhereClause, $"{location} / WHERE-kifejezés", occurrences);
+
+            CollectWildcardsInExpression(selectStatement.HavingClause, $"{location} / HAVING-kifejezés", occurrences);
+
+            int sortIndex = 1;
+
+            foreach (var sortClause in selectStatement.SortClause)
+            {
+                CollectWildcardsInExpression(sortClause.SortBy?.Node, $"{location} / ORDER BY[{sortIndex}]", occurrences);
+                sortIndex++;
+            }
+
+            if (selectStatement.Larg != null)
             {
                 CollectWildcardProjections(selectStatement.Larg, $"{location} / bal ág", occurrences);
             }
@@ -103,7 +118,7 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
                     var cteSelect = cte.CommonTableExpr?.Ctequery?.SelectStmt;
                     if (cteSelect != null)
                     {
-                        CollectWildcardProjections(cteSelect, $"{location} / CTE[{cte.CommonTableExpr.Ctename}]", occurrences);
+                        CollectWildcardProjections(cteSelect, $"{location} / CTE[{cte.CommonTableExpr?.Ctename}]", occurrences);
                     }
                 }
             }
@@ -127,6 +142,67 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
                 {
                     CollectWildCardsInFromItem(joinExpr.Rarg, $"{location} / JOIN JOBB", occurrences);
                 }
+                CollectWildcardsInExpression(joinExpr.Quals, $"{location} / JOIN ON", occurrences);
+            }            
+        }
+
+        private void CollectWildcardsInExpression(Node? expression, string location, List<WildcardProjectionOccurrence> occurrences) { 
+            if(expression == null) 
+                return;
+
+            var subselect = expression.SubLink?.Subselect?.SelectStmt;
+            if (subselect != null)
+            {
+                CollectWildcardProjections(subselect, $"{location} / allekérdezés", occurrences);
+            }
+
+            var boolExpr = expression.BoolExpr;
+            if (boolExpr != null){
+                int argumentIndex = 1;
+                foreach (var arg in boolExpr.Args) {
+                    CollectWildcardsInExpression(arg, $"{location} / feltétel[{argumentIndex}]", occurrences);
+                    argumentIndex++;
+                }
+            }
+
+            var expr = expression.AExpr;
+            if (expr != null)
+            {
+                CollectWildcardsInExpression(expr.Lexpr, $"{location} / bal operandus", occurrences);
+                CollectWildcardsInExpression(expr.Rexpr, $"{location} / jobb operandus", occurrences);
+            }
+
+            var funCall = expression.FuncCall;
+            if(funCall != null) {
+                int argumentumIndex = 1;
+                foreach (var arg in funCall.Args) {
+                    CollectWildcardsInExpression(arg, $"{location} / függvényargumentum[{argumentumIndex}]", occurrences);
+                    argumentumIndex++;
+                }
+            }
+
+            var typeCast = expression.TypeCast;
+            if(typeCast != null){
+                CollectWildcardsInExpression(typeCast.Arg, $"{location} / típuskonverzió", occurrences);
+            }
+
+            var caseExpr = expression.CaseExpr;
+            if (caseExpr != null)
+            {
+                CollectWildcardsInExpression(caseExpr.Arg, $"{location} / CASE alapérték", occurrences);
+
+                int branchIndex = 1;
+
+                foreach (var arg in caseExpr.Args)
+                {
+                    if (arg.CaseWhen != null)
+                    {
+                        CollectWildcardsInExpression(arg.CaseWhen.Expr, $"{location} / CASE WHEN[{branchIndex}]", occurrences);
+                        CollectWildcardsInExpression(arg.CaseWhen.Result, $"{location} / CASE THEN[{branchIndex}]", occurrences);
+                    }
+                    branchIndex++;
+                }
+                CollectWildcardsInExpression(caseExpr.Defresult, $"{location} / CASE ELSE", occurrences);
             }
         }
     }

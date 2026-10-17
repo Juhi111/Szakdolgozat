@@ -3,32 +3,12 @@
   "WorkspaceRootPath": "C:\\Users\\juhad\\Desktop\\Szakdolgozat\\Implement\u00E1ci\u00F3\\Szakdolgozat\\SqlPlanVisualizer\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{E21B68DC-C885-49D2-885B-7D0F8B126BF4}|SqlPlanVisualizer.Infrastructure\\SqlPlanVisualizer.Infrastructure.csproj|c:\\users\\juhad\\desktop\\szakdolgozat\\implement\u00E1ci\u00F3\\szakdolgozat\\sqlplanvisualizer\\sqlplanvisualizer.infrastructure\\postgresql\\postgresqlqueryservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E21B68DC-C885-49D2-885B-7D0F8B126BF4}|SqlPlanVisualizer.Infrastructure\\SqlPlanVisualizer.Infrastructure.csproj|solutionrelative:sqlplanvisualizer.infrastructure\\postgresql\\postgresqlqueryservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{9F8A933A-03E7-4BA7-ABE0-C6A006014F22}|SqlPlanVisualizer.Core\\SqlPlanVisualizer.Core.csproj|c:\\users\\juhad\\desktop\\szakdolgozat\\implement\u00E1ci\u00F3\\szakdolgozat\\sqlplanvisualizer\\sqlplanvisualizer.core\\models\\sqlstatementsummary.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9F8A933A-03E7-4BA7-ABE0-C6A006014F22}|SqlPlanVisualizer.Core\\SqlPlanVisualizer.Core.csproj|solutionrelative:sqlplanvisualizer.core\\models\\sqlstatementsummary.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6B72606F-2F02-4C23-9AF5-86AF4A01AA77}|SqlPlanVisualizer.Tests\\SqlPlanVisualizer.Tests.csproj|c:\\users\\juhad\\desktop\\szakdolgozat\\implement\u00E1ci\u00F3\\szakdolgozat\\sqlplanvisualizer\\sqlplanvisualizer.tests\\analysisruletest\\selectstarruletests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6B72606F-2F02-4C23-9AF5-86AF4A01AA77}|SqlPlanVisualizer.Tests\\SqlPlanVisualizer.Tests.csproj|solutionrelative:sqlplanvisualizer.tests\\analysisruletest\\selectstarruletests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{6B72606F-2F02-4C23-9AF5-86AF4A01AA77}|SqlPlanVisualizer.Tests\\SqlPlanVisualizer.Tests.csproj|c:\\users\\juhad\\desktop\\szakdolgozat\\implement\u00E1ci\u00F3\\szakdolgozat\\sqlplanvisualizer\\sqlplanvisualizer.tests\\parsertests\\postgresqlqueryservicetests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{6B72606F-2F02-4C23-9AF5-86AF4A01AA77}|SqlPlanVisualizer.Tests\\SqlPlanVisualizer.Tests.csproj|solutionrelative:sqlplanvisualizer.tests\\parsertests\\postgresqlqueryservicetests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{9F8A933A-03E7-4BA7-ABE0-C6A006014F22}|SqlPlanVisualizer.Core\\SqlPlanVisualizer.Core.csproj|c:\\users\\juhad\\desktop\\szakdolgozat\\implement\u00E1ci\u00F3\\szakdolgozat\\sqlplanvisualizer\\sqlplanvisualizer.core\\analysis\\selectstarrule.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9F8A933A-03E7-4BA7-ABE0-C6A006014F22}|SqlPlanVisualizer.Core\\SqlPlanVisualizer.Core.csproj|solutionrelative:sqlplanvisualizer.core\\analysis\\selectstarrule.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{828A6109-4B5E-4E01-B30A-A77D180606A1}|SqlPlanVisualizer.Desktop\\SqlPlanVisualizer.Desktop.csproj|c:\\users\\juhad\\desktop\\szakdolgozat\\implement\u00E1ci\u00F3\\szakdolgozat\\sqlplanvisualizer\\sqlplanvisualizer.desktop\\viewmodels\\mainviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{828A6109-4B5E-4E01-B30A-A77D180606A1}|SqlPlanVisualizer.Desktop\\SqlPlanVisualizer.Desktop.csproj|solutionrelative:sqlplanvisualizer.desktop\\viewmodels\\mainviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{9F8A933A-03E7-4BA7-ABE0-C6A006014F22}|SqlPlanVisualizer.Core\\SqlPlanVisualizer.Core.csproj|c:\\users\\juhad\\desktop\\szakdolgozat\\implement\u00E1ci\u00F3\\szakdolgozat\\sqlplanvisualizer\\sqlplanvisualizer.core\\models\\wildcardprojectionoccurrence.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9F8A933A-03E7-4BA7-ABE0-C6A006014F22}|SqlPlanVisualizer.Core\\SqlPlanVisualizer.Core.csproj|solutionrelative:sqlplanvisualizer.core\\models\\wildcardprojectionoccurrence.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{E21B68DC-C885-49D2-885B-7D0F8B126BF4}|SqlPlanVisualizer.Infrastructure\\SqlPlanVisualizer.Infrastructure.csproj|c:\\users\\juhad\\desktop\\szakdolgozat\\implement\u00E1ci\u00F3\\szakdolgozat\\sqlplanvisualizer\\sqlplanvisualizer.infrastructure\\postgresql\\postgresqlqueryservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E21B68DC-C885-49D2-885B-7D0F8B126BF4}|SqlPlanVisualizer.Infrastructure\\SqlPlanVisualizer.Infrastructure.csproj|solutionrelative:sqlplanvisualizer.infrastructure\\postgresql\\postgresqlqueryservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -38,95 +18,30 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 6,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "SqlStatementSummary.cs",
-              "DocumentMoniker": "C:\\Users\\juhad\\Desktop\\Szakdolgozat\\Implement\u00E1ci\u00F3\\Szakdolgozat\\SqlPlanVisualizer\\SqlPlanVisualizer.Core\\Models\\SqlStatementSummary.cs",
-              "RelativeDocumentMoniker": "SqlPlanVisualizer.Core\\Models\\SqlStatementSummary.cs",
-              "ToolTip": "C:\\Users\\juhad\\Desktop\\Szakdolgozat\\Implement\u00E1ci\u00F3\\Szakdolgozat\\SqlPlanVisualizer\\SqlPlanVisualizer.Core\\Models\\SqlStatementSummary.cs",
-              "RelativeToolTip": "SqlPlanVisualizer.Core\\Models\\SqlStatementSummary.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-16T15:21:07.275Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 0,
               "Title": "PostgreSqlQueryServiceTests.cs",
               "DocumentMoniker": "C:\\Users\\juhad\\Desktop\\Szakdolgozat\\Implement\u00E1ci\u00F3\\Szakdolgozat\\SqlPlanVisualizer\\SqlPlanVisualizer.Tests\\ParserTests\\PostgreSqlQueryServiceTests.cs",
               "RelativeDocumentMoniker": "SqlPlanVisualizer.Tests\\ParserTests\\PostgreSqlQueryServiceTests.cs",
               "ToolTip": "C:\\Users\\juhad\\Desktop\\Szakdolgozat\\Implement\u00E1ci\u00F3\\Szakdolgozat\\SqlPlanVisualizer\\SqlPlanVisualizer.Tests\\ParserTests\\PostgreSqlQueryServiceTests.cs",
               "RelativeToolTip": "SqlPlanVisualizer.Tests\\ParserTests\\PostgreSqlQueryServiceTests.cs",
-              "ViewState": "AgIAADEAAAAAAAAAAAAswDwAAAA0AAAAAAAAAA==",
+              "ViewState": "AgIAADQBAAAAAAAAAAAwwEQBAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-10-16T15:06:52.983Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "SelectStarRuleTests.cs",
-              "DocumentMoniker": "C:\\Users\\juhad\\Desktop\\Szakdolgozat\\Implement\u00E1ci\u00F3\\Szakdolgozat\\SqlPlanVisualizer\\SqlPlanVisualizer.Tests\\AnalysisRuleTest\\SelectStarRuleTests.cs",
-              "RelativeDocumentMoniker": "SqlPlanVisualizer.Tests\\AnalysisRuleTest\\SelectStarRuleTests.cs",
-              "ToolTip": "C:\\Users\\juhad\\Desktop\\Szakdolgozat\\Implement\u00E1ci\u00F3\\Szakdolgozat\\SqlPlanVisualizer\\SqlPlanVisualizer.Tests\\AnalysisRuleTest\\SelectStarRuleTests.cs",
-              "RelativeToolTip": "SqlPlanVisualizer.Tests\\AnalysisRuleTest\\SelectStarRuleTests.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAcAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-16T15:01:09.203Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "MainViewModel.cs",
-              "DocumentMoniker": "C:\\Users\\juhad\\Desktop\\Szakdolgozat\\Implement\u00E1ci\u00F3\\Szakdolgozat\\SqlPlanVisualizer\\SqlPlanVisualizer.Desktop\\ViewModels\\MainViewModel.cs",
-              "RelativeDocumentMoniker": "SqlPlanVisualizer.Desktop\\ViewModels\\MainViewModel.cs",
-              "ToolTip": "C:\\Users\\juhad\\Desktop\\Szakdolgozat\\Implement\u00E1ci\u00F3\\Szakdolgozat\\SqlPlanVisualizer\\SqlPlanVisualizer.Desktop\\ViewModels\\MainViewModel.cs",
-              "RelativeToolTip": "SqlPlanVisualizer.Desktop\\ViewModels\\MainViewModel.cs",
-              "ViewState": "AgIAAGQAAAAAAAAAAAAwwIIAAAAJAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-16T14:55:51.393Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "SelectStarRule.cs",
-              "DocumentMoniker": "C:\\Users\\juhad\\Desktop\\Szakdolgozat\\Implement\u00E1ci\u00F3\\Szakdolgozat\\SqlPlanVisualizer\\SqlPlanVisualizer.Core\\Analysis\\SelectStarRule.cs",
-              "RelativeDocumentMoniker": "SqlPlanVisualizer.Core\\Analysis\\SelectStarRule.cs",
-              "ToolTip": "C:\\Users\\juhad\\Desktop\\Szakdolgozat\\Implement\u00E1ci\u00F3\\Szakdolgozat\\SqlPlanVisualizer\\SqlPlanVisualizer.Core\\Analysis\\SelectStarRule.cs",
-              "RelativeToolTip": "SqlPlanVisualizer.Core\\Analysis\\SelectStarRule.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-16T14:52:28.181Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "WildcardProjectionOccurrence.cs",
-              "DocumentMoniker": "C:\\Users\\juhad\\Desktop\\Szakdolgozat\\Implement\u00E1ci\u00F3\\Szakdolgozat\\SqlPlanVisualizer\\SqlPlanVisualizer.Core\\Models\\WildcardProjectionOccurrence.cs",
-              "RelativeDocumentMoniker": "SqlPlanVisualizer.Core\\Models\\WildcardProjectionOccurrence.cs",
-              "ToolTip": "C:\\Users\\juhad\\Desktop\\Szakdolgozat\\Implement\u00E1ci\u00F3\\Szakdolgozat\\SqlPlanVisualizer\\SqlPlanVisualizer.Core\\Models\\WildcardProjectionOccurrence.cs",
-              "RelativeToolTip": "SqlPlanVisualizer.Core\\Models\\WildcardProjectionOccurrence.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAA+AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-16T12:35:18.592Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "PostgreSqlQueryService.cs",
               "DocumentMoniker": "C:\\Users\\juhad\\Desktop\\Szakdolgozat\\Implement\u00E1ci\u00F3\\Szakdolgozat\\SqlPlanVisualizer\\SqlPlanVisualizer.Infrastructure\\PostgreSql\\PostgreSqlQueryService.cs",
               "RelativeDocumentMoniker": "SqlPlanVisualizer.Infrastructure\\PostgreSql\\PostgreSqlQueryService.cs",
               "ToolTip": "C:\\Users\\juhad\\Desktop\\Szakdolgozat\\Implement\u00E1ci\u00F3\\Szakdolgozat\\SqlPlanVisualizer\\SqlPlanVisualizer.Infrastructure\\PostgreSql\\PostgreSqlQueryService.cs",
               "RelativeToolTip": "SqlPlanVisualizer.Infrastructure\\PostgreSql\\PostgreSqlQueryService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAABUAAAAAAAAAA==",
+              "ViewState": "AgIAAK0AAAAAAAAAAAAuwLUAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-10-16T09:04:43.528Z",
               "EditorCaption": ""
