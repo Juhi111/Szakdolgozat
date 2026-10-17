@@ -335,5 +335,186 @@ namespace SqlPlanVisualizer.Tests.ParserTests
             Assert.Equal(expectedLocation, wildcard.Location);
             Assert.Equal("a", wildcard.Qualifier);
         }
+
+        [Fact]
+        public void ParseSummary_CoalesceSubquery_ReturnsOccurrence()
+        {
+            string sql = "SELECT COALESCE((SELECT a.* FROM archived_orders a LIMIT 1),0);";
+
+            var service = new PostgreSqlQueryService();
+            var summary = service.ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var wildcard = Assert.Single(statement.WildcardProjections);
+
+            Assert.Equal("Fő lekérdezés / SELECT-kifejezés / COALESCE argumentum[1] / allekérdezés", wildcard.Location);
+
+            Assert.Equal("a", wildcard.Qualifier);
+        }
+
+        [Theory]
+        [InlineData("SELECT order_id FROM orders WHERE (SELECT a.* FROM archived_orders a LIMIT 1) IS NULL;")]
+        [InlineData("SELECT order_id FROM orders WHERE (SELECT a.* FROM archived_orders a LIMIT 1) IS NOT NULL;")]
+        public void ParseSummary_NullTestSubquery_ReturnsOccurrence(string sql) { 
+
+            var service = new PostgreSqlQueryService();
+            var summary = service.ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var wildcard = Assert.Single(statement.WildcardProjections);
+
+            Assert.Equal("Fő lekérdezés / WHERE-kifejezés / NULL-vizsgálat / allekérdezés", wildcard.Location);
+            Assert.Equal("a", wildcard.Qualifier);
+        }
+
+        [Theory]
+        [InlineData("SELECT order_id FROM orders WHERE (SELECT a.* FROM archived_flags a LIMIT 1) IS TRUE;")]
+        [InlineData("SELECT order_id FROM orders WHERE (SELECT a.* FROM archived_flags a LIMIT 1) IS NOT TRUE;")]
+        [InlineData("SELECT order_id FROM orders WHERE (SELECT a.* FROM archived_flags a LIMIT 1) IS FALSE;")]
+        [InlineData("SELECT order_id FROM orders WHERE (SELECT a.* FROM archived_flags a LIMIT 1) IS NOT FALSE;")]
+        [InlineData("SELECT order_id FROM orders WHERE (SELECT a.* FROM archived_flags a LIMIT 1) IS UNKNOWN;")]
+        [InlineData("SELECT order_id FROM orders WHERE (SELECT a.* FROM archived_flags a LIMIT 1) IS NOT UNKNOWN;")]
+        public void ParseSummary_BooleanTestSubquery_ReturnsOccurrence(string sql)
+        {
+            var service = new PostgreSqlQueryService();
+            var summary = service.ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var wildcard = Assert.Single(statement.WildcardProjections);
+
+            Assert.Equal("Fő lekérdezés / WHERE-kifejezés / logikai vizsgálat / allekérdezés", wildcard.Location);
+            Assert.Equal("a", wildcard.Qualifier);
+        }
+
+        [Fact]
+        public void ParseSummary_GroupBySubquery_ReturnsOccurrence() { 
+            string sql = "SELECT COUNT(*) FROM orders GROUP BY (SELECT a.* FROM archived_groups a LIMIT 1);";
+
+            var service = new PostgreSqlQueryService();
+            var summary = service.ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+
+            var wildcard = Assert.Single(statement.WildcardProjections);
+
+            Assert.Equal("Fő lekérdezés / GROUP BY[1] / allekérdezés", wildcard.Location);
+
+            Assert.Equal("a", wildcard.Qualifier);
+        }
+
+        [Fact]
+        public void ParseSummary_RollupSubquery_ReturnsOccurrence()
+        {
+            string sql = "SELECT COUNT(*) FROM orders GROUP BY ROLLUP( (SELECT a.* FROM archived_groups a LIMIT 1));";
+
+            var service = new PostgreSqlQueryService();
+            var summary = service.ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+
+            var wildcard = Assert.Single(statement.WildcardProjections);
+
+            Assert.Equal("Fő lekérdezés / GROUP BY[1] / csoportosítási elem[1] / allekérdezés", wildcard.Location);
+
+            Assert.Equal("a", wildcard.Qualifier);
+        }
+
+        [Fact]
+        public void ParseSummary_NestedGroupingSets_ReturnsOccurrence()
+        {
+            string sql = "SELECT COUNT(*) FROM orders GROUP BY GROUPING SETS (ROLLUP((SELECT a.* FROM archived_groups a LIMIT 1)), ());";
+
+            var service = new PostgreSqlQueryService();
+            var summary = service.ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+
+            var wildcard = Assert.Single(statement.WildcardProjections);
+
+            Assert.Equal("Fő lekérdezés / GROUP BY[1] / csoportosítási elem[1] / csoportosítási elem[1] / allekérdezés", wildcard.Location);
+
+            Assert.Equal("a", wildcard.Qualifier);
+        }
+
+        [Fact]
+        public void ParseSummary_DistinctOnSubquery_ReturnsOccurrence()
+        {
+            string sql = "SELECT DISTINCT ON ((SELECT a.* FROM archived_groups a LIMIT 1)) order_id FROM orders;";
+
+            var service = new PostgreSqlQueryService();
+            var summary = service.ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+
+            var wildcard = Assert.Single(statement.WildcardProjections);
+
+            Assert.Equal("Fő lekérdezés / DISTINCT ON[1] / allekérdezés", wildcard.Location);
+
+            Assert.Equal("a", wildcard.Qualifier);
+        }
+
+        [Fact]
+        public void ParseSummary_PlainDistinctWithoutWildcard_ReturnsNoOccurrences()
+        {
+            string sql = "SELECT DISTINCT order_id FROM orders;";
+
+            var service = new PostgreSqlQueryService();
+            var summary = service.ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            Assert.Empty(statement.WildcardProjections);
+        }
+
+        [Theory]
+        [InlineData("SELECT order_id FROM orders LIMIT (SELECT a.* FROM query_limits a LIMIT 1);", "Fő lekérdezés / LIMIT-kifejezés / allekérdezés")]
+        [InlineData("SELECT order_id FROM orders OFFSET (SELECT a.* FROM query_offsets a LIMIT 1);", "Fő lekérdezés / OFFSET-kifejezés / allekérdezés")]        
+        public void ParseSummary_LimitOffsetSubquery_ReturnsExpectedLocation(string sql, string expectedLocation)
+        {
+            var service = new PostgreSqlQueryService();
+            var summary = service.ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var wildcard = Assert.Single(statement.WildcardProjections);
+
+            Assert.Equal(expectedLocation, wildcard.Location);
+            Assert.Equal("a", wildcard.Qualifier);
+        }
+
+        [Fact]
+        public void ParseSummary_AggregateFilterSubquery_ReturnsOccurrence()
+        {
+            string sql = "SELECT COUNT(*) FILTER (WHERE order_id > (SELECT a.* FROM archived_limits a LIMIT 1)) FROM orders;";
+
+            var service = new PostgreSqlQueryService();
+            var summary = service.ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+
+            var wildcard = Assert.Single(statement.WildcardProjections);
+
+            Assert.Equal("Fő lekérdezés / SELECT-kifejezés / FILTER-feltétel / jobb operandus / allekérdezés", wildcard.Location);
+
+            Assert.Equal("a", wildcard.Qualifier);
+        }
     }
 }

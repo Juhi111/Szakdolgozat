@@ -86,8 +86,11 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
 
             CollectWildcardsInExpression(selectStatement.HavingClause, $"{location} / HAVING-kifejezés", occurrences);
 
-            int sortIndex = 1;
+            CollectWildcardsInExpression(selectStatement.LimitCount, $"{location} / LIMIT-kifejezés", occurrences);
 
+            CollectWildcardsInExpression(selectStatement.LimitOffset, $"{location} / OFFSET-kifejezés", occurrences);
+
+            int sortIndex = 1;
             foreach (var sortClause in selectStatement.SortClause)
             {
                 CollectWildcardsInExpression(sortClause.SortBy?.Node, $"{location} / ORDER BY[{sortIndex}]", occurrences);
@@ -122,6 +125,22 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
                     }
                 }
             }
+
+            int groupIndex = 1;
+            foreach (var groupClause in selectStatement.GroupClause)
+            {
+                CollectWildcardsInExpression(groupClause, $"{location} / GROUP BY[{groupIndex}]", occurrences);
+                groupIndex++;
+            }
+
+            int distinctIndex = 1;
+            foreach (var distinctClause in selectStatement.DistinctClause)
+            {
+                CollectWildcardsInExpression(distinctClause, $"{location} / DISTINCT ON[{distinctIndex}]", occurrences);
+                distinctIndex++;
+            }
+
+
         }
 
         private void CollectWildCardsInFromItem(Node fromItem, string location, List<WildcardProjectionOccurrence> occurrences) { 
@@ -146,8 +165,9 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
             }            
         }
 
-        private void CollectWildcardsInExpression(Node? expression, string location, List<WildcardProjectionOccurrence> occurrences) { 
-            if(expression == null) 
+        private void CollectWildcardsInExpression(Node? expression, string location, List<WildcardProjectionOccurrence> occurrences)
+        {
+            if (expression == null)
                 return;
 
             var subselect = expression.SubLink?.Subselect?.SelectStmt;
@@ -157,9 +177,11 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
             }
 
             var boolExpr = expression.BoolExpr;
-            if (boolExpr != null){
+            if (boolExpr != null)
+            {
                 int argumentIndex = 1;
-                foreach (var arg in boolExpr.Args) {
+                foreach (var arg in boolExpr.Args)
+                {
                     CollectWildcardsInExpression(arg, $"{location} / feltétel[{argumentIndex}]", occurrences);
                     argumentIndex++;
                 }
@@ -173,16 +195,21 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
             }
 
             var funCall = expression.FuncCall;
-            if(funCall != null) {
+            if (funCall != null)
+            {
                 int argumentumIndex = 1;
-                foreach (var arg in funCall.Args) {
+                foreach (var arg in funCall.Args)
+                {
                     CollectWildcardsInExpression(arg, $"{location} / függvényargumentum[{argumentumIndex}]", occurrences);
                     argumentumIndex++;
                 }
+
+                CollectWildcardsInExpression(funCall.AggFilter, $"{location} / FILTER-feltétel", occurrences);
             }
 
             var typeCast = expression.TypeCast;
-            if(typeCast != null){
+            if (typeCast != null)
+            {
                 CollectWildcardsInExpression(typeCast.Arg, $"{location} / típuskonverzió", occurrences);
             }
 
@@ -203,6 +230,40 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
                     branchIndex++;
                 }
                 CollectWildcardsInExpression(caseExpr.Defresult, $"{location} / CASE ELSE", occurrences);
+            }
+
+            var coalesceExpr = expression.CoalesceExpr;
+            if (coalesceExpr != null)
+            {
+                int argumentIndex = 1;
+                foreach (var arg in coalesceExpr.Args)
+                {
+                    CollectWildcardsInExpression(arg, $"{location} / COALESCE argumentum[{argumentIndex}]", occurrences);
+                    argumentIndex++;
+                }
+            }
+
+            var nullTest = expression.NullTest;
+            if (nullTest != null)
+            {
+                CollectWildcardsInExpression(nullTest.Arg, $"{location} / NULL-vizsgálat", occurrences);
+            }
+
+            var booleanTest = expression.BooleanTest;
+            if (booleanTest != null)
+            {
+                CollectWildcardsInExpression(booleanTest.Arg, $"{location} / logikai vizsgálat", occurrences);
+            }
+
+            var groupingSet = expression.GroupingSet;
+            if (groupingSet != null)
+            {
+                int elementIndex = 1;
+                foreach (var arg in groupingSet.Content)
+                {
+                    CollectWildcardsInExpression(arg, $"{location} / csoportosítási elem[{elementIndex}]", occurrences);
+                    elementIndex++;
+                }
             }
         }
     }
