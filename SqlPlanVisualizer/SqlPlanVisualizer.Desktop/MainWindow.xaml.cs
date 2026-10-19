@@ -1,6 +1,5 @@
 ﻿using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Desktop.ViewModels;
-using SqlPlanVisualizer.Infrastructure.PostgreSql.Dtos;
 using System.Windows;
 
 namespace SqlPlanVisualizer.Desktop
@@ -35,5 +34,33 @@ namespace SqlPlanVisualizer.Desktop
                 viewModel.SelectedNode = e.NewValue as PlanNode;
             }
         }
+
+        private void SuggestionsListView_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e){
+            if (SuggestionsListView.SelectedItem is not SqlAnalysisFinding finding)
+            {
+                return;
+            }
+
+            if (finding.SourceOffset is not int offset)
+            {
+                return;
+            }
+
+            if (offset < 0 || SqlTextBox.Text.Length < offset)
+                return;
+
+            int lineIndex = SqlTextBox.GetLineIndexFromCharacterIndex(offset);
+            if (lineIndex < 0)
+                return;
+
+            int lineStart = SqlTextBox.GetCharacterIndexFromLineIndex(lineIndex);
+            string lineText = SqlTextBox.GetLineText(lineIndex);
+            
+            int lineLength = lineText.TrimEnd('\r', '\n').Length;
+
+            SqlTextBox.Focus();
+            SqlTextBox.Select(lineStart, lineLength);
+            SqlTextBox.ScrollToLine(lineIndex);
+        }        
     }
 }

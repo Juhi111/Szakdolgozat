@@ -10,5 +10,6 @@ namespace SqlPlanVisualizer.Core.Models
     {
         public string Location { get; set; }
         public string? Qualifier { get; set; } = string.Empty;
+        public int? SourceOffset { get; set; }
     }
 }

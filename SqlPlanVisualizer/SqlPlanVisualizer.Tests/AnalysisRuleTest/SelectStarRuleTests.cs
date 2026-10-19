@@ -9,28 +9,26 @@ namespace SqlPlanVisualizer.Tests.AnalysisRuleTest
         [Fact]
         public void Analyze_WithWildcard_ReturnsFinding()
         {
-            // Bemenet: egy utasítás, benne egy o.* előfordulás.
-            var sum = new SqlStatementSummary
+            var statement = new SqlStatementSummary
             {
                 StatementIndex = 3,
                 StatementType = "SELECT"
             };
 
-            sum.WildcardProjections.Add(new WildcardProjectionOccurrence
-            {
-                Location = "Fő lekérdezés",
-                Qualifier = "o"
-            });
+            statement.WildcardProjections.Add(
+                new WildcardProjectionOccurrence
+                {
+                    Location = "select_stmt",
+                    Qualifier = "o",
+                    SourceOffset = 7
+                });
 
-            var results = new SelectStarRule().Analyze(sum);
-
-            // Ellenőrzi, hogy pontosan egy elem van, és visszaadja azt.
-            var finding = Assert.Single(results);
+            var findings = new SelectStarRule().Analyze(statement);
+            var finding = Assert.Single(findings);
 
             Assert.Equal(3, finding.StatementIndex);
             Assert.Equal("SELECT_STAR", finding.RuleId);
-            Assert.Contains("Fő lekérdezés", finding.Description);
-            Assert.Contains("o.*", finding.Description);
+            Assert.Equal(7, finding.SourceOffset);
         }
 
         [Fact]

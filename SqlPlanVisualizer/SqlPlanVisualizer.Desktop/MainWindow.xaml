@@ -60,16 +60,22 @@
                         Margin="12"/>
 
                     <TextBox x:Name="SqlTextBox"
+                        IsInactiveSelectionHighlightEnabled="True"
                         Grid.Row="1"
                         Text="{Binding SqlText, Mode=OneWay}"
-                        Margin="12,0,12,12"
+                        Margin="12,0,12,12"                        
                         FontFamily="Consolas"
                         FontSize="14"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
                         IsReadOnly="True"
+                        IsEnabled="True"
                         AcceptsReturn="True"
+                        IsHitTestVisible="True"
+                        Focusable="True"
                         TextWrapping="NoWrap"
+                        SelectionBrush="Gold"
+                        SelectionOpacity="0.6"
                         VerticalScrollBarVisibility="Auto"
                         HorizontalScrollBarVisibility="Auto"/>
                 </Grid>
@@ -223,9 +229,11 @@
             <TabItem Header="Javaslatok">
                 <Grid x:Name="SuggestionsPanel">
                     <ListView x:Name="SuggestionsListView"
-          Margin="8"
-          ItemsSource="{Binding Suggestions}"
-          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        SelectionChanged="SuggestionsListView_SelectionChanged"
+                        SelectedItem="{Binding SelectedSuggestion, Mode=TwoWay}"
+                        Margin="8"
+                        ItemsSource="{Binding Suggestions}"
+                        ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 
                         <ListView.ItemContainerStyle>
                             <Style TargetType="ListViewItem">

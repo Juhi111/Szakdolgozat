@@ -1,8 +1,9 @@
-﻿using SqlPlanVisualizer.Core.Models;
+﻿using SqlPlanVisualizer.Core.Interfaces;
+using SqlPlanVisualizer.Core.Models;
 
 namespace SqlPlanVisualizer.Core.Analysis
 {
-    public class SelectStarRule
+    public class SelectStarRule : ISqlAnalysisRule
     {
         public List<SqlAnalysisFinding> Analyze(SqlStatementSummary statement) {
             if (statement == null)
@@ -18,6 +19,7 @@ namespace SqlPlanVisualizer.Core.Analysis
 
                 findings.Add(new SqlAnalysisFinding
                 {
+                    SourceOffset = wildcardProjection.SourceOffset,
                     StatementIndex = statement.StatementIndex,
                     RuleId = "SELECT_STAR",
                     Title = "Csillagos oszlopkiválasztás",

@@ -1,4 +1,5 @@
 ﻿using SqlPlanVisualizer.Core.Analysis;
+using SqlPlanVisualizer.Core.Interfaces;
 using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Desktop.Commands;
 using SqlPlanVisualizer.Desktop.Services;
@@ -14,6 +15,9 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 {
     internal class MainViewModel : ViewModelBase
     {
+        //katintással kiválasztott kifejezés a Suggestions listából, amelyhez a részletes információk megjelennek
+        private SqlAnalysisFinding? _selectedSuggestion;
+
         //query service példány a PostgreSQL SQL szöveg feldolgozásához
         private readonly PostgreSqlQueryService _queryService = new();
 
@@ -50,7 +54,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         // ObservableCollection a log üzenetekhez
         public ObservableCollection<string> Messages { get; } = new ObservableCollection<string>();
 
-        private readonly SelectStarRule _selectStarRule = new();
+        private readonly SqlAnalysisService _analysisService = new(new ISqlAnalysisRule[]{new SelectStarRule()});
         public ObservableCollection<SqlAnalysisFinding> Suggestions { get; } = new();
 
         public MainViewModel()
@@ -103,6 +107,15 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             }
         }
 
+        public SqlAnalysisFinding SelectedSuggestion { 
+            get { return _selectedSuggestion; } 
+            set {
+                if (value == _selectedSuggestion)
+                    return;
+                _selectedSuggestion = value;
+                OnPropertyChanged();
+            }}
+
         private async Task AnalyzeAsync()
         {
             Suggestions.Clear();
@@ -115,12 +128,11 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             if (summary.IsSuccess)
             {
                 ReportMessage($"SQL feldolgozva. Utasítások száma: {summary.StatementCount}.");
-                foreach (var statement in summary.Statements)
+                var findings = _analysisService.Analyze(summary.Statements);
+
+                foreach (var finding in findings)
                 {
-                    foreach (var finding in _selectStarRule.Analyze(statement))
-                    {
-                        Suggestions.Add(finding);
-                    }
+                    Suggestions.Add(finding);
                 }
                 ReportMessage("Elemzés elkészült");
             }
