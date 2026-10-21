@@ -1,9 +1,6 @@
-﻿using SqlPlanVisualizer.Infrastructure.PostgreSql;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Google.Protobuf;
+using SqlPlanVisualizer.Core.Models;
+using SqlPlanVisualizer.Infrastructure.PostgreSql;
 using Xunit;
 
 namespace SqlPlanVisualizer.Tests.ParserTests
@@ -13,17 +10,12 @@ namespace SqlPlanVisualizer.Tests.ParserTests
         [Fact]
         public void Collect_NestedSelects_ReturnsBothWildcards()
         {
-            string sql =
-                "SELECT o.* FROM orders o " +
-                "WHERE order_id IN (SELECT a.* FROM archived_orders a);";
+            string sql ="SELECT o.* FROM orders o WHERE order_id IN (SELECT a.* FROM archived_orders a);";
 
-            var parser = new PostgreSqlQueryParser();
-            var parsed = parser.Parse(sql);
+            var parsed = new PostgreSqlQueryParser().Parse(sql);
             var statement = Assert.Single(parsed.Stmts);
 
-            var collector = new WildcardProjectionCollector();
-
-            var occurrences = collector.Collect(statement.Stmt, 1);
+            var occurrences = CollectWildcards(statement.Stmt, 1);
 
             Assert.Equal(2, occurrences.Count);
             Assert.Single(occurrences, occurrence => occurrence.Qualifier == "o");
@@ -36,8 +28,8 @@ namespace SqlPlanVisualizer.Tests.ParserTests
             var parsed = new PostgreSqlQueryParser().Parse("SELECT o.* FROM orders o;");
 
             var statement = Assert.Single(parsed.Stmts);
-            var occurrences = new WildcardProjectionCollector().Collect(statement.Stmt, 1);
 
+            var occurrences = CollectWildcards(statement.Stmt, 1);
             var occurrence = Assert.Single(occurrences);
 
             Assert.Equal("o", occurrence.Qualifier);
@@ -52,12 +44,30 @@ namespace SqlPlanVisualizer.Tests.ParserTests
             var parsed = new PostgreSqlQueryParser().Parse(sql);
             Assert.Equal(2, parsed.Stmts.Count);
 
-            var occurrences = new WildcardProjectionCollector().Collect(parsed.Stmts[1].Stmt, 2);
-
+            var occurrences = CollectWildcards(parsed.Stmts[1].Stmt, 2);
             var occurrence = Assert.Single(occurrences);
 
             Assert.Equal("o", occurrence.Qualifier);
             Assert.Equal(17, occurrence.SourceOffset);
+        }
+
+        private static List<WildcardProjectionOccurrence> CollectWildcards(IMessage root, int statementIndex)
+        {
+            var summary = new SqlStatementSummary
+            {
+                StatementIndex = statementIndex,
+                StatementType = "SELECT"
+            };
+
+            var collector = new WildcardProjectionCollector();
+            var walker = new PostgreSqlAstWalker();
+
+            walker.Walk(root, statementIndex, entry =>
+            {
+                collector.Collect(entry, summary);
+            });
+
+            return summary.WildcardProjections;
         }
     }
 }

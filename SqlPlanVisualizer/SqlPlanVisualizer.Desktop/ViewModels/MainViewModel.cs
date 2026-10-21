@@ -13,10 +13,10 @@ using System.Windows.Input;
 
 namespace SqlPlanVisualizer.Desktop.ViewModels
 {
-    internal class MainViewModel : ViewModelBase
+    public class MainViewModel : ViewModelBase
     {
         //katintással kiválasztott kifejezés a Suggestions listából, amelyhez a részletes információk megjelennek
-        private SqlAnalysisFinding? _selectedSuggestion;
+        //private SqlAnalysisFinding? _selectedSuggestion;
 
         //query service példány a PostgreSQL SQL szöveg feldolgozásához
         private readonly PostgreSqlQueryService _queryService = new();
@@ -54,7 +54,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         // ObservableCollection a log üzenetekhez
         public ObservableCollection<string> Messages { get; } = new ObservableCollection<string>();
 
-        private readonly SqlAnalysisService _analysisService = new(new ISqlAnalysisRule[]{new SelectStarRule()});
+        private readonly SqlAnalysisService _analysisService = new(new ISqlAnalysisRule[]{new SelectStarRule(), new DistinctRule()});
         public ObservableCollection<SqlAnalysisFinding> Suggestions { get; } = new();
 
         public MainViewModel()
@@ -107,14 +107,14 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             }
         }
 
-        public SqlAnalysisFinding SelectedSuggestion { 
-            get { return _selectedSuggestion; } 
-            set {
-                if (value == _selectedSuggestion)
-                    return;
-                _selectedSuggestion = value;
-                OnPropertyChanged();
-            }}
+        //public SqlAnalysisFinding SelectedSuggestion { 
+        //    get { return _selectedSuggestion; } 
+        //    set {
+        //        if (value == _selectedSuggestion)
+        //            return;
+        //        _selectedSuggestion = value;
+        //        OnPropertyChanged();
+        //    }}
 
         private async Task AnalyzeAsync()
         {

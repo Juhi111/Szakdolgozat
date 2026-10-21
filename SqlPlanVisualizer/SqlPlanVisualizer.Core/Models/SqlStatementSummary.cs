@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SqlPlanVisualizer.Core.Models
+﻿namespace SqlPlanVisualizer.Core.Models
 {
     public class SqlStatementSummary
     {
@@ -12,7 +6,6 @@ namespace SqlPlanVisualizer.Core.Models
         public string StatementType { get; set; } = string.Empty;
         public bool HasWildcardProjection => WildcardProjections.Count > 0;
         public List<WildcardProjectionOccurrence> WildcardProjections { get; set; } = new();
-
-
+        public List<DistinctOccurrence> DistinctOccurrences { get; } = new();
     }
 }

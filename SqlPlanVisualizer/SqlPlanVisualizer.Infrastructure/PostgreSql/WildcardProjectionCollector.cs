@@ -1,51 +1,49 @@
 ﻿using Google.Protobuf;
+using PgSqlParser;
 using SqlPlanVisualizer.Core.Models;
 
 namespace SqlPlanVisualizer.Infrastructure.PostgreSql
 {
-    public class WildcardProjectionCollector
+    public class WildcardProjectionCollector : ISqlAstCollector
     {
-        public List<WildcardProjectionOccurrence> Collect(IMessage root, int statementIndex) {
+        private readonly AstPathFormatter pathFormatter = new();
 
-            List<WildcardProjectionOccurrence> occurences = new();
+        public void Collect(AstVisitEntry entry, SqlStatementSummary summary)
+        {
+            if (entry is null)
+                throw new ArgumentNullException(nameof(entry));
 
-            var walker = new PostgreSqlAstWalker();
+            if (summary is null)
+                throw new ArgumentNullException(nameof(summary));
 
-            var pathFormatter = new AstPathFormatter();
+            if (entry.Node is not SelectStmt selectStatement)
+                return;
 
-            walker.Walk(root, statementIndex, entry => {
-                if (entry.Node is PgSqlParser.SelectStmt selectStatement) {
-                    foreach (var target in selectStatement.TargetList)
+            foreach (var target in selectStatement.TargetList)
+            {
+                var columnRef = target.ResTarget?.Val?.ColumnRef;
+                if (columnRef == null)
+                    continue;
+
+                var qualifierParts = new List<string>();
+
+                foreach (var field in columnRef.Fields)
+                {
+                    if (field.String != null)
+                        qualifierParts.Add(field.String.Sval);
+
+                    if (field.AStar != null)
                     {
-                        var columnRef = target.ResTarget?.Val?.ColumnRef;
-                        if (columnRef == null)
-                            continue;
-
-                        var qualifierParts = new List<string>();
-
-                        foreach (var field in columnRef.Fields)
+                        summary.WildcardProjections.Add(new WildcardProjectionOccurrence
                         {
-                            if (field.String != null)
-                                qualifierParts.Add(field.String.Sval);
-
-                            if (field.AStar != null)
-                            {
-                                occurences.Add(new WildcardProjectionOccurrence
-                                {
-                                    Location = pathFormatter.Format(entry.Context),
-                                    SourceOffset = columnRef.Location >= 0 ? columnRef.Location : null,
-                                    Qualifier = qualifierParts.Count > 0
-                                        ? string.Join(".", qualifierParts)
-                                        : null
-                                });
-
-                                break;
-                            }
-                        }
+                            Location = pathFormatter.Format(entry.Context),
+                            SourceOffset = columnRef.Location >= 0 ? columnRef.Location : null,
+                            Qualifier = qualifierParts.Count > 0 ? string.Join(".", qualifierParts) : null
+                        });
+                        break;
                     }
                 }
-            });
-            return occurences;
+            }
         }
     }
 }

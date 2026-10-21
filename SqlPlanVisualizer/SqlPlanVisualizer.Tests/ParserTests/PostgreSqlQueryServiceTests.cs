@@ -543,5 +543,61 @@ namespace SqlPlanVisualizer.Tests.ParserTests
 
             Assert.Equal("a", wildcard.Qualifier);
         }
+
+        [Theory]
+        [InlineData("SELECT customer_id FROM orders;", 0, false)]
+        [InlineData("SELECT DISTINCT customer_id FROM orders;", 1, false)]
+        [InlineData("SELECT DISTINCT ON (customer_id) customer_id, order_id FROM orders;", 1, true)]
+        public void ParseSummary_Distinct_ReturnsExpectedOccurrences(string sql, int expectedCount, bool expectedIsDistinctOn)
+        {
+            var service = new PostgreSqlQueryService();
+            var summary = service.ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+
+            Assert.Equal(expectedCount, statement.DistinctOccurrences.Count);
+
+            if (expectedCount > 0)
+            {
+                var occurrence = Assert.Single(statement.DistinctOccurrences);
+                Assert.Equal(expectedIsDistinctOn, occurrence.IsDistinctOn);
+            }
+        }
+
+        [Fact]
+        public void ParseSummary_SubqueryDistinct_ReturnsOccurrence() {
+            string sql = "SELECT customer_id FROM (SELECT DISTINCT customer_id FROM orders) AS unique_customers;";
+
+            var service = new PostgreSqlQueryService();
+
+            var summary = service.ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+            
+            var statement = Assert.Single(summary.Statements);
+
+            var occurrence = Assert.Single(statement.DistinctOccurrences);
+
+            Assert.False(occurrence.IsDistinctOn);
+        }
+
+        [Theory]
+        [InlineData("SELECT DISTINCT customer_id FROM customers;", false)]
+        [InlineData("SELECT DISTINCT c.customer_id FROM customers c JOIN orders o ON o.customer_id = c.customer_id;", true)]
+        [InlineData("SELECT DISTINCT q.customer_id FROM (SELECT c.customer_id FROM customers c JOIN orders o ON o.customer_id = c.customer_id) q;", false)]
+        public void ParseSummary_Distinct_ReturnsExpectedHasJoin(string sql, bool expectedHasJoin){
+
+            var service = new PostgreSqlQueryService();
+            var summary = service.ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var occurrence = Assert.Single(statement.DistinctOccurrences);
+
+            Assert.Equal(expectedHasJoin, occurrence.HasJoin);
+        }
     }      
 }

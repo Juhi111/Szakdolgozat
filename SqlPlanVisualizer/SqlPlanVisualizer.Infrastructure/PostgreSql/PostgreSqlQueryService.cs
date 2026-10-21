@@ -5,7 +5,13 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
     public class PostgreSqlQueryService
     {
         private readonly PostgreSqlQueryParser _parser = new();
-        private readonly WildcardProjectionCollector _wildcardCollector = new();
+        private readonly PostgreSqlAstWalker _walker = new();
+
+        private readonly List<ISqlAstCollector> _collectors = new()
+        {
+            new WildcardProjectionCollector(),
+            new DistinctCollector()
+        };
 
         public SqlParseSummary ParseSummary(string sql)
         {
@@ -39,9 +45,14 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
                     if (selectStatement != null)
                     {
                         statementSummary.StatementType = "SELECT";
-                        var occurrences = _wildcardCollector.Collect(res.Stmt, statementIndex);
 
-                        statementSummary.WildcardProjections.AddRange(occurrences);
+                        _walker.Walk(res.Stmt, statementIndex, entry =>
+                        {
+                            foreach (var collector in _collectors)
+                            {
+                                collector.Collect(entry, statementSummary);
+                            }
+                        });
                     }
                     summary.Statements.Add(statementSummary);
                     statementIndex++;

@@ -43,6 +43,7 @@ namespace SqlPlanVisualizer.Desktop
 
             if (finding.SourceOffset is not int offset)
             {
+                SqlTextBox.SelectionLength = 0;
                 return;
             }
 
