@@ -64,7 +64,11 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 new NullComparisonRule(),
                 new LimitWithoutOrderRule(),
                 new LikeWithoutWildcardRule(),
-                new LeadingWildcardSearchRule()
+                new LeadingWildcardSearchRule(),
+                new FunctionOnColumnRule(),
+                new CastOnColumnRule(),
+                new ArithmeticOnColumnRule(),
+                new NotInSubqueryRule()
             });
         public ObservableCollection<SqlAnalysisFinding> Suggestions { get; } = new();
 
@@ -117,15 +121,6 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 OnPropertyChanged();
             }
         }
-
-        //public SqlAnalysisFinding SelectedSuggestion { 
-        //    get { return _selectedSuggestion; } 
-        //    set {
-        //        if (value == _selectedSuggestion)
-        //            return;
-        //        _selectedSuggestion = value;
-        //        OnPropertyChanged();
-        //    }}
 
         private async Task AnalyzeAsync()
         {

@@ -16,7 +16,11 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
             new DistinctCollector(),
             new NullComparisonCollector(),
             new LimitCollector(),
-            new LikeCollector()
+            new LikeCollector(),
+            new FunctionOnColumnCollector(),
+            new CastOnColumnCollector(),
+            new ArithmeticOnColumnCollector(),
+            new NotInSubqueryCollector()
         };
 
         public SqlParseSummary ParseSummary(string sql)

@@ -12,5 +12,9 @@ namespace SqlPlanVisualizer.Core.Models
         public List<NullComparisonOccurrence> NullComparisons { get; } = new();
         public List<LimitOccurrence> LimitOccurrences { get; } = new();
         public List<LikeOccurrence> LikeOccurrences { get; } = new();
+        public List<FunctionOnColumnOccurrence> FunctionOnColumnOccurrences { get; } = new();
+        public List<CastOnColumnOccurrence> CastOnColumnOccurrences { get; } = new();
+        public List<ArithmeticOnColumnOccurrence> ArithmeticOnColumnOccurrences { get; } = new();
+        public List<NotInSubqueryOccurrence> NotInSubqueryOccurrences { get; } = new();
     }
 }

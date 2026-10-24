@@ -847,7 +847,7 @@ namespace SqlPlanVisualizer.Tests.ParserTests
                 }
             );
         }
-
+        
         [Theory]
         [InlineData("SELECT email FROM customers WHERE email LIKE 'adam' ESCAPE '!!';")]
         [InlineData("SELECT email FROM customers WHERE email LIKE 'adam!' ESCAPE '!';")]
@@ -860,6 +860,408 @@ namespace SqlPlanVisualizer.Tests.ParserTests
             var statement = Assert.Single(summary.Statements);
 
             Assert.Empty(statement.LikeOccurrences);
+        }
+
+        [Theory]
+        [InlineData("SELECT email FROM customers WHERE lower(email) = 'adam';", "lower", "email", null, "lower")]
+        [InlineData("SELECT email FROM customers WHERE upper(email) = 'ADAM';", "upper", "email", null, "upper")]
+        [InlineData("SELECT c.email FROM customers c WHERE lower(c.email) = 'adam';", "lower", "email", "c", "lower")]
+        [InlineData("SELECT email FROM public.customers WHERE lower(public.customers.email) = 'adam';", "lower", "email", "public.customers", "lower")]
+        [InlineData("SELECT email FROM customers  WHERE pg_catalog.lower(email) = 'adam';", "lower", "email", null, "pg_catalog.lower")]
+        [InlineData("SELECT email FROM customers WHERE LOWER(email) = 'adam';", "lower", "email", null, "LOWER")]
+        public void ParseSummary_FunctionOnColumn_ReturnsExpectedOccurrence(string sql, string expectedFunctionName, string expectedColumnName, string? expectedQualifier, string sourceFunctionName)
+        {
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var occurrence = Assert.Single(statement.FunctionOnColumnOccurrences);
+
+            Assert.Equal(expectedFunctionName, occurrence.FunctionName);
+            Assert.Equal(expectedColumnName, occurrence.ColumnName);
+            Assert.Equal(expectedQualifier, occurrence.Qualifier);
+
+            Assert.False(string.IsNullOrWhiteSpace(occurrence.Location));
+
+            int expectedOffset = sql.IndexOf(sourceFunctionName, StringComparison.Ordinal);
+
+            Assert.Equal((int?)expectedOffset, occurrence.SourceOffset);
+        }
+
+        [Fact]
+        public void ParseSummary_FunctionInJoinOn_ReturnsOccurrence()
+        {
+            string sql ="SELECT a.email FROM customers a JOIN customers b ON lower(a.email) = b.email;";
+
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var occurrence = Assert.Single(statement.FunctionOnColumnOccurrences);
+
+            Assert.Equal("lower", occurrence.FunctionName);
+            Assert.Equal("email", occurrence.ColumnName);
+            Assert.Equal("a", occurrence.Qualifier);
+
+            int expectedOffset = sql.IndexOf("lower", StringComparison.Ordinal);
+
+            Assert.Equal((int?)expectedOffset, occurrence.SourceOffset);
+        }
+
+        [Theory]
+        [InlineData("SELECT email FROM customers;")]
+        [InlineData("SELECT lower(email) FROM customers;")]
+        [InlineData("SELECT email FROM customers ORDER BY lower(email);")]
+        [InlineData("SELECT lower(email) FROM customers GROUP BY lower(email);")]
+        [InlineData("SELECT email FROM customers GROUP BY email HAVING lower(email) = 'adam';")]
+        [InlineData("SELECT email FROM customers WHERE lower('ADAM') = email;")]
+        [InlineData("SELECT email FROM customers WHERE lower($1) = email;")]
+        [InlineData("SELECT email FROM customers WHERE lower(NULL) = email;")]
+        [InlineData("SELECT email FROM customers WHERE length(email) > 5;")]
+        [InlineData("SELECT email FROM customers WHERE custom.lower(email) = 'adam';")]
+        [InlineData("SELECT email FROM customers WHERE lower(email || '.hu') = 'adam.hu';")]
+        [InlineData("SELECT email FROM customers WHERE lower(trim(email)) = 'adam';")]
+        public void ParseSummary_UnsupportedFunctionOnColumn_ReturnsNoOccurrences(string sql)
+        {
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+
+            Assert.Empty(statement.FunctionOnColumnOccurrences);
+        }
+
+        [Fact]
+        public void ParseSummary_SupportedInnerFunction_ReturnsOccurrence()
+        {
+            string sql = "SELECT email FROM customers WHERE trim(lower(email)) = 'adam';";
+
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var occurrence = Assert.Single(statement.FunctionOnColumnOccurrences);
+
+            Assert.Equal("lower", occurrence.FunctionName);
+            Assert.Equal("email", occurrence.ColumnName);
+
+            int expectedOffset = sql.IndexOf("lower", StringComparison.Ordinal);
+
+            Assert.Equal((int?)expectedOffset, occurrence.SourceOffset);
+        }
+
+        [Fact]
+        public void ParseSummary_FunctionInInnerSelectList_ReturnsNoOccurrences()
+        {
+            string sql ="SELECT customer_id FROM customers WHERE EXISTS (SELECT lower(reference) FROM orders);";
+
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+
+            Assert.Empty(statement.FunctionOnColumnOccurrences);
+        }
+
+        [Fact]
+        public void ParseSummary_FunctionInInnerWhere_ReturnsOccurrence()
+        {
+            string sql = "SELECT EXISTS (SELECT 1 FROM customers c WHERE lower(c.email) = 'adam');";
+
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var occurrence = Assert.Single(statement.FunctionOnColumnOccurrences);
+
+            Assert.Equal("lower", occurrence.FunctionName);
+            Assert.Equal("email", occurrence.ColumnName);
+            Assert.Equal("c", occurrence.Qualifier);
+
+            int expectedOffset = sql.IndexOf("lower", StringComparison.Ordinal);
+
+            Assert.Equal((int?)expectedOffset, occurrence.SourceOffset);
+        }
+
+        [Fact]
+        public void ParseSummary_MultipleFunctions_CollectsEveryOccurrence()
+        {
+            string sql = "SELECT email FROM customers WHERE lower(email) = 'adam' AND upper(name) = 'ADAM';";
+
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+
+            Assert.Equal(2, statement.FunctionOnColumnOccurrences.Count);
+
+            var lower = Assert.Single(statement.FunctionOnColumnOccurrences.Where(x => x.FunctionName == "lower"));
+
+            Assert.Equal("email", lower.ColumnName);
+
+            var upper = Assert.Single(statement.FunctionOnColumnOccurrences.Where(x => x.FunctionName == "upper"));
+
+            Assert.Equal("name", upper.ColumnName);
+        }
+
+        [Fact]
+        public void ParseSummary_MultipleStatements_KeepsFunctionsInOwnStatements()
+        {
+            string sql = "SELECT email FROM customers WHERE lower(email) = 'adam'; SELECT name FROM customers WHERE upper(name) = 'EVA';";
+
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            Assert.Collection(summary.Statements,
+                first =>
+                {
+                    Assert.Equal(1, first.StatementIndex);
+
+                    var occurrence =
+                        Assert.Single(first.FunctionOnColumnOccurrences);
+
+                    Assert.Equal("lower", occurrence.FunctionName);
+                    Assert.Equal("email", occurrence.ColumnName);
+                },
+                second =>
+                {
+                    Assert.Equal(2, second.StatementIndex);
+
+                    var occurrence =
+                        Assert.Single(second.FunctionOnColumnOccurrences);
+
+                    Assert.Equal("upper", occurrence.FunctionName);
+                    Assert.Equal("name", occurrence.ColumnName);
+
+                    int expectedOffset =
+                        sql.IndexOf("upper", StringComparison.Ordinal);
+
+                    Assert.Equal((int?)expectedOffset, occurrence.SourceOffset);
+                }
+            );
+        }
+
+        [Theory]
+        [InlineData("SELECT customer_id FROM customers WHERE customer_id::text = '123';", "customer_id", null, "text", "::")]
+        [InlineData("SELECT customer_id FROM customers WHERE CAST(customer_id AS text) = '123';", "customer_id", null, "text", "CAST")]
+        [InlineData("SELECT c.customer_id FROM customers c WHERE c.customer_id::text = '123';", "customer_id", "c", "text", "::")]
+        [InlineData("SELECT customer_id FROM public.customers WHERE public.customers.customer_id::text = '123';", "customer_id", "public.customers", "text", "::")]
+        [InlineData("SELECT customer_id FROM customers WHERE '123' = customer_id::text;", "customer_id", null, "text", "::")]
+        public void ParseSummary_CastOnColumn_ReturnsExpectedOccurrence(string sql, string expectedColumnName, string? expectedQualifier, string expectedTypeName, string sourceMarker)
+        {
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var occurrence = Assert.Single(statement.CastOnColumnOccurrences);
+
+            Assert.Equal(expectedColumnName, occurrence.ColumnName);
+            Assert.Equal(expectedQualifier, occurrence.Qualifier);
+            Assert.Equal(expectedTypeName, occurrence.TargetTypeName);
+
+            Assert.False(string.IsNullOrWhiteSpace(occurrence.Location));
+
+            int expectedOffset = sql.IndexOf(sourceMarker, StringComparison.Ordinal);
+
+            Assert.Equal((int?)expectedOffset, occurrence.SourceOffset);
+        }
+
+        [Fact]
+        public void ParseSummary_CastToInteger_ReturnsParserTypeName()
+        {
+            string sql = "SELECT code FROM customers WHERE CAST(code AS integer) = 123;";
+
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var occurrence = Assert.Single(statement.CastOnColumnOccurrences);
+
+            Assert.Equal("code", occurrence.ColumnName);
+            Assert.Equal("pg_catalog.int4", occurrence.TargetTypeName);
+        }
+
+        [Fact]
+        public void ParseSummary_CastInJoinOn_ReturnsOccurrence()
+        {
+            string sql = "SELECT c.customer_id FROM customers c JOIN orders o ON c.customer_id::text = o.customer_code;";
+
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var occurrence = Assert.Single(statement.CastOnColumnOccurrences);
+
+            Assert.Equal("customer_id", occurrence.ColumnName);
+            Assert.Equal("c", occurrence.Qualifier);
+            Assert.Equal("text", occurrence.TargetTypeName);
+        }
+
+        [Theory]
+        [InlineData("SELECT customer_id FROM customers;")]
+        [InlineData("SELECT customer_id::text FROM customers;")]
+        [InlineData("SELECT customer_id FROM customers ORDER BY customer_id::text;")]
+        [InlineData("SELECT customer_id FROM customers WHERE customer_id = CAST('123' AS integer);")]
+        [InlineData("SELECT customer_id FROM customers WHERE customer_id = CAST($1 AS integer);")]
+        [InlineData("SELECT customer_id FROM customers WHERE customer_id = CAST(NULL AS integer);")]
+        [InlineData("SELECT customer_id FROM customers WHERE (customer_id + 1)::text = '123';")]
+        [InlineData("SELECT email FROM customers WHERE lower(email)::text = 'adam';")]
+        [InlineData("SELECT customer_id FROM customers GROUP BY customer_id HAVING customer_id::text = '123';")]
+        public void ParseSummary_UnsupportedCast_ReturnsNoOccurrences(string sql)
+        {
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+
+            Assert.Empty(statement.CastOnColumnOccurrences);
+        }
+
+        [Fact]
+        public void ParseSummary_CastInInnerSelectList_ReturnsNoOccurrences()
+        {
+            string sql = "SELECT customer_id FROM customers WHERE EXISTS (SELECT customer_id::text FROM orders);";
+
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+
+            Assert.Empty(statement.CastOnColumnOccurrences);
+        }
+
+        [Theory]
+        [InlineData("c.total_amount + 100", "+", 100L, true)]
+        [InlineData("c.total_amount - 100", "-", 100L, true)]
+        [InlineData("2 * c.total_amount", "*", 2L, false)]
+        [InlineData("c.total_amount / 2", "/", 2L, true)]
+        [InlineData("100 / c.total_amount", "/", 100L, false)]
+        public void ParseSummary_ArithmeticOnColumn_ReturnsExpectedOccurrence(string expression, string expectedOperator, long expectedConstant, bool expectedColumnOnLeft)
+        {
+            string sql = $"SELECT c.order_id FROM orders c WHERE {expression} > 10;";
+
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var occurrence = Assert.Single(statement.ArithmeticOnColumnOccurrences);
+
+            Assert.Equal("total_amount", occurrence.ColumnName);
+            Assert.Equal("c", occurrence.Qualifier);
+            Assert.Equal(expectedOperator, occurrence.Operator);
+            Assert.Equal(expectedConstant, occurrence.ConstantValue);
+            Assert.Equal(expectedColumnOnLeft, occurrence.IsColumnOnLeft);
+
+            int expectedOffset = sql.IndexOf(expectedOperator, StringComparison.Ordinal);
+
+            Assert.Equal((int?)expectedOffset, occurrence.SourceOffset);
+            Assert.False(string.IsNullOrWhiteSpace(occurrence.Location));
+        }
+
+        [Fact]
+        public void ParseSummary_ArithmeticInJoinOn_ReturnsOccurrence()
+        {
+            string sql = "SELECT a.order_id FROM orders a JOIN orders b ON a.total_amount + 100 = b.total_amount;";
+
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var occurrence = Assert.Single(statement.ArithmeticOnColumnOccurrences);
+
+            Assert.Equal("total_amount", occurrence.ColumnName);
+            Assert.Equal("a", occurrence.Qualifier);
+            Assert.Equal("+", occurrence.Operator);
+            Assert.Equal(100L, occurrence.ConstantValue);
+            Assert.True(occurrence.IsColumnOnLeft);
+        }
+
+        [Theory]
+        [InlineData("SELECT total_amount + 100 FROM orders;")]
+        [InlineData("SELECT order_id FROM orders WHERE total_amount > 1000 - 100;")]
+        [InlineData("SELECT order_id FROM orders WHERE total_amount + $1 > 1000;")]
+        [InlineData("SELECT order_id FROM orders WHERE total_amount + tax > 1000;")]
+        [InlineData("SELECT order_id FROM orders WHERE total_amount + 1.5 > 1000;")]
+        [InlineData("SELECT order_id FROM orders WHERE total_amount % 2 = 0;")]
+        public void ParseSummary_UnsupportedArithmetic_ReturnsNoOccurrences(string sql)
+        {
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+
+            Assert.Empty(statement.ArithmeticOnColumnOccurrences);
+        }
+
+        [Theory]
+        [InlineData("SELECT customer_id FROM customers WHERE customer_id NOT IN (SELECT customer_id FROM orders);", null)]
+        [InlineData("SELECT c.customer_id FROM customers c WHERE c.customer_id NOT IN (SELECT customer_id FROM orders);", "c")]
+        public void ParseSummary_NotInSubquery_ReturnsExpectedOccurrence(string sql, string? expectedQualifier)
+        {
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var occurrence = Assert.Single(statement.NotInSubqueryOccurrences);
+
+            Assert.Equal("customer_id", occurrence.ColumnName);
+            Assert.Equal(expectedQualifier, occurrence.Qualifier);
+
+            Assert.False(string.IsNullOrWhiteSpace(occurrence.Location));
+
+            int expectedOffset = sql.IndexOf("NOT IN", StringComparison.Ordinal);
+
+            Assert.Equal((int?)expectedOffset, occurrence.SourceOffset);
+        }
+
+        [Theory]
+        [InlineData("SELECT c.customer_id FROM customers c JOIN orders o ON c.customer_id NOT IN (SELECT customer_id FROM blocked_customers);")]
+        [InlineData("SELECT c.customer_id FROM customers c WHERE c.customer_id NOT IN (SELECT customer_id FROM orders WHERE customer_id IS NOT NULL);")]
+        public void ParseSummary_NotInSupportedContext_ReturnsOccurrence(string sql)
+        {
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var occurrence = Assert.Single(statement.NotInSubqueryOccurrences);
+
+            Assert.Equal("customer_id", occurrence.ColumnName);
+            Assert.Equal("c", occurrence.Qualifier);
+        }
+
+        [Theory]
+        [InlineData("SELECT customer_id FROM customers WHERE customer_id IN (SELECT customer_id FROM orders);")]
+        [InlineData("SELECT customer_id FROM customers WHERE NOT (customer_id > ANY (SELECT customer_id FROM orders));")]
+        [InlineData("SELECT customer_id FROM customers WHERE customer_id NOT IN (1, 2, 3);")]
+        [InlineData("SELECT customer_id NOT IN (SELECT customer_id FROM orders) FROM customers;")]
+        [InlineData("SELECT customer_id FROM customers WHERE (customer_id + 1) NOT IN (SELECT customer_id FROM orders);")]
+        public void ParseSummary_UnsupportedNotIn_ReturnsNoOccurrences(string sql)
+        {
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+
+            Assert.Empty(statement.NotInSubqueryOccurrences);
         }
     }      
 }
