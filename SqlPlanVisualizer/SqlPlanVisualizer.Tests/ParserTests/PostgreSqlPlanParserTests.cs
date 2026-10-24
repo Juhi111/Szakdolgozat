@@ -1,6 +1,7 @@
 ﻿using Xunit;
 using SqlPlanVisualizer.Infrastructure.PostgreSql;
 using System.Text.Json;
+using SqlPlanVisualizer.Infrastructure.PostgreSql.Parsers;
 
 namespace SqlPlanVisualizer.Tests.ParserTests
 {

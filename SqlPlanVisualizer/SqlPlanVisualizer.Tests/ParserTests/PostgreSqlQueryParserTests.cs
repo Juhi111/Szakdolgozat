@@ -1,4 +1,4 @@
-﻿using SqlPlanVisualizer.Infrastructure.PostgreSql;
+﻿using SqlPlanVisualizer.Infrastructure.PostgreSql.Parsers;
 using Xunit;
 
 namespace SqlPlanVisualizer.Tests.ParserTests

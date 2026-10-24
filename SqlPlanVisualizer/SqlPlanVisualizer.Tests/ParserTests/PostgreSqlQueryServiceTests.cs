@@ -599,5 +599,267 @@ namespace SqlPlanVisualizer.Tests.ParserTests
 
             Assert.Equal(expectedHasJoin, occurrence.HasJoin);
         }
+
+        [Theory]
+        [InlineData("SELECT id FROM orders WHERE cancelled_at = NULL;", 1)]
+        [InlineData("SELECT id FROM orders WHERE NULL = cancelled_at;", 1)]
+        [InlineData("SELECT id FROM orders WHERE cancelled_at <> NULL;", 1)]
+        [InlineData("SELECT id FROM orders WHERE cancelled_at != NULL;", 1)]
+        [InlineData("SELECT id FROM orders WHERE cancelled_at IS NULL;", 0)]
+        [InlineData("SELECT id FROM orders WHERE cancelled_at IS NOT NULL;", 0)]
+        [InlineData("SELECT id FROM orders WHERE cancelled_at IS DISTINCT FROM NULL;", 0)]
+        [InlineData("SELECT id FROM orders WHERE cancelled_at IS NOT DISTINCT FROM NULL;", 0)]
+        [InlineData("SELECT id FROM orders WHERE status = 'NULL';", 0)]
+        [InlineData("SELECT id FROM orders WHERE customer_id = 10;", 0)]
+        public void ParseSummary_NullComparison_ReturnsExpectedCount(string sql, int expectedCount)
+        {
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+
+            Assert.Equal(expectedCount, statement.NullComparisons.Count);
+        }
+
+        [Theory]
+        [InlineData("SELECT order_id FROM orders LIMIT 20;", false)]
+        [InlineData("SELECT order_id FROM orders ORDER BY order_id LIMIT 20;", true)]
+        public void ParseSummary_PositiveLimit_ReturnsExpectedOccurrence(string sql, bool expectedHasOrderBy)
+        {
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var occurrence = Assert.Single(statement.LimitOccurrences);
+
+            Assert.Equal(20L, occurrence.RowLimit);
+            Assert.Equal(expectedHasOrderBy, occurrence.HasOrderBy);
+            Assert.Equal("select_stmt", occurrence.Location);
+
+            int expectedOffset = sql.IndexOf("20", StringComparison.Ordinal);
+            Assert.Equal((int?)expectedOffset, occurrence.SourceOffset);
+        }
+
+        [Theory]
+        [InlineData("SELECT order_id FROM orders;")]
+        [InlineData("SELECT order_id FROM orders LIMIT 0;")]
+        [InlineData("SELECT order_id FROM orders LIMIT ALL;")]
+        [InlineData("SELECT order_id FROM orders LIMIT NULL;")]
+        [InlineData("SELECT order_id FROM orders LIMIT $1;")]
+        [InlineData("SELECT order_id FROM orders LIMIT (10 + 10);")]
+        [InlineData("SELECT q.order_id FROM (SELECT order_id FROM orders LIMIT 20) q;")]
+        public void ParseSummary_UnsupportedOrAbsentLimit_ReturnsNoOccurrences(string sql)
+        {
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+
+            Assert.Empty(statement.LimitOccurrences);
+        }
+
+        [Theory]
+        [InlineData("SELECT email FROM customers WHERE email LIKE 'adam';", "adam", false, false, false)]
+        [InlineData("SELECT email FROM customers WHERE email LIKE '%adam%';", "%adam%", false, true, true)]
+        [InlineData(   "SELECT email FROM customers WHERE email ILIKE '%adam%';","%adam%", true, true, true)]
+        [InlineData("SELECT email FROM customers WHERE email LIKE 'adam%';", "adam%", false, true, false)]
+        [InlineData("SELECT email FROM customers WHERE email LIKE '_adam';", "_adam", false, true, true)]
+        [InlineData("SELECT email FROM customers WHERE email LIKE 'ad_m';","ad_m", false, true, false)]
+        [InlineData("SELECT email FROM customers WHERE email LIKE '!%adam' ESCAPE '!';", "!%adam", false, false, false)]
+        [InlineData("SELECT email FROM customers WHERE email LIKE 'adam!_%' ESCAPE '!';", "adam!_%", false, true, false)]
+        [InlineData("SELECT email FROM customers WHERE email LIKE '!!%' ESCAPE '!';", "!!%", false, true, false)]
+        [InlineData("SELECT email FROM customers WHERE email LIKE '%adam' ESCAPE '';", "%adam", false, true, true)]
+        [InlineData("SELECT email FROM customers WHERE email LIKE '';", "", false, false, false)]
+        public void ParseSummary_LikePattern_ReturnsExpectedOccurrence(string sql, string expectedPattern, bool expectedCaseInsensitive, bool expectedHasWildcard, bool expectedHasLeadingWildcard)
+        {
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var occurrence = Assert.Single(statement.LikeOccurrences);
+
+            Assert.Equal(expectedPattern, occurrence.Pattern);
+            Assert.Equal(expectedCaseInsensitive, occurrence.IsCaseInsensitive);
+            Assert.Equal(expectedHasWildcard, occurrence.HasWildcard);
+            Assert.Equal(expectedHasLeadingWildcard, occurrence.HasLeadingWildcard);
+
+            Assert.False(string.IsNullOrWhiteSpace(occurrence.Location));
+            
+            string keyword = expectedCaseInsensitive ? "ILIKE" : "LIKE";
+            int expectedOffset = sql.IndexOf(keyword, StringComparison.Ordinal);
+
+            Assert.Equal((int?)expectedOffset, occurrence.SourceOffset);
+        }
+
+        [Theory]
+        [InlineData("SELECT email FROM customers WHERE email LIKE E'\\\\%adam';", false)]
+        [InlineData("SELECT email FROM customers WHERE email LIKE E'\\\\%adam' ESCAPE '';", true)]
+        public void ParseSummary_BackslashEscape_ReturnsExpectedWildcard(string sql, bool expectedHasWildcard)
+        {
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var occurrence = Assert.Single(statement.LikeOccurrences);
+
+            Assert.Equal("\\%adam", occurrence.Pattern);
+            Assert.Equal(expectedHasWildcard, occurrence.HasWildcard);
+
+            
+            Assert.False(occurrence.HasLeadingWildcard);
+        }
+
+        [Theory]
+        [InlineData("SELECT email FROM customers WHERE email LIKE '%adam%';")]
+        [InlineData("SELECT a.email FROM customers a JOIN customers b ON a.email LIKE '%adam%';")]
+        [InlineData("SELECT email FROM customers WHERE email IS NOT NULL AND (email LIKE '%adam%');")]
+        public void ParseSummary_LikeInSupportedClause_ReturnsOccurrence(string sql)
+        {
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var occurrence = Assert.Single(statement.LikeOccurrences);
+
+            Assert.Equal("%adam%", occurrence.Pattern);
+            Assert.True(occurrence.HasLeadingWildcard);
+        }
+
+        [Theory]
+        [InlineData( "SELECT email FROM customers;")]
+        [InlineData("SELECT email FROM customers WHERE email NOT LIKE '%adam%';")]
+        [InlineData("SELECT email FROM customers WHERE email NOT ILIKE '%adam%';")]
+        [InlineData("SELECT email FROM customers WHERE email LIKE $1;")]
+        [InlineData("SELECT email FROM customers WHERE email LIKE NULL;")]
+        [InlineData("SELECT email FROM customers WHERE email LIKE ('ad' || 'am');")]
+        [InlineData("SELECT email FROM customers WHERE email LIKE 'adam' ESCAPE $1;")]
+        [InlineData("SELECT email LIKE '%adam%' FROM customers;")]
+        [InlineData("SELECT email FROM customers ORDER BY email LIKE '%adam%';")]
+        [InlineData("SELECT email FROM customers GROUP BY email HAVING email LIKE '%adam%';")]
+        public void ParseSummary_UnsupportedLike_ReturnsNoOccurrences(string sql)
+        {
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+
+            Assert.Empty(statement.LikeOccurrences);
+        }
+
+        [Fact]
+        public void ParseSummary_LikeInInnerSelectList_ReturnsNoOccurrences()
+        {
+            string sql ="SELECT customer_id FROM customers WHERE EXISTS (SELECT email LIKE '%adam%' FROM orders);";
+
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+
+            Assert.Empty(statement.LikeOccurrences);
+        }
+
+        [Fact]
+        public void ParseSummary_LikeInInnerWhere_ReturnsOccurrence()
+        {
+            string sql ="SELECT (SELECT email FROM customers WHERE email LIKE '%adam%' LIMIT 1);";
+
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+            var occurrence = Assert.Single(statement.LikeOccurrences);
+
+            Assert.Equal("%adam%", occurrence.Pattern);
+            Assert.True(occurrence.HasLeadingWildcard);
+
+            int expectedOffset = sql.IndexOf("LIKE", StringComparison.Ordinal);
+
+            Assert.Equal((int?)expectedOffset, occurrence.SourceOffset);
+        }
+
+        [Fact]
+        public void ParseSummary_MultipleLikes_CollectsEveryOccurrence()
+        {
+            string sql ="SELECT email FROM customers WHERE email LIKE 'adam' OR email ILIKE '%eva%';";
+
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+
+            Assert.Equal(2, statement.LikeOccurrences.Count);
+
+            
+            var exact = Assert.Single(statement.LikeOccurrences.Where(x => x.Pattern == "adam"));
+
+            Assert.False(exact.IsCaseInsensitive);
+            Assert.False(exact.HasWildcard);
+            Assert.False(exact.HasLeadingWildcard);
+
+            var leading = Assert.Single(statement.LikeOccurrences.Where(x => x.Pattern == "%eva%"));
+
+            Assert.True(leading.IsCaseInsensitive);
+            Assert.True(leading.HasWildcard);
+            Assert.True(leading.HasLeadingWildcard);
+        }
+
+        [Fact]
+        public void ParseSummary_MultipleStatements_KeepsLikesInOwnStatements()
+        {
+            string sql ="SELECT email FROM customers WHERE email LIKE 'adam'; SELECT email FROM customers WHERE email ILIKE '%eva%';";
+
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            Assert.Collection(summary.Statements, first =>
+                {
+                    Assert.Equal(1, first.StatementIndex);
+                    var occurrence = Assert.Single(first.LikeOccurrences);
+                    Assert.Equal("adam", occurrence.Pattern);
+                    Assert.False(occurrence.IsCaseInsensitive);
+                    Assert.False(occurrence.HasWildcard);
+                },
+                second =>
+                {
+                    Assert.Equal(2, second.StatementIndex);
+
+                    var occurrence = Assert.Single(second.LikeOccurrences);
+
+                    Assert.Equal("%eva%", occurrence.Pattern);
+                    Assert.True(occurrence.IsCaseInsensitive);
+                    Assert.True(occurrence.HasLeadingWildcard);
+
+                    int expectedOffset = sql.IndexOf("ILIKE", StringComparison.Ordinal);
+
+                    Assert.Equal((int?)expectedOffset, occurrence.SourceOffset);
+                }
+            );
+        }
+
+        [Theory]
+        [InlineData("SELECT email FROM customers WHERE email LIKE 'adam' ESCAPE '!!';")]
+        [InlineData("SELECT email FROM customers WHERE email LIKE 'adam!' ESCAPE '!';")]
+        public void ParseSummary_InvalidLikeEscape_ReturnsNoOccurrences(string sql)
+        {
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess, summary.ErrorMessage);
+
+            var statement = Assert.Single(summary.Statements);
+
+            Assert.Empty(statement.LikeOccurrences);
+        }
     }      
 }

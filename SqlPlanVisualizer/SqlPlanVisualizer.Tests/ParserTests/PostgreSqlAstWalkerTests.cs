@@ -1,4 +1,6 @@
 ﻿using SqlPlanVisualizer.Infrastructure.PostgreSql;
+using SqlPlanVisualizer.Infrastructure.PostgreSql.Ast;
+using SqlPlanVisualizer.Infrastructure.PostgreSql.Parsers;
 using System;
 using System.Collections.Generic;
 using System.Linq;

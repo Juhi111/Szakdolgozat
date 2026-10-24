@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SqlPlanVisualizer.Desktop")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0af22a2b5d0ea4bded713d68488eab57c9f00329")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fc55b9da1925d4455d7f21ad8e478d081578541a")]
 [assembly: System.Reflection.AssemblyProductAttribute("SqlPlanVisualizer.Desktop")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SqlPlanVisualizer.Desktop")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

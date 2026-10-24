@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SqlPlanVisualizer.Core.Models
+﻿namespace SqlPlanVisualizer.Core.Models
 {
     public class SqlAnalysisFinding
     {

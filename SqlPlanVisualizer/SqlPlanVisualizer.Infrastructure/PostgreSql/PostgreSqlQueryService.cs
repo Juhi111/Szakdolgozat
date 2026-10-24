@@ -1,4 +1,7 @@
 ﻿using SqlPlanVisualizer.Core.Models;
+using SqlPlanVisualizer.Infrastructure.PostgreSql.Ast;
+using SqlPlanVisualizer.Infrastructure.PostgreSql.Collectors;
+using SqlPlanVisualizer.Infrastructure.PostgreSql.Parsers;
 
 namespace SqlPlanVisualizer.Infrastructure.PostgreSql
 {
@@ -10,7 +13,10 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
         private readonly List<ISqlAstCollector> _collectors = new()
         {
             new WildcardProjectionCollector(),
-            new DistinctCollector()
+            new DistinctCollector(),
+            new NullComparisonCollector(),
+            new LimitCollector(),
+            new LikeCollector()
         };
 
         public SqlParseSummary ParseSummary(string sql)

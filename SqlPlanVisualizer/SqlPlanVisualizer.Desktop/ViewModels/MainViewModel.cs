@@ -1,4 +1,5 @@
 ﻿using SqlPlanVisualizer.Core.Analysis;
+using SqlPlanVisualizer.Core.Analysis.Rules;
 using SqlPlanVisualizer.Core.Interfaces;
 using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Desktop.Commands;
@@ -6,6 +7,7 @@ using SqlPlanVisualizer.Desktop.Services;
 using SqlPlanVisualizer.Infrastructure.FileSystem;
 using SqlPlanVisualizer.Infrastructure.PostgreSql;
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Dtos;
+using SqlPlanVisualizer.Infrastructure.PostgreSql.Parsers;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
@@ -54,7 +56,16 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         // ObservableCollection a log üzenetekhez
         public ObservableCollection<string> Messages { get; } = new ObservableCollection<string>();
 
-        private readonly SqlAnalysisService _analysisService = new(new ISqlAnalysisRule[]{new SelectStarRule(), new DistinctRule()});
+        private readonly SqlAnalysisService _analysisService = new(
+            new ISqlAnalysisRule[]
+            {
+                new SelectStarRule(),
+                new DistinctRule(),
+                new NullComparisonRule(),
+                new LimitWithoutOrderRule(),
+                new LikeWithoutWildcardRule(),
+                new LeadingWildcardSearchRule()
+            });
         public ObservableCollection<SqlAnalysisFinding> Suggestions { get; } = new();
 
         public MainViewModel()

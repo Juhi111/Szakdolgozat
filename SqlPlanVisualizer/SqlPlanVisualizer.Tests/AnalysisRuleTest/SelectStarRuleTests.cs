@@ -1,6 +1,8 @@
 ﻿using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Core.Analysis;
 using Xunit;
+using SqlPlanVisualizer.Core.Models.Occurences;
+using SqlPlanVisualizer.Core.Analysis.Rules;
 
 namespace SqlPlanVisualizer.Tests.AnalysisRuleTest
 {

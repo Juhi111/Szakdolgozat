@@ -1,5 +1,7 @@
 ﻿using SqlPlanVisualizer.Core.Analysis;
+using SqlPlanVisualizer.Core.Analysis.Rules;
 using SqlPlanVisualizer.Core.Models;
+using SqlPlanVisualizer.Core.Models.Occurences;
 using System;
 using System.Collections.Generic;
 using System.Linq;
