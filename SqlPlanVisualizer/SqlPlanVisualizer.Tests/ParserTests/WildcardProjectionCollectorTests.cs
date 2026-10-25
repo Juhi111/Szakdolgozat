@@ -3,7 +3,6 @@ using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Core.Models.Occurences;
 using SqlPlanVisualizer.Infrastructure.PostgreSql;
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Ast;
-using SqlPlanVisualizer.Infrastructure.PostgreSql.Collectors;
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Parsers;
 using Xunit;
 

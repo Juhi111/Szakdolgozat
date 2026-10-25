@@ -11,5 +11,7 @@
         public string Location { get; set; } = string.Empty;
 
         public int? SourceOffset { get; set; }
+        public bool IsDateCast { get; set; }
+        public bool IsTextCast { get; set; }
     }
 }

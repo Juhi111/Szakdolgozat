@@ -37,8 +37,10 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
                     ColumnName = columnName,
                     Qualifier = qualifier,
                     TargetTypeName = targetTypeName,
+                    IsDateCast = (targetTypeName == "date" || targetTypeName == "pg_catalog.date") && typeCast.TypeName.ArrayBounds.Count == 0 && !typeCast.TypeName.PctType && !typeCast.TypeName.Setof,
                     Location = pathFormatter.Format(context),
-                    SourceOffset = typeCast.Location >= 0 ? typeCast.Location : null
+                    SourceOffset = typeCast.Location >= 0 ? typeCast.Location : null,
+                    IsTextCast = (targetTypeName == "text" || targetTypeName == "pg_catalog.text") && typeCast.TypeName.ArrayBounds.Count == 0 && !typeCast.TypeName.PctType && !typeCast.TypeName.Setof,
                 }
             );
         }       

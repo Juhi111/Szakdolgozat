@@ -68,7 +68,21 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 new FunctionOnColumnRule(),
                 new CastOnColumnRule(),
                 new ArithmeticOnColumnRule(),
-                new NotInSubqueryRule()
+                new NotInSubqueryRule(),                
+                new DateCastInPredicateRule(),
+                new YearExtractionInPredicateRule(),
+                new ConcatenationInPredicateRule(),
+                new TextCastInPredicateRule(),
+                new OptionalParameterFilterRule(),
+                new CaseInPredicateRule(),
+                new NotInWithNullLiteralRule(),
+                new CountForExistenceRule(),
+                new RowFilterInHavingRule(),
+                new PossibleCartesianProductRule(),
+                new LargeOffsetRule(threshold: 10000),
+                new UnionDeduplicationRule(),
+                new NaturalJoinUsageRule(),
+                new RandomOrderingRule()
             });
         public ObservableCollection<SqlAnalysisFinding> Suggestions { get; } = new();
 

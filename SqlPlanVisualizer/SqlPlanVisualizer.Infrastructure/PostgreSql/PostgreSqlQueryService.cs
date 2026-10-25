@@ -20,7 +20,19 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
             new FunctionOnColumnCollector(),
             new CastOnColumnCollector(),
             new ArithmeticOnColumnCollector(),
-            new NotInSubqueryCollector()
+            new NotInSubqueryCollector(),
+            new YearExtractionCollector(),
+            new ConcatenationCollector(),
+            new OptionalParameterFilterCollector(),
+            new CaseInPredicateCollector(),
+            new NotInWithNullLiteralCollector(),
+            new CountForExistenceCollector(),
+            new RowFilterInHavingCollector(),
+            new PossibleCartesianProductCollector(),
+            new OffsetCollector(),
+            new UnionDeduplicationCollector(),
+            new NaturalJoinCollector(),
+            new RandomOrderingCollector()
         };
 
         public SqlParseSummary ParseSummary(string sql)

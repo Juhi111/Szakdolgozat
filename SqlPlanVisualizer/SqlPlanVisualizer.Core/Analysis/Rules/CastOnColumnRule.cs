@@ -14,6 +14,9 @@ namespace SqlPlanVisualizer.Core.Analysis
 
             foreach (var occurrence in statement.CastOnColumnOccurrences)
             {
+                if (occurrence.IsDateCast || occurrence.IsTextCast)
+                    continue;
+
                 string columnReference =
                     string.IsNullOrEmpty(occurrence.Qualifier)
                         ? occurrence.ColumnName

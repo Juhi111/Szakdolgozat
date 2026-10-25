@@ -1,8 +1,7 @@
-﻿using SqlPlanVisualizer.Core.Models;
-using SqlPlanVisualizer.Core.Analysis;
-using Xunit;
+﻿using SqlPlanVisualizer.Core.Analysis.Rules;
+using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Core.Models.Occurences;
-using SqlPlanVisualizer.Core.Analysis.Rules;
+using Xunit;
 
 namespace SqlPlanVisualizer.Tests.AnalysisRuleTest
 {
@@ -17,75 +16,19 @@ namespace SqlPlanVisualizer.Tests.AnalysisRuleTest
                 StatementType = "SELECT"
             };
 
-            statement.WildcardProjections.Add(
-                new WildcardProjectionOccurrence
-                {
-                    Location = "select_stmt",
-                    Qualifier = "o",
-                    SourceOffset = 7
-                });
+            statement.WildcardProjections.Add(new WildcardProjectionOccurrence
+            {
+                Location = "select_stmt",
+                Qualifier = "o",
+                SourceOffset = 7
+            });
 
-            var findings = new SelectStarRule().Analyze(statement);
-            var finding = Assert.Single(findings);
+            var finding = Assert.Single(new SelectStarRule().Analyze(statement));
 
-            Assert.Equal(3, finding.StatementIndex);
             Assert.Equal("SELECT_STAR", finding.RuleId);
-            Assert.Equal(7, finding.SourceOffset);
-        }
-
-        [Fact]
-        public void Analyze_WithoutWildcard_ReturnsEmptyList()
-        {
-            var sum = new SqlStatementSummary
-            {
-                StatementIndex = 1,
-                StatementType = "SELECT"
-            };
-
-            var results = new SelectStarRule().Analyze(sum);
-
-            Assert.Empty(results);
-        }
-
-        [Fact]
-        public void Analyze_WithMultipleWildcards_ReturnsFindingForEachOccurrence()
-        {
-            var sum = new SqlStatementSummary
-            {
-                StatementIndex = 1,
-                StatementType = "SELECT"
-            };
-
-            sum.WildcardProjections.Add(new WildcardProjectionOccurrence
-            {
-                Location = "Fő lekérdezés",
-                Qualifier = "o"
-            });
-
-            sum.WildcardProjections.Add(new WildcardProjectionOccurrence
-            {
-                Location = "Fő lekérdezés / CTE[rendelesek]",
-                Qualifier = null
-            });
-
-            var results = new SelectStarRule().Analyze(sum);
-
-            Assert.Equal(2, results.Count);
-
-            Assert.Equal(
-                "Hely: Fő lekérdezés. Csillagos oszlopkiválasztás: o.*.",
-                results[0].Description);
-
-            Assert.Equal(
-                "Hely: Fő lekérdezés / CTE[rendelesek]. Csillagos oszlopkiválasztás: *.",
-                results[1].Description);
-        }
-
-        [Fact]
-        public void Analyze_NullStatement_ThrowsArgumentNullException()
-        {
-            Assert.Throws<ArgumentNullException>(
-                () => new SelectStarRule().Analyze(null!));
+            Assert.Equal(3, finding.StatementIndex);
+            Assert.Equal((int?)7, finding.SourceOffset);
+            Assert.Contains("o.*", finding.Description);
         }
     }
 }

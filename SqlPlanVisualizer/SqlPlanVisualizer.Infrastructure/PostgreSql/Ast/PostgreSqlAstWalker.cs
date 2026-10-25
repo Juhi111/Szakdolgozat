@@ -10,8 +10,8 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Ast
 
             if(visit == null || root == null)
                 throw new ArgumentNullException(visit == null ? nameof(visit) : nameof(root));
-
-            var context = new AstVisitContext(statementIndex, nodeType: root.GetType());
+            
+            var context = new AstVisitContext(statementIndex, node: root);
 
             Stack<AstVisitEntry> stack = new Stack<AstVisitEntry>();
 
@@ -51,17 +51,16 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Ast
 
                             if (item is IMessage child)
                             {
-
-                                var childContext = new AstVisitContext(parent.Context.StatementIndex, parent.Context, field.Name, itemIndex, child.GetType());
+                                var childContext = new AstVisitContext(parent.Context.StatementIndex, parent.Context, field.Name, itemIndex, node: child);
                                 children.Add(new AstVisitEntry(child, childContext));
                             }
                             itemIndex++;
                         }
                     }
                 }
-                else if(value is IMessage child){ 
+                else if(value is IMessage child){
 
-                    var childContext = new AstVisitContext(parent.Context.StatementIndex, parent.Context, field.Name, nodeType: child.GetType());
+                    var childContext = new AstVisitContext(parent.Context.StatementIndex, parent.Context, field.Name, node: child);
                     children.Add(new AstVisitEntry(child, childContext));
 
                 }

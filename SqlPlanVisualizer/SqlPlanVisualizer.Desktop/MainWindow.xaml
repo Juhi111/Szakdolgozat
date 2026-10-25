@@ -16,7 +16,7 @@
     <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="*"/>
-        <RowDefinition Height="180"/>
+        <RowDefinition Height="300" MinHeight="180"/>
         <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
     
@@ -233,7 +233,9 @@
                         SelectedItem="{Binding SelectedSuggestion, Mode=TwoWay}"
                         Margin="8"
                         ItemsSource="{Binding Suggestions}"
-                        ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto"
+                        ScrollViewer.CanContentScroll="False">
 
                         <ListView.ItemContainerStyle>
                             <Style TargetType="ListViewItem">
@@ -245,21 +247,22 @@
                             <DataTemplate>
                                 <StackPanel Margin="4,6">
                                     <TextBlock Text="{Binding Title}"
-                           FontWeight="SemiBold"
-                           FontSize="15"/>
+                                               FontWeight="SemiBold"
+                                               FontSize="15"
+                                               TextWrapping="Wrap"/>
 
                                     <TextBlock Text="{Binding StatementIndex,
-                                   StringFormat='Utasítás sorszáma: {0}'}"
-                           Foreground="Gray"
-                           Margin="0,4,0,0"/>
+                                                 StringFormat='Utasítás sorszáma: {0}'}"
+                                                 Foreground="Gray"
+                                                 Margin="0,4,0,0"/>
 
                                     <TextBlock Text="{Binding Description}"
-                           TextWrapping="Wrap"
-                           Margin="0,4,0,0"/>
+                                               TextWrapping="Wrap"
+                                               Margin="0,4,0,0"/>
 
                                     <TextBlock Text="{Binding Recommendation}"
-                           TextWrapping="Wrap"
-                           Margin="0,4,0,0"/>
+                                               TextWrapping="Wrap"
+                                               Margin="0,4,0,0"/>
                                 </StackPanel>
                             </DataTemplate>
                         </ListView.ItemTemplate>

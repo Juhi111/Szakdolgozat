@@ -16,5 +16,17 @@ namespace SqlPlanVisualizer.Core.Models
         public List<CastOnColumnOccurrence> CastOnColumnOccurrences { get; } = new();
         public List<ArithmeticOnColumnOccurrence> ArithmeticOnColumnOccurrences { get; } = new();
         public List<NotInSubqueryOccurrence> NotInSubqueryOccurrences { get; } = new();
+        public List<YearExtractionOccurrence> YearExtractionOccurrences { get; } = new();
+        public List<ConcatenationOccurrence> ConcatenationOccurrences { get; } = new();
+        public List<OptionalParameterFilterOccurrence> OptionalParameterFilters { get; } = new();
+        public List<CaseInPredicateOccurrence> CaseInPredicateOccurrences { get; } = new();
+        public List<NotInWithNullLiteralOccurrence> NotInWithNullLiterals { get; } = new();
+        public List<CountForExistenceOccurrence> CountForExistenceOccurrences { get; } = new();
+        public List<RowFilterInHavingOccurrence> RowFiltersInHaving { get; } = new();
+        public List<PossibleCartesianProductOccurrence> PossibleCartesianProducts { get; } = new();
+        public List<OffsetOccurrence> OffsetOccurrences { get; } = new();
+        public List<UnionDeduplicationOccurrence> UnionDeduplications { get; } = new();
+        public List<NaturalJoinOccurrence> NaturalJoins { get; } = new();
+        public List<RandomOrderingOccurrence> RandomOrderings { get; } = new();
     }
 }

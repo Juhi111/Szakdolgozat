@@ -27,8 +27,7 @@ namespace SqlPlanVisualizer.Tests.ParserTests
             {
                 if (entry.Node is FuncCall)
                 {
-                    actualClauses.Add(
-                        resolver.GetClause(entry.Context));
+                    actualClauses.Add(resolver.GetClause(entry.Context));
                 }
             });
 

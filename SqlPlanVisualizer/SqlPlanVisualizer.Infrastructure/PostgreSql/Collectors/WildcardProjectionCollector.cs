@@ -11,6 +11,9 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
 
         protected override void CollectNode(SelectStmt selectStatement, AstVisitContext context, SqlStatementSummary summary)
         {
+            if (IsDirectSimpleExistsQuery(selectStatement, context))
+                return;
+
             foreach (var target in selectStatement.TargetList)
             {
                 var columnRef = target.ResTarget?.Val?.ColumnRef;
@@ -25,26 +28,27 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
                     if (field.String != null)
                         qualifierParts.Add(field.String.Sval);
 
-                    if (field.AStar != null)
+                    if (field.AStar is null)
+                        continue;
+
+                    summary.WildcardProjections.Add(new WildcardProjectionOccurrence
                     {
-                        summary.WildcardProjections.Add(
-                            new WildcardProjectionOccurrence
-                            {
-                                Location = pathFormatter.Format(context),
+                        Location = pathFormatter.Format(context),
+                        Qualifier = qualifierParts.Count > 0 ? string.Join(".", qualifierParts) : null,
+                        SourceOffset = columnRef.Location >= 0 ? columnRef.Location : null
+                    });
 
-                                Qualifier = qualifierParts.Count > 0
-                                    ? string.Join(".", qualifierParts)
-                                    : null,
-
-                                SourceOffset = columnRef.Location >= 0
-                                    ? columnRef.Location
-                                    : null
-                            });
-
-                        break;
-                    }
+                    break;
                 }
             }
+        }
+
+        private static bool IsDirectSimpleExistsQuery(SelectStmt selectStatement, AstVisitContext context)
+        {
+            return selectStatement.Op == SetOperation.SetopNone
+                && context.Parent?.Parent?.Node is SubLink subLink
+                && subLink.SubLinkType == SubLinkType.ExistsSublink
+                && ReferenceEquals(subLink.Subselect?.SelectStmt, selectStatement);
         }
     }
 }
