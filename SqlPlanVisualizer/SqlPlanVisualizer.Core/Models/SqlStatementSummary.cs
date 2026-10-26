@@ -2,6 +2,11 @@
 
 namespace SqlPlanVisualizer.Core.Models
 {
+    /// <summary>
+    /// Egy SQL-utasítás sorszámát, típusát és az AST bejárásakor
+    /// a collectorok által összegyűjtött előfordulásokat tárolja.
+    /// Az elemzési szabályok ezek alapján állítják elő a javaslatokat.
+    /// </summary>
     public class SqlStatementSummary
     {
         public int StatementIndex { get; set; }

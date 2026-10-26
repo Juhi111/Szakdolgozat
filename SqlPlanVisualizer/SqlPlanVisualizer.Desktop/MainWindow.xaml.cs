@@ -3,10 +3,7 @@ using SqlPlanVisualizer.Desktop.ViewModels;
 using System.Windows;
 
 namespace SqlPlanVisualizer.Desktop
-{
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
+{    
     public partial class MainWindow : Window
     {
         public MainWindow()
@@ -35,6 +32,12 @@ namespace SqlPlanVisualizer.Desktop
             }
         }
 
+        /// <summary>
+        /// A kiválasztott javaslat forráspozíciója alapján kijelöli az érintett SQL-sort,
+        /// és odagörgeti a szövegmezőt. Hiányzó forráspozíció esetén megszünteti a kijelölést.
+        /// </summary>
+        /// <param name="sender">Az eseményt kiváltó vezérlő.</param>
+        /// <param name="e">A kijelölés változásának adatai.</param>
         private void SuggestionsListView_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e){
             if (SuggestionsListView.SelectedItem is not SqlAnalysisFinding finding)
             {

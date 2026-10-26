@@ -5,11 +5,25 @@ using SqlPlanVisualizer.Infrastructure.PostgreSql.Parsers;
 
 namespace SqlPlanVisualizer.Infrastructure.PostgreSql
 {
+    /// <summary>
+    /// Összehangolja az SQL feldolgozását, az AST bejárását
+    /// és az elemzési szabályokhoz szükséges előfordulások összegyűjtését.
+    /// </summary>
     public class PostgreSqlQueryService
     {
+        /// <summary>
+        /// Az SQL-szöveget absztrakt szintaxisfává alakító parser.
+        /// </summary>
         private readonly PostgreSqlQueryParser _parser = new();
+
+        /// <summary>
+        /// Az AST csomópontjainak és bejárási kontextusának előállítását végzi.
+        /// </summary>
         private readonly PostgreSqlAstWalker _walker = new();
 
+        /// <summary>
+        /// A bejárt csomópontokból az elemzéshez szükséges előfordulásokat gyűjtő komponensek.
+        /// </summary>
         private readonly List<ISqlAstCollector> _collectors = new()
         {
             new WildcardProjectionCollector(),
@@ -35,6 +49,14 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
             new RandomOrderingCollector()
         };
 
+        /// <summary>
+        /// Feldolgozza az SQL-szöveget, és utasításonként összefoglalót készít.
+        /// A gyökérszintű SELECT utasítások teljes részfáján futtatja a collectorokat;
+        /// más utasításoknál csak a sorszámot és a típust rögzíti.
+        /// Az üres bemenetet és a parser formátumhibáját hibaüzenetként adja vissza.
+        /// </summary>
+        /// <param name="sql">A feldolgozandó PostgreSQL SQL-szöveg.</param>
+        /// <returns>Az utasítások összefoglalóit vagy a feldolgozás hibaüzenetét tartalmazó eredmény.</returns>
         public SqlParseSummary ParseSummary(string sql)
         {
             if (string.IsNullOrWhiteSpace(sql))

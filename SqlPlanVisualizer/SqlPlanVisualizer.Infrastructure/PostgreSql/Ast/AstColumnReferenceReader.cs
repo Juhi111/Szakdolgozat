@@ -9,6 +9,16 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Ast
 {
     public static class AstColumnReferenceReader
     {
+        /// <summary>
+        /// Kiolvassa az oszlophivatkozás utolsó névelemét oszlopnévként,
+        /// az előtte álló elemeket pedig ponttal összefűzött minősítőként.
+        /// Csak szöveges névelemekből álló hivatkozást fogad el; csillagosat nem.
+        /// </summary>
+        /// <param name="column">A feldolgozandó oszlophivatkozás.</param>
+        /// <param name="columnName">Siker esetén az oszlop neve, egyébként üres szöveg.</param>
+        /// <param name="qualifier">Az oszlop minősítője, vagy null, ha nincs minősítő vagy sikertelen a kiolvasás.</param>
+        /// <returns>Igaz, ha az oszlophivatkozás sikeresen kiolvasható.</returns>
+        /// <exception cref="ArgumentNullException">Az oszlophivatkozás null.</exception>
         public static bool TryRead(ColumnRef column, out string columnName, out string? qualifier)
         {
             columnName = string.Empty;

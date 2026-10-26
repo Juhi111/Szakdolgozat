@@ -2,16 +2,27 @@
 
 namespace SqlPlanVisualizer.Desktop.Commands
 {
-
-    // Az AsyncRelayCommand osztály, amely implementálja az ICommand interfészt, és lehetővé teszi aszinkron műveletek végrehajtását
+    /// <summary>
+    /// Aszinkron műveletet futtató parancs, amely a végrehajtás idejére
+    /// letiltja saját újbóli indítását.
+    /// </summary>
     internal class AsyncRelayCommand : ICommand //Microsoft ajánlás https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/asyncrelaycommand
     {
-        // A művelet, amelyet a parancs végrehajt
+        /// <summary>
+        /// A parancs indításakor végrehajtandó aszinkron művelet.
+        /// </summary>
         private readonly Func<Task> _execute;
-        // A jelző, amely azt jelzi, hogy a parancs végrehajtás alatt áll
+
+        // <summary>
+        /// Jelzi, hogy a parancs végrehajtása folyamatban van-e.
+        /// </summary>
         private bool _isExecuting;
 
-        // Konstruktor, amely inicializálja a parancsot a megadott művelettel
+        /// <summary>
+        /// Létrehozza a parancsot a megadott művelettel.
+        /// </summary>
+        /// <param name="execute">A végrehajtandó aszinkron művelet.</param>
+        /// <exception cref="ArgumentNullException">A művelet null.</exception>
         public AsyncRelayCommand(Func<Task> execute)
         {
             if (execute == null)
@@ -19,21 +30,33 @@ namespace SqlPlanVisualizer.Desktop.Commands
             _execute = execute;            
         }
 
-        // Az ICommand interfész CanExecuteChanged eseményének implementációja
+        // <summary>
+        /// Értesíti a parancshoz kapcsolt vezérlőket a végrehajthatóság változásáról.
+        /// </summary>
         public event EventHandler? CanExecuteChanged;
 
-        // Az ICommand interfész CanExecute metódusának implementációja
+        /// <summary>
+        /// Megadja, hogy a parancs elindítható-e.
+        /// </summary>
+        /// <param name="parameter">A parancs paramétere; ez a megvalósítás nem használja.</param>
+        /// <returns>Igaz, ha a parancs jelenleg nem fut.</returns>
         public bool CanExecute(object? parameter)
         {
             return !_isExecuting;
         }
 
-        // A CanExecuteChanged esemény kiváltása, amely jelzi, hogy a parancs végrehajthatósága megváltozott
+        /// <summary>
+        /// Kiváltja a végrehajthatóság változását jelző eseményt.
+        /// </summary>
         private void RaiseCanExecuteChanged() { 
             CanExecuteChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        // Az ICommand interfész Execute metódusának implementációja, amely aszinkron módon végrehajtja a parancsot
+        /// <summary>
+        /// Elindítja és megvárja a műveletet, ha a parancs végrehajtható.
+        /// A futási állapotot hiba esetén is visszaállítja, de a kivételt nem kezeli.
+        /// </summary>
+        /// <param name="parameter">A parancs paramétere; ez a megvalósítás nem használja.</param>
         public async void Execute(object? parameter) {
 
             if (!CanExecute(parameter))

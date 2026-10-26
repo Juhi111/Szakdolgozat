@@ -3,8 +3,19 @@ using SqlPlanVisualizer.Core.Models;
 
 namespace SqlPlanVisualizer.Infrastructure.PostgreSql
 {
+    /// <summary>
+    /// A PostgreSQL-specifikus tervcsomópontokat a Core réteg PlanNode modelljére alakítja.
+    /// </summary>
     public class PostgreSqlPlanMapper
     {
+        /// <summary>
+        /// Átmásolja a csomópont adatait egy új PlanNode objektumba,
+        /// és rekurzívan átalakítja a gyermekeit, megőrizve a fa szerkezetét.
+        /// </summary>
+        /// <param name="dto">Az átalakítandó részfa gyökércsomópontja.</param>
+        /// <returns>Az átalakított részfa gyökércsomópontja.</returns>
+        /// <exception cref="ArgumentNullException">A csomópont vagy valamelyik leszármazottja null.</exception>
+        /// <exception cref="ArgumentException">Valamelyik csomópont művelettípusa üres, vagy gyermeklistája null.</exception>
         public PlanNode MapNode(PostgreSqlPlanNodeDto dto) {
             if (dto == null)
                 throw new ArgumentNullException(nameof(dto));

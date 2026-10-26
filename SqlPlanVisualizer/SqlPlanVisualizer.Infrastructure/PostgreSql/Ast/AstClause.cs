@@ -2,6 +2,10 @@
 
 namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Ast
 {
+    /// <summary>
+    /// Az AST-csomópontot tartalmazó SELECT-részt jelöli.
+    /// Az Unknown érték azt jelenti, hogy a rész nem határozható meg.
+    /// </summary>
     public enum AstClause
     {
         Unknown,
@@ -17,26 +21,20 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Ast
         Offset,
         Window
     }
+
+    /// <summary>
+    /// Az AST szülői lánca alapján meghatározza a legközelebbi SELECT-et
+    /// és a csomópont lekérdezésen belüli helyét.
+    /// </summary>
     public class AstContextResolver
     {
-        public AstVisitContext? FindSelectContext(AstVisitContext context)
-        {
-            if (context is null)
-                throw new ArgumentNullException(nameof(context));
-
-            AstVisitContext? current = context;
-
-            while (current != null)
-            {
-                if (current.NodeType == typeof(SelectStmt))
-                    return current;
-
-                current = current.Parent;
-            }
-
-            return null;
-        }
-
+        /// <summary>
+        /// Meghatározza, hogy a csomópont a legközelebbi SELECT melyik részében szerepel.
+        /// A JOIN ON feltételt külön kezeli, és nem lépi át a legközelebbi SELECT határát.
+        /// </summary>
+        /// <param name="context">A vizsgált csomópont kontextusa.</param>
+        /// <returns>A felismert lekérdezésrész, vagy Unknown, ha nem határozható meg.</returns>
+        /// <exception cref="ArgumentNullException">A kontextus null.</exception>
         public AstClause GetClause(AstVisitContext context)
         {
             if (context is null)

@@ -4,8 +4,21 @@ using System.Collections;
 
 namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Ast
 {
+    /// <summary>
+    /// A Protobuf-mezőleírók segítségével, verem használatával járja be az AST-t.
+    /// Minden csomóponthoz elkészíti a bejárási kontextust.
+    /// </summary>
     public class PostgreSqlAstWalker
     {
+        /// <summary>
+        /// Mélységi sorrendben bejárja a gyökeret és leszármazottait.
+        /// A megadott műveletet minden csomóponton a gyermekei előtt hívja meg.
+        /// </summary>
+        /// <param name="root">A bejárás gyökércsomópontja.</param>
+        /// <param name="statementIndex">Az SQL-utasítás egytől induló sorszáma.</param>
+        /// <param name="visit">Az egyes bejárási bejegyzéseken végrehajtandó művelet.</param>
+        /// <exception cref="ArgumentNullException">A gyökér vagy a végrehajtandó művelet null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Az utasítás sorszáma kisebb egynél.</exception>
         public void Walk(IMessage root, int statementIndex, Action<AstVisitEntry> visit) { 
 
             if(visit == null || root == null)
@@ -30,6 +43,12 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Ast
             }
         }
 
+        /// <summary>
+        /// Összegyűjti a csomópont közvetlen, üzenettípusú gyermekeit Protobuf-mezőszám szerinti sorrendben.
+        /// A gyermekek kontextusában rögzíti a szülőt, a mezőnevet és listák esetén az elem indexét.
+        /// </summary>
+        /// <param name="parent">A vizsgált szülő bejárási bejegyzése.</param>
+        /// <returns>A közvetlen gyermekek bejárási bejegyzései, a listaelemek sorrendjét megtartva.</returns>
         private List<AstVisitEntry> GetChildren(AstVisitEntry parent) {
 
             List<AstVisitEntry> children = new();

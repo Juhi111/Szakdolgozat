@@ -2,36 +2,42 @@
 {
     internal class FileDialogService
     {
-        // A kiválasztott SQL-fájl megnyitása és beolvasása
+        /// <summary>
+        /// Fájlválasztó ablakot nyit egy SQL-fájl kiválasztásához.
+        /// </summary>
+        /// <returns>A kiválasztott fájl útvonala, vagy null megszakítás esetén.</returns>
         public string? SelectSqlFile()
         {
-
-            var fileBrowser = new Microsoft.Win32.OpenFileDialog();
-            fileBrowser.Title = "SQL-fájl kiválasztása";
-            fileBrowser.Filter = "SQL-fájlok (*.sql)|*.sql";
-            fileBrowser.Multiselect = false;
-            fileBrowser.CheckFileExists = true;
-
-            if (fileBrowser.ShowDialog() == true)
-            {
-                return fileBrowser.FileName;
-            }
-            return null;
+            return SelectFile("SQL-fájl kiválasztása", "SQL-fájlok (*.sql)|*.sql");
         }
 
-        // A kiválasztott JSON-fájl megnyitása és beolvasása
+        /// <summary>
+        /// Fájlválasztó ablakot nyit egy EXPLAIN JSON-fájl kiválasztásához.
+        /// </summary>
+        /// <returns>A kiválasztott fájl útvonala, vagy null megszakítás esetén.</returns>
         public string? SelectJsonFile()
         {
-            var fileBrowser = new Microsoft.Win32.OpenFileDialog();
-            fileBrowser.Title = "EXPLAIN JSON-fájl kiválasztása";
-            fileBrowser.Filter = "JSON-fájlok (*.json)|*.json";
-            fileBrowser.Multiselect = false;
-            fileBrowser.CheckFileExists = true;
-            if (fileBrowser.ShowDialog() == true)
+            return SelectFile("EXPLAIN JSON-fájl kiválasztása", "JSON-fájlok (*.json)|*.json");
+        }
+
+        /// <summary>
+        /// Megnyitja a fájlválasztót a megadott címmel és fájlszűrővel.
+        /// Egyszerre egy létező fájl választható ki.
+        /// </summary>
+        /// <param name="title">Az ablak címe.</param>
+        /// <param name="filter">A megjeleníthető fájltípusok szűrője.</param>
+        /// <returns>A kiválasztott fájl útvonala, vagy null megszakítás esetén.</returns>
+        private static string? SelectFile(string title, string filter)
+        {
+            var fileBrowser = new Microsoft.Win32.OpenFileDialog
             {
-                return fileBrowser.FileName;
-            }
-            return null;
+                Title = title,
+                Filter = filter,
+                Multiselect = false,
+                CheckFileExists = true
+            };
+
+            return fileBrowser.ShowDialog() == true ? fileBrowser.FileName : null;
         }
     }
 }

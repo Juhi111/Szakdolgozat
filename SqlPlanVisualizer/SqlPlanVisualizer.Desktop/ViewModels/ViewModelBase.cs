@@ -3,13 +3,22 @@ using System.Runtime.CompilerServices;
 
 namespace SqlPlanVisualizer.Desktop.ViewModels
 {
-    // A ViewModelBase osztály, amely implementálja az INotifyPropertyChanged interfészt
+    /// <summary>
+    /// A ViewModelek közös alaposztálya, amely értesíti a felületet
+    /// a tulajdonságértékek változásáról.
+    /// </summary>    
     public abstract class ViewModelBase : INotifyPropertyChanged
     {
-        // Az esemény, amely jelzi, hogy egy tulajdonság értéke megváltozott
+        // <summary>
+        /// Egy tulajdonság értékének változását jelző esemény.
+        /// </summary>
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        // A metódus, amely meghívja a PropertyChanged eseményt a megadott tulajdonság nevével
+        /// <summary>
+        /// Kiváltja a megadott tulajdonság változását jelző eseményt.
+        /// A hívó tag nevét alapértelmezés szerint a fordító adja át.
+        /// </summary>
+        /// <param name="propertyName">A megváltozott tulajdonság neve.</param>
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null) {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }

@@ -15,46 +15,77 @@ using System.Windows.Input;
 
 namespace SqlPlanVisualizer.Desktop.ViewModels
 {
+    /// <summary>
+    /// A főablak adatait és parancsait kezeli:
+    /// betölti az SQL-szöveget és a végrehajtási terveket,
+    /// elindítja az SQL elemzését, és megjeleníti az eredményeket.
+    /// </summary>
     public class MainViewModel : ViewModelBase
     {
+        /// <summary>
+        /// Az SQL-dokumentum verziója, amellyel kiszűrhetők
+        /// a fájlcsere vagy felületürítés előtt indított elemzések eredményei.
+        /// </summary>
         private int _sqlDocumentVersion;
 
-        //query service példány a PostgreSQL SQL szöveg feldolgozásához
+        /// <summary>
+        /// Az SQL-szövegből előállítja az utasítások elemzéshez szükséges összefoglalóit.
+        /// </summary>
         private readonly PostgreSqlQueryService _queryService = new();
 
-        //mapper példány a PostgreSQL Explain JSON csomópontok és a belső PlanNode modellek közötti konverzióhoz
+        /// <summary>
+        /// A PostgreSQL tervcsomópontokat a felület által használt modellre alakítja.
+        /// </summary>
         private readonly PostgreSqlPlanMapper _planMapper = new();
 
-        //a betöltött planok gyökér csomópontjainak listája
+        /// <summary>
+        /// A megjelenített végrehajtási tervek gyökércsomópontjait tárolja.
+        /// </summary>
         private List<PlanNode> _planRoots = new();
 
-        //sql text és status message propertyk, valamint a betöltött planok listája
+        // A megjelenített SQL-szöveg és állapotüzenet háttérmezői.
         private string sqlText = string.Empty;
         private string statusMessage = "Nincs betöltött fájl";
+
+        /// <summary>
+        /// A legutóbb sikeresen feldolgozott EXPLAIN JSON terveit tárolja.
+        /// </summary>
         private List<PostgreSqlExplainDto> _loadedPlans = new();
 
-        //filereader mindkét feladatra, sql és json file olvasására
+        /// <summary>
+        /// Az SQL- és JSON-fájlok kiválasztására szolgáló ablakokat nyitja meg.
+        /// </summary>
         private readonly FileDialogService _fileDialogService = new();
 
-        //sql olvasó és feldolgozó
-        private readonly SqlFileReader _sqlFileReader = new();
-
-        //json file olvasó és feldolgozó, illetve explain plan feldolgozó
-        private readonly JsonFileReader _jsonFileReader = new();
+        /// <summary>
+        /// Feldolgozza és ellenőrzi a PostgreSQL EXPLAIN JSON tartalmát.
+        /// </summary>
         private readonly PostgreSqlPlanParser _postgreSqlPlanParser = new();
 
-        //treeview kiválasztott node-ja
+        /// <summary>
+        /// Aszinkron módon beolvassa a kiválasztott fájl szövegét.
+        /// </summary>
+        private readonly TextFileReader _textFileReader = new();
+
+        /// <summary>
+        /// A végrehajtási terv fájában kijelölt csomópontot tárolja.
+        /// </summary>
         private PlanNode? _selectedNode;
 
-        //command a sql feldolgozására
+        // A felület parancsai: SQL-elemzés, SQL- és JSON-betöltés, valamint felületürítés.
         public ICommand AnalyzeCommand { get; }
-        //command az sql és json file megnyitására
         public ICommand OpenSqlCommand { get; }
         public ICommand OpenJsonCommand { get; }
+        public ICommand DeleteContent { get; }
 
-        // ObservableCollection a log üzenetekhez
+        /// <summary>
+        /// Az Üzenetek fülön megjelenített, időbélyeggel ellátott naplóbejegyzések.
+        /// </summary>
         public ObservableCollection<string> Messages { get; } = new ObservableCollection<string>();
 
+        /// <summary>
+        /// A regisztrált szabályok alkalmazásával előállítja az SQL-elemzés találatait.
+        /// </summary>
         private readonly SqlAnalysisService _analysisService = new(
             new ISqlAnalysisRule[]
             {
@@ -83,15 +114,27 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 new NaturalJoinUsageRule(),
                 new RandomOrderingRule()
             });
+
+        /// <summary>
+        /// A Javaslatok fülön megjelenített elemzési találatok.
+        /// </summary>
         public ObservableCollection<SqlAnalysisFinding> Suggestions { get; } = new();
 
+        /// <summary>
+        /// Létrehozza a főablak parancsait, és hozzárendeli a végrehajtandó műveleteket.
+        /// </summary>
         public MainViewModel()
         {
             OpenSqlCommand = new AsyncRelayCommand(OpenSqlAsync);
             OpenJsonCommand = new AsyncRelayCommand(OpenJsonAsync);
             AnalyzeCommand = new AsyncRelayCommand(AnalyzeAsync);
+            DeleteContent = new AsyncRelayCommand(DeleteWindow);
         }
 
+        /// <summary>
+        /// A kijelölt tervcsomópont, amelynek adatai a részletező panelen jelennek meg.
+        /// Változásáról értesíti a felületet.
+        /// </summary>
         public PlanNode? SelectedNode {
             get { return _selectedNode;}
             set {
@@ -102,6 +145,9 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             }
         }
 
+        /// <summary>
+        /// A betöltött SQL-szöveg. Változásáról értesíti a felületet.
+        /// </summary>
         public string SqlText {
             get {return sqlText;} 
             set {
@@ -112,6 +158,9 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             }
         }
 
+        /// <summary>
+        /// Az állapotsor aktuális üzenete. Változásáról értesíti a felületet.
+        /// </summary>
         public string StatusMessage
         {
             get { return statusMessage; }
@@ -123,6 +172,10 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             }
         }
 
+        /// <summary>
+        /// A tervfában megjelenített gyökércsomópontok.
+        /// A lista cseréjéről értesíti a felületet.
+        /// </summary>
         public List<PlanNode> PlanRoots
         {
             get { return _planRoots; }
@@ -135,6 +188,32 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             }
         }
 
+        /// <summary>
+        /// Kiüríti a megjelenített SQL-t, terveket, javaslatokat és üzeneteket.
+        /// A dokumentumverzió növelésével érvényteleníti a korábban indított elemzések eredményét.
+        /// </summary>
+        /// <returns>Egy már befejezett feladatot a parancs által elvárt visszatérési típushoz.</returns>
+        private Task DeleteWindow()
+        {
+            _sqlDocumentVersion++;
+
+            Suggestions.Clear();
+            Messages.Clear();
+            SelectedNode = null;
+
+            StatusMessage = "Nincs betöltött fájl";
+            PlanRoots = new List<PlanNode>();
+            SqlText = string.Empty;
+
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Háttérszálon feldolgozza az aktuális SQL-szöveget, majd alkalmazza az elemzési szabályokat.
+        /// Megjeleníti a találatokat és jelzi a kihagyott utasításokat vagy a feldolgozási hibát.
+        /// Ha közben megváltozott a dokumentumverzió, az eredményt figyelmen kívül hagyja.
+        /// </summary>
+        /// <returns>Az elemzés befejezését jelző feladat.</returns>
         private async Task AnalyzeAsync()
         {
             Suggestions.Clear();
@@ -181,7 +260,12 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 ReportMessage($"Hiba az SQL feldolgozásakor: {summary.ErrorMessage}");
             }
         }
-        
+
+        /// <summary>
+        /// SQL-fájlt választat ki, törli a korábbi SQL-t és javaslatokat, majd beolvassa az új szöveget.
+        /// A betöltés eredményét és az esetleges fájlhozzáférési hibát az állapotsorban jelzi.
+        /// </summary>
+        /// <returns>A fájlbetöltés befejezését jelző feladat.</returns>
         private async Task OpenSqlAsync() {
             
             var path = _fileDialogService.SelectSqlFile();
@@ -196,7 +280,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             try
             {
                 StatusMessage = "SQL-fájl betöltése…";
-                string content = await _sqlFileReader.ReadAsync(path);
+                string content = await _textFileReader.ReadAsync(path);
                 if (string.IsNullOrWhiteSpace(content))
                 {
                     StatusMessage = "A kiválasztott SQL-fájl üres vagy csak üres karaktereket tartalmaz.";
@@ -219,6 +303,12 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 
         }
 
+        /// <summary>
+        /// Beolvassa és feldolgozza a kiválasztott EXPLAIN JSON-fájlt,
+        /// majd a terveket a felület modelljére alakítva frissíti a tervfát.
+        /// A fájlhozzáférési és JSON-feldolgozási hibákat az állapotsorban jelzi.
+        /// </summary>
+        /// <returns>A tervbetöltés befejezését jelző feladat.</returns>
         private async Task OpenJsonAsync()
         {
             var path = _fileDialogService.SelectJsonFile();
@@ -226,7 +316,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             try
             {
                 StatusMessage = "JSON-fájl betöltése…";
-                string content = await _jsonFileReader.ReadAsync(path);
+                string content = await _textFileReader.ReadAsync(path);
                 if (string.IsNullOrWhiteSpace(content))
                 {
                     StatusMessage = "A kiválasztott JSON-fájl üres vagy csak üres karaktereket tartalmaz.";
@@ -264,6 +354,10 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             }
         }
 
+        /// <summary>
+        /// Frissíti az állapotsort, és időbélyeggel hozzáadja az üzenetet a naplóhoz.
+        /// </summary>
+        /// <param name="message">A megjelenítendő és naplózandó üzenet.</param>
         private void ReportMessage(string message) { 
             StatusMessage = message;
             Messages.Add($"[{DateTime.Now:HH:mm:ss}] {message}");

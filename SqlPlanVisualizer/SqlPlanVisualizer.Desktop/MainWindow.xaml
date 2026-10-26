@@ -28,6 +28,7 @@
             <Button x:Name="OpenSqlButton" Content="SQL megnyitása" Width="150" Margin="2,8,2,8" Padding="16,8,16,8" VerticalAlignment="Center" Height="39" Command="{Binding OpenSqlCommand}"/>
             <Button x:Name="OpenJsonButton" Content="JSON megnyitása" Width="150" VerticalAlignment="Center" Padding="16,8,16,8" Margin="2,8,2,8" Height="39" Command="{Binding OpenJsonCommand}"/>
             <Button x:Name="AnalyzeButton" Content="Elemzés" Width="150" Padding="16,8,16,8" Margin="2,8,2,8" VerticalAlignment="Center" Height="39" Command="{Binding AnalyzeCommand}"/>
+            <Button x:Name="DeleteButton" Content="Felület ürítése" Width="150" Padding="16,8,16,8" Margin="2,8,2,8" VerticalAlignment="Center" Height="39" Command="{Binding DeleteContent}"/>
         </StackPanel>
         
     <Grid Grid.Row="1" Margin="12,0,12,8">

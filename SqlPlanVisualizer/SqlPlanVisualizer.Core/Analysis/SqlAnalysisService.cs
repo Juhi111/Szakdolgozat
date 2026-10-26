@@ -7,6 +7,11 @@ namespace SqlPlanVisualizer.Core.Analysis
     {
         private readonly List<ISqlAnalysisRule> _rules;
 
+        /// <summary>
+        /// Létrehozza az elemző szolgáltatást, és saját listában tárolja a megadott szabályokat.
+        /// </summary>
+        /// <param name="rules">Az elemzés során alkalmazandó szabályok.</param>
+        /// <exception cref="ArgumentNullException">A szabálygyűjtemény null.</exception>
         public SqlAnalysisService(IEnumerable<ISqlAnalysisRule> rules)
         {
             if(rules is null)
@@ -14,6 +19,13 @@ namespace SqlPlanVisualizer.Core.Analysis
             _rules = rules.ToList();
         }
 
+        /// <summary>
+        /// Minden megadott utasításra alkalmazza az összes regisztrált szabályt,
+        /// és közös listába gyűjti a találatokat.
+        /// </summary>
+        /// <param name="statements">Az elemzendő SQL-utasítások összefoglalói.</param>
+        /// <returns>A szabályok által előállított találatok listája.</returns>
+        /// <exception cref="ArgumentNullException">Az utasításgyűjtemény null.</exception>
         public List<SqlAnalysisFinding> Analyze(IEnumerable<SqlStatementSummary> statements) {
             if(statements is null)
                 throw new ArgumentNullException(nameof(statements));

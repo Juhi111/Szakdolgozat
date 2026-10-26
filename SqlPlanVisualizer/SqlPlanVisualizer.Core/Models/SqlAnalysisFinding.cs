@@ -1,5 +1,10 @@
 ﻿namespace SqlPlanVisualizer.Core.Models
 {
+    /// <summary>
+    /// Egy elemzési szabály találatát tárolja az érintett utasítás sorszámával,
+    /// a szabály azonosítójával, a leírással és a javaslattal.
+    /// A forráspozíció segíti az érintett SQL-rész kijelölését a felületen.
+    /// </summary>
     public class SqlAnalysisFinding
     {
         public int StatementIndex { get; set; }

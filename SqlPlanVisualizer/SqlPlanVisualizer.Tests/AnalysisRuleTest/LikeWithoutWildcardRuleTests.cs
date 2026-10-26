@@ -5,42 +5,38 @@ using Xunit;
 
 namespace SqlPlanVisualizer.Tests.AnalysisRuleTest
 {
-    public class LeadingWildcardSearchRuleTests
+    public class LikeWithoutWildcardRuleTests
     {
         [Fact]
-        public void Analyze_MixedOccurrences_ReturnsOnlyLeadingWildcardFinding()
+        public void Analyze_MixedOccurrences_ReturnsOnlyPatternWithoutWildcardFinding()
         {
             var statement = new SqlStatementSummary
             {
-                StatementIndex = 3,
+                StatementIndex = 2,
                 StatementType = "SELECT"
             };
 
             statement.LikeOccurrences.Add(new LikeOccurrence
             {
-                Pattern = "%adam",
-                IsCaseInsensitive = true,
-                HasWildcard = true,
-                HasLeadingWildcard = true,
+                Pattern = "adam",
+                HasWildcard = false,
                 Location = "select_stmt / where_clause",
-                SourceOffset = 72
+                SourceOffset = 45
             });
 
             statement.LikeOccurrences.Add(new LikeOccurrence
             {
                 Pattern = "eva%",
                 HasWildcard = true,
-                HasLeadingWildcard = false,
-                SourceOffset = 100
+                SourceOffset = 80
             });
 
-            var finding = Assert.Single(new LeadingWildcardSearchRule().Analyze(statement));
+            var finding = Assert.Single(new LikeWithoutWildcardRule().Analyze(statement));
 
-            Assert.Equal("LEADING_WILDCARD_SEARCH", finding.RuleId);
-            Assert.Equal(3, finding.StatementIndex);
-            Assert.Equal((int?)72, finding.SourceOffset);
-            Assert.Contains("%adam", finding.Description);
-            Assert.Contains("ILIKE", finding.Description);
+            Assert.Equal("LIKE_WITHOUT_WILDCARD", finding.RuleId);
+            Assert.Equal(2, finding.StatementIndex);
+            Assert.Equal((int?)45, finding.SourceOffset);
+            Assert.Contains("adam", finding.Description);
         }
     }
 }

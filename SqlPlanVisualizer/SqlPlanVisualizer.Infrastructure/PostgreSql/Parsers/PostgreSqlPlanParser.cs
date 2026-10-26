@@ -3,10 +3,20 @@ using System.Text.Json;
 
 namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Parsers
 {
-    // A PostgreSQL Explain JSON szövegének feldolgozásáért felelős osztály
+    /// <summary>
+    /// A PostgreSQL EXPLAIN JSON-szövegét DTO-objektumokká alakítja,
+    /// és ellenőrzi a tervek alapvető szerkezeti épségét.
+    /// </summary>
     public class PostgreSqlPlanParser
     {
-        // A Parse metódus feldolgozza a PostgreSQL Explain JSON szöveget, és visszaadja a deszerializált objektumokat
+        /// <summary>
+        /// Deszerializálja a terveket, majd ellenőrzi a gyökércsomópontokat
+        /// és azok összes leszármazottját.
+        /// </summary>
+        /// <param name="json">Az EXPLAIN eredményét tartalmazó JSON-tömb szövege.</param>
+        /// <returns>A feldolgozott és ellenőrzött tervek listája.</returns>
+        /// <exception cref="ArgumentException">A szöveg null, üres vagy csak whitespace karaktereket tartalmaz.</exception>
+        /// <exception cref="JsonException">A JSON nem megfelelő formátumú, a tervlista üres, vagy valamelyik terv szerkezetileg hiányos.</exception>
         public List<PostgreSqlExplainDto> Parse(string json) {
 
             if (string.IsNullOrWhiteSpace(json))
@@ -30,7 +40,12 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Parsers
             return jsonData;
         }
 
-        // A ValidateNode metódus rekurzívan ellenőrzi a csomópontokat, hogy biztosítsa, hogy minden szükséges mező jelen van
+        /// <summary>
+        /// Rekurzívan ellenőrzi, hogy a csomópontok nem null értékűek,
+        /// rendelkeznek művelettípussal, és a gyermeklistájuk nem null.
+        /// </summary>
+        /// <param name="node">Az ellenőrizendő részfa gyökércsomópontja.</param>
+        /// <exception cref="JsonException">A csomópont vagy valamelyik leszármazottja nem teljesíti a feltételeket.</exception>
         private void ValidateNode(PostgreSqlPlanNodeDto? node) {
 
             if (node == null)

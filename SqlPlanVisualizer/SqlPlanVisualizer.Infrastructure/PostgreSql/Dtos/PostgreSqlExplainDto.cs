@@ -2,7 +2,10 @@
 
 namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Dtos
 {
-    // A PostgreSQL Explain JSON teljes tervének reprezentációja
+    /// <summary>
+    /// A PostgreSQL EXPLAIN JSON egy tervét és annak összesített időadatait tárolja.
+    /// A JSON-mezőneveket attribútumok rendelik a tulajdonságokhoz.
+    /// </summary>
     public class PostgreSqlExplainDto
     {
         [JsonPropertyName("Plan")]

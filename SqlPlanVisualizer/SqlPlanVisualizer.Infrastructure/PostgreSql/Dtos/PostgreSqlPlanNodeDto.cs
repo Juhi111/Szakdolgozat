@@ -1,7 +1,10 @@
 ﻿using System.Text.Json.Serialization;
 namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Dtos
 {
-    // A PostgreSQL Explain JSON csomópontjainak reprezentációja
+    /// <summary>
+    /// A PostgreSQL EXPLAIN JSON egy tervcsomópontját, annak gyermekeit
+    /// és a hozzá tartozó becsült, illetve mért adatokat tárolja.
+    /// </summary>
     public class PostgreSqlPlanNodeDto
     {
         [JsonPropertyName("Node Type")]
