@@ -76,6 +76,10 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
                             }
                         });
                     }
+                    else
+                    {
+                        statementSummary.StatementType = res.Stmt.NodeCase.ToString();
+                    }
                     summary.Statements.Add(statementSummary);
                     statementIndex++;
                 }

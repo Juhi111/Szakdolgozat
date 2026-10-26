@@ -10,8 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SqlPlanVisualizer.Core\SqlPlanVisualizer.Core.csproj" />
-    <ProjectReference Include="..\SqlPlanVisualizer.Infrastructure\SqlPlanVisualizer.Infrastructure.csproj" />
-    <ProjectReference Include="..\SqlPlanVisualizer.Tests\SqlPlanVisualizer.Tests.csproj" />
+    <ProjectReference Include="..\SqlPlanVisualizer.Infrastructure\SqlPlanVisualizer.Infrastructure.csproj" />    
   </ItemGroup>
 
   <ItemGroup>

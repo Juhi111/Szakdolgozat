@@ -1,0 +1,11 @@
+# Fordítási eredmények
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio helyi beállításai
+.vs/
+*.user
+*.suo
+
+# Teszteredmények
+TestResults/

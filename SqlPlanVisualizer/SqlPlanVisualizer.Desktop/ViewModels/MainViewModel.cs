@@ -17,8 +17,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 {
     public class MainViewModel : ViewModelBase
     {
-        //katintással kiválasztott kifejezés a Suggestions listából, amelyhez a részletes információk megjelennek
-        //private SqlAnalysisFinding? _selectedSuggestion;
+        private int _sqlDocumentVersion;
 
         //query service példány a PostgreSQL SQL szöveg feldolgozásához
         private readonly PostgreSqlQueryService _queryService = new();
@@ -141,9 +140,14 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             Suggestions.Clear();
 
             StatusMessage = "SQL feldolgozása…";
+
             string sql = SqlText;
+            int documentVersion = _sqlDocumentVersion;
 
             var summary = await Task.Run(() => _queryService.ParseSummary(sql));
+
+            if (documentVersion != _sqlDocumentVersion)
+                return;
 
             if (summary.IsSuccess)
             {
@@ -154,19 +158,37 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 {
                     Suggestions.Add(finding);
                 }
-                ReportMessage("Elemzés elkészült");
+
+                int skippedCount = 0;
+
+                foreach (var statement in summary.Statements)
+                {
+                    if (statement.StatementType == "SELECT")
+                        continue;
+
+                    skippedCount++;
+
+                    ReportMessage(
+                        $"A(z) {statement.StatementIndex}. utasítás kimaradt az elemzésből " +
+                        $"({statement.StatementType}). Jelenleg csak SELECT utasításokat elemzünk.");
+                }
+                ReportMessage(
+                    $"Elemzés elkészült. Elemzett utasítások: {summary.StatementCount - skippedCount}. " +
+                    $"Kihagyott utasítások: {skippedCount}.");
             }
             else
             {
                 ReportMessage($"Hiba az SQL feldolgozásakor: {summary.ErrorMessage}");
             }
         }
-
-        // A kiválasztott SQL-fájl megnyitása és beolvasása
+        
         private async Task OpenSqlAsync() {
             
             var path = _fileDialogService.SelectSqlFile();
-            if (path == null) return;
+            if (path == null) 
+                return;
+
+            _sqlDocumentVersion++;
 
             SqlText = string.Empty;
             Suggestions.Clear();
