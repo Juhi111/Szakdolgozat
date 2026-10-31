@@ -1,18 +1,13 @@
 ﻿using SqlPlanVisualizer.Core.Analysis;
-using SqlPlanVisualizer.Core.Analysis.Rules;
-using SqlPlanVisualizer.Core.Interfaces;
 using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Desktop.Commands;
 using SqlPlanVisualizer.Desktop.Services;
 using SqlPlanVisualizer.Infrastructure.FileSystem;
 using SqlPlanVisualizer.Infrastructure.PostgreSql;
-using SqlPlanVisualizer.Infrastructure.PostgreSql.Dtos;
-using SqlPlanVisualizer.Infrastructure.PostgreSql.Parsers;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 using System.Windows.Input;
-using SqlPlanVisualizer.Core.Analysis.PlanRules;
 using SqlPlanVisualizer.Desktop.Configuration;
 
 namespace SqlPlanVisualizer.Desktop.ViewModels
@@ -33,12 +28,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         /// <summary>
         /// Az SQL-szövegből előállítja az utasítások elemzéshez szükséges összefoglalóit.
         /// </summary>
-        private readonly PostgreSqlQueryService _queryService = new();
-
-        /// <summary>
-        /// A PostgreSQL tervcsomópontokat a felület által használt modellre alakítja.
-        /// </summary>
-        private readonly PostgreSqlPlanMapper _planMapper = new();
+        private readonly PostgreSqlQueryService _queryService = new();        
 
         /// <summary>
         /// A megjelenített végrehajtási tervek gyökércsomópontjait tárolja.
@@ -47,12 +37,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 
         // A megjelenített SQL-szöveg és állapotüzenet háttérmezői.
         private string sqlText = string.Empty;
-        private string statusMessage = "Nincs betöltött fájl";
-
-        /// <summary>
-        /// A legutóbb sikeresen feldolgozott EXPLAIN JSON terveit tárolja.
-        /// </summary>
-        private List<PostgreSqlExplainDto> _loadedPlans = new();
+        private string statusMessage = "Nincs betöltött fájl";       
 
         /// <summary>
         /// Az SQL- és JSON-fájlok kiválasztására szolgáló ablakokat nyitja meg.
@@ -60,9 +45,9 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         private readonly FileDialogService _fileDialogService = new();
 
         /// <summary>
-        /// Feldolgozza és ellenőrzi a PostgreSQL EXPLAIN JSON tartalmát.
+        /// Az EXPLAIN JSON tartalmából előállítja a megjeleníthető tervmodelleket.
         /// </summary>
-        private readonly PostgreSqlPlanParser _postgreSqlPlanParser = new();
+        private readonly PostgreSqlPlanService _planService = new();
 
         /// <summary>
         /// Aszinkron módon beolvassa a kiválasztott fájl szövegét.
@@ -101,58 +86,15 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         /// <summary>
         /// Létrehozza a főablak parancsait, és hozzárendeli a végrehajtandó műveleteket.
         /// </summary>
+        /// <summary>
+        /// Létrehozza az elemző szolgáltatásokat és a főablak parancsait.
+        /// </summary>
         public MainViewModel(AppSettings settings)
         {
-            if (settings is null)
-                throw new ArgumentNullException(nameof(settings));
+            ArgumentNullException.ThrowIfNull(settings);
 
-            _analysisService = new SqlAnalysisService(new ISqlAnalysisRule[]
-            {
-                new SelectStarRule(),
-                new DistinctRule(),
-                new NullComparisonRule(),
-                new LimitWithoutOrderRule(),
-                new LikeWithoutWildcardRule(),
-                new LeadingWildcardSearchRule(),
-                new FunctionOnColumnRule(),
-                new CastOnColumnRule(),
-                new ArithmeticOnColumnRule(),
-                new NotInSubqueryRule(),
-                new DateCastInPredicateRule(),
-                new YearExtractionInPredicateRule(),
-                new ConcatenationInPredicateRule(),
-                new TextCastInPredicateRule(),
-                new OptionalParameterFilterRule(),
-                new CaseInPredicateRule(),
-                new NotInWithNullLiteralRule(),
-                new CountForExistenceRule(),
-                new RowFilterInHavingRule(),
-                new PossibleCartesianProductRule(),
-                new LargeOffsetRule(threshold: settings.SqlAnalysis.LargeOffsetThreshold),
-                new UnionDeduplicationRule(),
-                new NaturalJoinUsageRule(),
-                new RandomOrderingRule()
-            });
-
-            var rowSettings = settings.PlanAnalysis.RowEstimateMismatch;
-            var filterSettings = settings.PlanAnalysis.HighFilterRemoval;
-            var heapSettings = settings.PlanAnalysis.HighHeapFetches;
-            var repeatedScanSettings = settings.PlanAnalysis.RepeatedSequentialScan;
-            var sortLimitSettings = settings.PlanAnalysis.LargeSortForLimit;
-
-            _planAnalysisService = new PlanAnalysisService(new IPlanAnalysisRule[] {
-                new RowEstimateMismatchRule(ratioThreshold: rowSettings.RatioThreshold, differenceThreshold: rowSettings.DifferenceThreshold),
-                new SortSpillRule(),
-                new HashBatchRule(),
-                new HashAggregateSpillRule(),
-                new HighFilterRemovalRule(minimumRemovedRows: filterSettings.MinimumRemovedRows, removalRatioThreshold: filterSettings.RemovalRatioThreshold),
-                new LossyBitmapHeapScanRule(),
-                new HighHeapFetchesRule(minimumHeapFetches: heapSettings.MinimumHeapFetches),
-                new ParallelWorkerShortageRule(),
-                new RepeatedSequentialScanRule(minimumLoops: repeatedScanSettings.MinimumLoops, minimumExaminedRows: repeatedScanSettings.MinimumExaminedRows),
-                new LargeSortForLimitRule(minimumInputRows: sortLimitSettings.MinimumInputRows, inputOutputRatioThreshold: sortLimitSettings.InputOutputRatioThreshold),
-                new IntermediateStorageSpillRule()
-            });
+            _analysisService = AnalysisServiceFactory.CreateSqlAnalysisService(settings);
+            _planAnalysisService = AnalysisServiceFactory.CreatePlanAnalysisService(settings);
 
             OpenSqlCommand = new AsyncRelayCommand(OpenSqlAsync);
             OpenJsonCommand = new AsyncRelayCommand(OpenJsonAsync);
@@ -354,21 +296,13 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 }
                 else
                 {
-                    var plans = _postgreSqlPlanParser.Parse(content);
-                    _loadedPlans = plans;
-                    StatusMessage = $"Betöltve: {Path.GetFileName(path)} ({plans.Count} plan)";
+                    var roots = _planService.ParsePlans(content);
 
-                    List<PlanNode> roots = new();
-                    foreach (var plan in plans)
-                    {
-                        if (plan.Plan != null)
-                        {
-                            var rootNode = _planMapper.MapNode(plan.Plan);
-                            roots.Add(rootNode);
-                        }
-                    }
                     SelectedNode = null;
                     PlanRoots = roots;
+
+                    StatusMessage = $"Betöltve: {Path.GetFileName(path)} ({roots.Count} terv)";
+
                     AnalyzePlans();
                 }
             }
