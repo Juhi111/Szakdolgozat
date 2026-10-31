@@ -1,6 +1,9 @@
 ﻿using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Desktop.ViewModels;
 using System.Windows;
+using System.IO;
+using System.Text.Json;
+using SqlPlanVisualizer.Desktop.Configuration;
 
 namespace SqlPlanVisualizer.Desktop
 {    
@@ -10,7 +13,24 @@ namespace SqlPlanVisualizer.Desktop
         {
             InitializeComponent();
 
-            DataContext = new MainViewModel{};
+            try
+            {
+                var settings = AppSettingsLoader.Load();
+                DataContext = new MainViewModel(settings);
+            }
+            catch (Exception ex) when (
+                ex is IOException ||
+                ex is UnauthorizedAccessException ||
+                ex is JsonException)
+            {
+                MessageBox.Show(
+                    $"Nem sikerült betölteni a konfigurációt:\n{ex.Message}",
+                    "Konfigurációs hiba",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+
+                Application.Current.Shutdown();
+            }
         }
 
         /// <summary>
@@ -65,6 +85,17 @@ namespace SqlPlanVisualizer.Desktop
             SqlTextBox.Focus();
             SqlTextBox.Select(lineStart, lineLength);
             SqlTextBox.ScrollToLine(lineIndex);
-        }        
+        }
+
+        /// <summary>
+        /// A kiválasztott tervjavaslathoz tartozó csomópontot megjeleníti a részletező panelen.
+        /// </summary>
+        private void PlanSuggestionsListView_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (DataContext is MainViewModel viewModel && PlanSuggestionsListView.SelectedItem is PlanAnalysisFinding finding)
+            {
+                viewModel.SelectedNode = finding.Node;
+            }
+        }
     }
 }

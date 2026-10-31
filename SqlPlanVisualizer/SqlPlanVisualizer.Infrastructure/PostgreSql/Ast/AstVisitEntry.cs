@@ -15,8 +15,8 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Ast
         /// <exception cref="ArgumentNullException">A csomópont vagy a kontextus null.</exception>
         public AstVisitEntry(IMessage node, AstVisitContext context)
         {
-            if (node == null || context == null)
-                throw new ArgumentNullException(node == null ? nameof(node) : nameof(context));
+            if (node is null || context is null)
+                throw new ArgumentNullException(node is null ? nameof(node) : nameof(context));
 
             Node = node;
             Context = context;

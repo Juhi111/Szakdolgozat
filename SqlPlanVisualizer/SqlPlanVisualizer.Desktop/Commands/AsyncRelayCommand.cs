@@ -25,7 +25,7 @@ namespace SqlPlanVisualizer.Desktop.Commands
         /// <exception cref="ArgumentNullException">A művelet null.</exception>
         public AsyncRelayCommand(Func<Task> execute)
         {
-            if (execute == null)
+            if (execute is null)
                 throw new ArgumentNullException(nameof(execute));
             _execute = execute;            
         }

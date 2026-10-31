@@ -21,8 +21,8 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Ast
         /// <exception cref="ArgumentOutOfRangeException">Az utasítás sorszáma kisebb egynél.</exception>
         public void Walk(IMessage root, int statementIndex, Action<AstVisitEntry> visit) { 
 
-            if(visit == null || root == null)
-                throw new ArgumentNullException(visit == null ? nameof(visit) : nameof(root));
+            if(visit is null || root is null)
+                throw new ArgumentNullException(visit is null ? nameof(visit) : nameof(root));
             
             var context = new AstVisitContext(statementIndex, node: root);
 

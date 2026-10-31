@@ -1,4 +1,6 @@
 ﻿using System.Text.Json.Serialization;
+using System.Text.Json;
+
 namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Dtos
 {
     /// <summary>
@@ -32,6 +34,8 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Dtos
         public double? ActualTotalTime { get; set; }
 
         [JsonPropertyName("Actual Loops")]
-        public double? ActualLoops { get; set; }
+        public double? ActualLoops { get; set; }        
+        [JsonExtensionData]
+        public Dictionary<string, JsonElement> AdditionalProperties { get; set; } = new();
     }
 }

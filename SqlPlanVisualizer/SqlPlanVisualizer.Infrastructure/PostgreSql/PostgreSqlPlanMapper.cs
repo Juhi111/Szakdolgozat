@@ -17,7 +17,7 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
         /// <exception cref="ArgumentNullException">A csomópont vagy valamelyik leszármazottja null.</exception>
         /// <exception cref="ArgumentException">Valamelyik csomópont művelettípusa üres, vagy gyermeklistája null.</exception>
         public PlanNode MapNode(PostgreSqlPlanNodeDto dto) {
-            if (dto == null)
+            if (dto is null)
                 throw new ArgumentNullException(nameof(dto));
             if (string.IsNullOrWhiteSpace(dto.NodeType))
                 throw new ArgumentException("A csomópont művelettípusa nem lehet üres.", nameof(dto));
@@ -31,8 +31,12 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
             planNode.TotalCost = dto.TotalCost;
             planNode.ActualTotalTime = dto.ActualTotalTime;
             planNode.ActualLoops = dto.ActualLoops;
+            foreach (var property in dto.AdditionalProperties)
+            {
+                planNode.AdditionalProperties.Add(property.Key, property.Value.Clone());
+            }
 
-            if(dto.Plans == null){
+            if (dto.Plans is null){
                 throw new ArgumentException("A csomópont gyermeklistája nem lehet null.", nameof(dto));
             }
 

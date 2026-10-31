@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Ast
 {
@@ -24,8 +25,7 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Ast
             columnName = string.Empty;
             qualifier = null;
 
-            if (column is null)
-                throw new ArgumentNullException(nameof(column));
+            ArgumentNullException.ThrowIfNull(nameof(column));            
 
             if (column.Fields.Count == 0)
                 return false;

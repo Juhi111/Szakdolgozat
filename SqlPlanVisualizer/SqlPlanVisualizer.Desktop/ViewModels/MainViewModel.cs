@@ -12,6 +12,8 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 using System.Windows.Input;
+using SqlPlanVisualizer.Core.Analysis.PlanRules;
+using SqlPlanVisualizer.Desktop.Configuration;
 
 namespace SqlPlanVisualizer.Desktop.ViewModels
 {
@@ -83,11 +85,28 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         /// </summary>
         public ObservableCollection<string> Messages { get; } = new ObservableCollection<string>();
 
+        private readonly SqlAnalysisService _analysisService;
+        private readonly PlanAnalysisService _planAnalysisService;
+
         /// <summary>
-        /// A regisztrált szabályok alkalmazásával előállítja az SQL-elemzés találatait.
+        /// A Javaslatok fülön megjelenített elemzési találatok.
         /// </summary>
-        private readonly SqlAnalysisService _analysisService = new(
-            new ISqlAnalysisRule[]
+        public ObservableCollection<SqlAnalysisFinding> Suggestions { get; } = new();
+
+        /// <summary>
+        /// A végrehajtási tervek elemzéséből származó találatok.
+        /// </summary>
+        public ObservableCollection<PlanAnalysisFinding> PlanSuggestions { get; } = new();
+
+        /// <summary>
+        /// Létrehozza a főablak parancsait, és hozzárendeli a végrehajtandó műveleteket.
+        /// </summary>
+        public MainViewModel(AppSettings settings)
+        {
+            if (settings is null)
+                throw new ArgumentNullException(nameof(settings));
+
+            _analysisService = new SqlAnalysisService(new ISqlAnalysisRule[]
             {
                 new SelectStarRule(),
                 new DistinctRule(),
@@ -98,7 +117,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 new FunctionOnColumnRule(),
                 new CastOnColumnRule(),
                 new ArithmeticOnColumnRule(),
-                new NotInSubqueryRule(),                
+                new NotInSubqueryRule(),
                 new DateCastInPredicateRule(),
                 new YearExtractionInPredicateRule(),
                 new ConcatenationInPredicateRule(),
@@ -109,22 +128,32 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 new CountForExistenceRule(),
                 new RowFilterInHavingRule(),
                 new PossibleCartesianProductRule(),
-                new LargeOffsetRule(threshold: 10000),
+                new LargeOffsetRule(threshold: settings.SqlAnalysis.LargeOffsetThreshold),
                 new UnionDeduplicationRule(),
                 new NaturalJoinUsageRule(),
                 new RandomOrderingRule()
             });
 
-        /// <summary>
-        /// A Javaslatok fülön megjelenített elemzési találatok.
-        /// </summary>
-        public ObservableCollection<SqlAnalysisFinding> Suggestions { get; } = new();
+            var rowSettings = settings.PlanAnalysis.RowEstimateMismatch;
+            var filterSettings = settings.PlanAnalysis.HighFilterRemoval;
+            var heapSettings = settings.PlanAnalysis.HighHeapFetches;
+            var repeatedScanSettings = settings.PlanAnalysis.RepeatedSequentialScan;
+            var sortLimitSettings = settings.PlanAnalysis.LargeSortForLimit;
 
-        /// <summary>
-        /// Létrehozza a főablak parancsait, és hozzárendeli a végrehajtandó műveleteket.
-        /// </summary>
-        public MainViewModel()
-        {
+            _planAnalysisService = new PlanAnalysisService(new IPlanAnalysisRule[] {
+                new RowEstimateMismatchRule(ratioThreshold: rowSettings.RatioThreshold, differenceThreshold: rowSettings.DifferenceThreshold),
+                new SortSpillRule(),
+                new HashBatchRule(),
+                new HashAggregateSpillRule(),
+                new HighFilterRemovalRule(minimumRemovedRows: filterSettings.MinimumRemovedRows, removalRatioThreshold: filterSettings.RemovalRatioThreshold),
+                new LossyBitmapHeapScanRule(),
+                new HighHeapFetchesRule(minimumHeapFetches: heapSettings.MinimumHeapFetches),
+                new ParallelWorkerShortageRule(),
+                new RepeatedSequentialScanRule(minimumLoops: repeatedScanSettings.MinimumLoops, minimumExaminedRows: repeatedScanSettings.MinimumExaminedRows),
+                new LargeSortForLimitRule(minimumInputRows: sortLimitSettings.MinimumInputRows, inputOutputRatioThreshold: sortLimitSettings.InputOutputRatioThreshold),
+                new IntermediateStorageSpillRule()
+            });
+
             OpenSqlCommand = new AsyncRelayCommand(OpenSqlAsync);
             OpenJsonCommand = new AsyncRelayCommand(OpenJsonAsync);
             AnalyzeCommand = new AsyncRelayCommand(AnalyzeAsync);
@@ -205,6 +234,8 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             PlanRoots = new List<PlanNode>();
             SqlText = string.Empty;
 
+            PlanSuggestions.Clear();
+
             return Task.CompletedTask;
         }
 
@@ -269,7 +300,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         private async Task OpenSqlAsync() {
             
             var path = _fileDialogService.SelectSqlFile();
-            if (path == null) 
+            if (path is null) 
                 return;
 
             _sqlDocumentVersion++;
@@ -312,7 +343,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         private async Task OpenJsonAsync()
         {
             var path = _fileDialogService.SelectJsonFile();
-            if (path == null) return;
+            if (path is null) return;
             try
             {
                 StatusMessage = "JSON-fájl betöltése…";
@@ -338,6 +369,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                     }
                     SelectedNode = null;
                     PlanRoots = roots;
+                    AnalyzePlans();
                 }
             }
             catch (UnauthorizedAccessException ex)
@@ -361,6 +393,23 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         private void ReportMessage(string message) { 
             StatusMessage = message;
             Messages.Add($"[{DateTime.Now:HH:mm:ss}] {message}");
+        }
+
+        /// <summary>
+        /// Elemzi a betöltött terveket, és frissíti a tervhez tartozó javaslatokat.
+        /// </summary>
+        private void AnalyzePlans()
+        {
+            PlanSuggestions.Clear();
+
+            var findings = _planAnalysisService.Analyze(PlanRoots);
+
+            foreach (var finding in findings)
+            {
+                PlanSuggestions.Add(finding);
+            }
+
+            ReportMessage($"Tervelemzés elkészült. Találatok száma: {findings.Count}.");
         }
     }
 }

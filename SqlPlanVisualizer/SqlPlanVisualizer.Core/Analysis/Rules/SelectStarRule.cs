@@ -6,7 +6,7 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
     public class SelectStarRule : ISqlAnalysisRule
     {
         public List<SqlAnalysisFinding> Analyze(SqlStatementSummary statement) {
-            if (statement == null)
+            if (statement is null)
             {
                 throw new ArgumentNullException(nameof(statement));
             }
@@ -15,7 +15,7 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
 
             foreach (var wildcardProjection in statement.WildcardProjections)
             {
-                string projection = wildcardProjection.Qualifier == null ? "*" : $"{wildcardProjection.Qualifier}.*";
+                string projection = wildcardProjection.Qualifier is null ? "*" : $"{wildcardProjection.Qualifier}.*";
 
                 findings.Add(new SqlAnalysisFinding
                 {

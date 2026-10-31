@@ -9,11 +9,9 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
     {
         public void Collect(AstVisitEntry entry, SqlStatementSummary summary)
         {
-            if (entry is null)
-                throw new ArgumentNullException(nameof(entry));
 
-            if (summary is null)
-                throw new ArgumentNullException(nameof(summary));
+            ArgumentNullException.ThrowIfNull(nameof(entry));
+            ArgumentNullException.ThrowIfNull(nameof(summary));         
 
             if (entry.Node is not TNode node)
                 return;

@@ -1,4 +1,6 @@
-﻿namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Ast
+﻿using PgSqlParser;
+
+namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Ast
 {
     public class AstPathFormatter
     {
@@ -9,9 +11,8 @@
         /// <param name="context">A csomópont kontextusa.</param>
         /// <returns>Az útvonalelemek „ / ” jellel elválasztva, vagy üres szöveg, ha nincs mezőnév.</returns>
         /// <exception cref="ArgumentNullException">A kontextus null.</exception>
-        public string Format(AstVisitContext context) { 
-            if(context == null)             
-                throw new ArgumentNullException(nameof(context));
+        public string Format(AstVisitContext context) {
+            ArgumentNullException.ThrowIfNull(nameof(context));            
 
             Stack<string> pathSegments = new();
             AstVisitContext? current = context;

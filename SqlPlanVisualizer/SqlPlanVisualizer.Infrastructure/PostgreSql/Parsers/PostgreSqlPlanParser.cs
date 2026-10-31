@@ -26,13 +26,13 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Parsers
             
             List<PostgreSqlExplainDto>? jsonData = JsonSerializer.Deserialize<List<PostgreSqlExplainDto>>(json);
 
-            if (jsonData == null)
+            if (jsonData is null)
                 throw new JsonException("Sikertelen deserialize");
             if(jsonData.Count == 0)
                 throw new JsonException("Üres az explain");
 
             foreach (var item in jsonData) { 
-                if(item == null || item.Plan == null)
+                if(item is null || item.Plan is null)
                     throw new JsonException("Sikertelen deserialize");
                 ValidateNode(item.Plan);
             }
@@ -48,11 +48,11 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Parsers
         /// <exception cref="JsonException">A csomópont vagy valamelyik leszármazottja nem teljesíti a feltételeket.</exception>
         private void ValidateNode(PostgreSqlPlanNodeDto? node) {
 
-            if (node == null)
+            if (node is null)
                 throw new JsonException("A terv null csomópontot tartalmaz.");
             else if (string.IsNullOrWhiteSpace(node.NodeType))
                 throw new JsonException("A node nem tartalmaz node type-ot");
-            else if (node.Plans == null)
+            else if (node.Plans is null)
                 throw new JsonException("A csomópont Plans listája null.");
             foreach (var plan in node.Plans) { 
                 ValidateNode(plan);

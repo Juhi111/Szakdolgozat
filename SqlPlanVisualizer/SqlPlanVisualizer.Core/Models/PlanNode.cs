@@ -1,4 +1,6 @@
-﻿namespace SqlPlanVisualizer.Core.Models
+﻿using System.Text.Json;
+
+namespace SqlPlanVisualizer.Core.Models
 {
     public class PlanNode
     {
@@ -10,6 +12,7 @@
         public double? StartupCost { get; set; }
         public double? TotalCost { get; set; }
         public double? ActualTotalTime { get; set; }
-        public double? ActualLoops { get; set; }
+        public double? ActualLoops { get; set; }    
+        public Dictionary<string, JsonElement> AdditionalProperties { get; } = new();
     }
 }

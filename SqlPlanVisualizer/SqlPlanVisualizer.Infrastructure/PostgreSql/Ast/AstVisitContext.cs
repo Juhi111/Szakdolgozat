@@ -31,7 +31,7 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Ast
             ItemIndex = itemIndex;
             Node = node;
             NodeType = node?.GetType() ?? nodeType;
-            Depth = parent == null ? 0 : parent.Depth + 1;
+            Depth = parent is null ? 0 : parent.Depth + 1;
         }
 
         /// <summary>
