@@ -49,7 +49,7 @@ namespace SqlPlanVisualizer.Core.Analysis.PlanRules
             if (outputRows <= 0 || inputRows < _minimumInputRows)
                 return findings;
 
-            double ratio = inputRows / outputRows;
+            int ratio = Convert.ToInt32(inputRows / outputRows);
 
             if (!double.IsFinite(ratio) || ratio < _inputOutputRatioThreshold)
                 return findings;
@@ -71,7 +71,7 @@ namespace SqlPlanVisualizer.Core.Analysis.PlanRules
                 Title = "Sok rendezési bemenet kevés eredménysorhoz",
                 Description = $"A rendezés bemenete a jelentett átlagok és végrehajtásszámok alapján " +
                     $"összesen körülbelül {inputRows:N0} sor volt, miközben a LIMIT " +
-                    $"{outputRows:N0} sort adott vissza. A bemenet/kimenet arány {ratio:N1}-szeres. " +
+                    $"{outputRows:N0} sort adott vissza. A bemenet/kimenet arány {ratio:N0}-szeres. " +
                     "A LIMIT kis kimenete tehát nem jelentett ugyanilyen kis rendezési bemenetet.",
                 Recommendation = recommendation
             });

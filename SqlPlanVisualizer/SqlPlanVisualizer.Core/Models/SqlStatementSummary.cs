@@ -33,5 +33,8 @@ namespace SqlPlanVisualizer.Core.Models
         public List<UnionDeduplicationOccurrence> UnionDeduplications { get; } = new();
         public List<NaturalJoinOccurrence> NaturalJoins { get; } = new();
         public List<RandomOrderingOccurrence> RandomOrderings { get; } = new();
+        public int? TextStart { get; set; }
+        public int TextLength { get; set; }
+        public SqlQueryBlockSummary? TopLevelQuery { get; set; }
     }
 }

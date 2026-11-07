@@ -1,4 +1,5 @@
 ﻿using SqlPlanVisualizer.Core.Analysis;
+using SqlPlanVisualizer.Core.Analysis.CombinedRules;
 using SqlPlanVisualizer.Core.Analysis.PlanRules;
 using SqlPlanVisualizer.Core.Analysis.Rules;
 using SqlPlanVisualizer.Core.Interfaces;
@@ -73,6 +74,19 @@ namespace SqlPlanVisualizer.Desktop.Services
                 new RepeatedSequentialScanRule(minimumLoops: repeatedScanSettings.MinimumLoops, minimumExaminedRows: repeatedScanSettings.MinimumExaminedRows),
                 new LargeSortForLimitRule(minimumInputRows: sortLimitSettings.MinimumInputRows, inputOutputRatioThreshold: sortLimitSettings.InputOutputRatioThreshold),
                 new IntermediateStorageSpillRule()
+            });
+        }
+
+        /// <summary>
+        /// Létrehozza az SQL–terv kapcsolatokat vizsgáló szolgáltatást.
+        /// </summary>
+        public static CombinedAnalysisService CreateCombinedAnalysisService()
+        {
+            return new CombinedAnalysisService(new ICombinedAnalysisRule[]
+            {
+                new OrderedLimitWithLargeSortRule(),
+                new OrderByWithSortSpillRule(),
+                new FunctionFilterWithHighRemovalRule()
             });
         }
     }

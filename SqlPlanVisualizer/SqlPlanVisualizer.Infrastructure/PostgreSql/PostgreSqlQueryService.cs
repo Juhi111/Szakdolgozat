@@ -2,6 +2,7 @@
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Ast;
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Collectors;
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Parsers;
+using System.Runtime.InteropServices;
 
 namespace SqlPlanVisualizer.Infrastructure.PostgreSql
 {
@@ -24,30 +25,7 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
         /// <summary>
         /// A bejárt csomópontokból az elemzéshez szükséges előfordulásokat gyűjtő komponensek.
         /// </summary>
-        private readonly List<ISqlAstCollector> _collectors = new()
-        {
-            new WildcardProjectionCollector(),
-            new DistinctCollector(),
-            new NullComparisonCollector(),
-            new LimitCollector(),
-            new LikeCollector(),
-            new FunctionOnColumnCollector(),
-            new CastOnColumnCollector(),
-            new ArithmeticOnColumnCollector(),
-            new NotInSubqueryCollector(),
-            new YearExtractionCollector(),
-            new ConcatenationCollector(),
-            new OptionalParameterFilterCollector(),
-            new CaseInPredicateCollector(),
-            new NotInWithNullLiteralCollector(),
-            new CountForExistenceCollector(),
-            new RowFilterInHavingCollector(),
-            new PossibleCartesianProductCollector(),
-            new OffsetCollector(),
-            new UnionDeduplicationCollector(),
-            new NaturalJoinCollector(),
-            new RandomOrderingCollector()
-        };
+        private readonly List<ISqlAstCollector> _collectors = SqlAstCollectorFactory.CreateDefault();
 
         /// <summary>
         /// Feldolgozza az SQL-szöveget, és utasításonként összefoglalót készít.
@@ -66,7 +44,7 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
             try
             {
                 var summary = new SqlParseSummary();
-                var result = _parser.Parse(sql);
+                var result = _parser.Parse(sql);                
 
                 if (result.Stmts.Count == 0)
                 {
@@ -84,6 +62,8 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
                     {
                         StatementIndex = statementIndex
                     };
+
+                    SetStatementTextRange(sql, res.StmtLocation, res.StmtLen, statementSummary);
 
                     var selectStatement = res.Stmt.SelectStmt;
                     if (selectStatement != null)
@@ -113,6 +93,44 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
             {
                 return new SqlParseSummary { ErrorMessage = ex.Message };
             }
-        }        
+        }
+
+        /// <summary>
+        /// A parser 1.0.0 natív szövegátadásának megfelelő bájtpozíciókat
+        /// a megjelenített szöveg UTF-16 pozícióira alakítja.
+        /// </summary>
+        private static void SetStatementTextRange(
+            string sql, int byteStart, int byteLength, SqlStatementSummary statement)
+        {
+            IntPtr buffer = Marshal.StringToCoTaskMemAnsi(sql);
+
+            try
+            {
+                int totalBytes = 0;
+
+                while (Marshal.ReadByte(buffer, totalBytes) != 0)
+                    totalBytes++;
+
+                if (byteStart < 0 || byteStart > totalBytes ||
+                    byteLength < 0 || byteLength > totalBytes - byteStart)
+                {
+                    return;
+                }
+
+                if (byteLength == 0)
+                    byteLength = totalBytes - byteStart;
+
+                string prefix = Marshal.PtrToStringAnsi(buffer, byteStart) ?? string.Empty;
+                string statementText = Marshal.PtrToStringAnsi(
+                    IntPtr.Add(buffer, byteStart), byteLength) ?? string.Empty;
+
+                statement.TextStart = prefix.Length;
+                statement.TextLength = statementText.Length;
+            }
+            finally
+            {
+                Marshal.FreeCoTaskMem(buffer);
+            }
+        }
     }
 }

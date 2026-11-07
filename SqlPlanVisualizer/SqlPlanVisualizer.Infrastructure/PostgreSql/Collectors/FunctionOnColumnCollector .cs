@@ -1,4 +1,5 @@
 ﻿using PgSqlParser;
+using SqlPlanVisualizer.Core.Enums;
 using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Core.Models.Occurences;
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Ast;
@@ -33,19 +34,46 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
 
             if (!AstColumnReferenceReader.TryRead(column, out string columnName, out string? qualifier))            
                 return;
-            
 
-            summary.FunctionOnColumnOccurrences.Add(new FunctionOnColumnOccurrence
-                {
-                    FunctionName = functionName,
-                    ColumnName = columnName,
-                    Qualifier = qualifier,
-                    Location = pathFormatter.Format(context),
-                    SourceOffset = function.Location >= 0
-                        ? function.Location
-                        : null
-                }
-            );
+
+            var occurrence = new FunctionOnColumnOccurrence
+            {
+                FunctionName = functionName,
+                ColumnName = columnName,
+                Qualifier = qualifier,
+                Location = pathFormatter.Format(context),
+                SourceOffset = function.Location >= 0 ? function.Location : null
+            };
+
+            summary.FunctionOnColumnOccurrences.Add(occurrence);
+
+            if (clause == AstClause.Where && IsTopLevelQuery(context))
+            {
+                summary.TopLevelQuery?.FunctionsInWhere.Add(occurrence);
+            }
+        }
+
+        /// <summary>
+        /// Ellenőrzi, hogy a függvény a felső szintű SELECT lekérdezéshez tartozik-e.
+        /// </summary>
+        private bool IsTopLevelQuery(AstVisitContext context)
+        {
+            var selectContext = contextResolver.FindSelectContext(context);
+
+            if (selectContext is null)
+                return false;
+
+            var ancestor = selectContext.Parent;
+
+            while (ancestor is not null)
+            {
+                if (ancestor.NodeType == typeof(SelectStmt))
+                    return false;
+
+                ancestor = ancestor.Parent;
+            }
+
+            return true;
         }
 
         private static bool TryReadFunctionName(FuncCall function, out string functionName)

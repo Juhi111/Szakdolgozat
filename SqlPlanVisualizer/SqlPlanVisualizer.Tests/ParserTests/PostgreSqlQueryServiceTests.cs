@@ -271,5 +271,66 @@ namespace SqlPlanVisualizer.Tests.ParserTests
             Assert.Equal("%adam%", occurrence.Pattern);
             Assert.Equal((int?)sql.IndexOf("LIKE", StringComparison.Ordinal), occurrence.SourceOffset);
         }
+
+        [Fact]
+        public void ParseSummary_OrderedLimit_DistinguishesTopLevelFromSubquery()
+        {
+            const string sql = """
+        SELECT order_id
+        FROM orders
+        ORDER BY total_amount DESC
+        LIMIT 100;
+
+        SELECT order_id
+        FROM (
+            SELECT order_id
+            FROM orders
+            ORDER BY total_amount DESC
+            LIMIT 100
+        ) AS recent_orders;
+        """;
+
+            var result = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(result.IsSuccess);
+            Assert.Equal(2, result.Statements.Count);
+
+            var outerQuery = Assert.IsType<SqlQueryBlockSummary>(
+                result.Statements[0].TopLevelQuery);
+
+            Assert.False(outerQuery.IsSetOperation);
+            Assert.True(outerQuery.HasOrderBy);
+            Assert.True(outerQuery.HasRowLimit);
+
+            var queryWithSubquery = Assert.IsType<SqlQueryBlockSummary>(
+                result.Statements[1].TopLevelQuery);
+
+            Assert.False(queryWithSubquery.IsSetOperation);
+            Assert.False(queryWithSubquery.HasOrderBy);
+            Assert.False(queryWithSubquery.HasRowLimit);
+        }
+
+        [Fact]
+        public void ParseSummary_WithAliasedTable_CollectsTopLevelRelation()
+        {
+            const string sql = """
+        SELECT c.customer_id
+        FROM public.customers AS c
+        WHERE lower(c.email) = 'adam@example.com';
+        """;
+
+            var summary = new PostgreSqlQueryService().ParseSummary(sql);
+
+            Assert.True(summary.IsSuccess);
+
+            var statement = Assert.Single(summary.Statements);
+            var query = Assert.IsType<SqlQueryBlockSummary>(statement.TopLevelQuery);
+            var relation = Assert.Single(query.Relations);
+
+            Assert.True(query.HasOnlyDirectRelations);
+            Assert.Equal("customers", relation.RelationName);
+            Assert.Equal("public", relation.SchemaName);
+            Assert.Equal("c", relation.Alias);
+        }
     }
 }

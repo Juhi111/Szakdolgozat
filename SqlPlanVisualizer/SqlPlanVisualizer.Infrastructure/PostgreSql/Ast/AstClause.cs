@@ -1,26 +1,8 @@
 ﻿using PgSqlParser;
+using SqlPlanVisualizer.Core.Enums;
 
 namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Ast
 {
-    /// <summary>
-    /// Az AST-csomópontot tartalmazó SELECT-részt jelöli.
-    /// Az Unknown érték azt jelenti, hogy a rész nem határozható meg.
-    /// </summary>
-    public enum AstClause
-    {
-        Unknown,
-        SelectList,
-        From,
-        JoinOn,
-        Where,
-        Having,
-        GroupBy,
-        OrderBy,
-        DistinctOn,
-        Limit,
-        Offset,
-        Window
-    }
 
     /// <summary>
     /// Az AST szülői lánca alapján meghatározza a legközelebbi SELECT-et
@@ -28,6 +10,26 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Ast
     /// </summary>
     public class AstContextResolver
     {
+        /// <summary>
+        /// Megkeresi az aktuális csomóponthoz tartozó legközelebbi SELECT környezetét.
+        /// </summary>
+        public AstVisitContext? FindSelectContext(AstVisitContext context)
+        {
+            ArgumentNullException.ThrowIfNull(context);
+
+            AstVisitContext? current = context;
+
+            while (current is not null)
+            {
+                if (current.Node is SelectStmt)
+                    return current;
+
+                current = current.Parent;
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Meghatározza, hogy a csomópont a legközelebbi SELECT melyik részében szerepel.
         /// A JOIN ON feltételt külön kezeli, és nem lépi át a legközelebbi SELECT határát.

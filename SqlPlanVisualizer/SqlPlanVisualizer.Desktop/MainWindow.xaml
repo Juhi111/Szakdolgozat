@@ -60,8 +60,7 @@
                         FontWeight="SemiBold"
                         Margin="12"/>
 
-                    <TextBox x:Name="SqlTextBox"
-                        IsInactiveSelectionHighlightEnabled="True"
+                    <TextBox x:Name="SqlTextBox"                        
                         Grid.Row="1"
                         Text="{Binding SqlText, Mode=OneWay}"
                         Margin="12,0,12,12"                        
@@ -71,12 +70,13 @@
                         VerticalAlignment="Stretch"
                         IsReadOnly="True"
                         IsEnabled="True"
+                        SelectionBrush="LightSkyBlue"
+                        SelectionOpacity="0.5"
+                        IsInactiveSelectionHighlightEnabled="True"
                         AcceptsReturn="True"
                         IsHitTestVisible="True"
                         Focusable="True"
-                        TextWrapping="NoWrap"
-                        SelectionBrush="Gold"
-                        SelectionOpacity="0.6"
+                        TextWrapping="NoWrap"                        
                         VerticalScrollBarVisibility="Auto"
                         HorizontalScrollBarVisibility="Auto"/>
                 </Grid>
@@ -332,6 +332,70 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
+            </TabItem>
+            <TabItem Header="Összegzés">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12">
+                        <TextBlock Text="SQL és végrehajtási terv összekapcsolása"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,12"/>
+
+                       <TextBlock Text="Az SQL-fájl elemzése és az EXPLAIN JSON betöltése után válaszd ki az összetartozó elemeket."
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,12"/>
+
+                        <TextBlock Text="SQL-utasítás" Margin="0,0,0,4"/>
+
+                        <ComboBox ItemsSource="{Binding StatementsForSummary}"
+                                  SelectedItem="{Binding SelectedSummaryStatement, Mode=TwoWay}"
+                                  SelectionChanged="SummaryStatementComboBox_SelectionChanged"
+                                  MinWidth="240"
+                                  HorizontalAlignment="Left"
+                                  Margin="0,0,0,12">
+                                  <ComboBox.ItemTemplate>
+                                      <DataTemplate>
+                                          <TextBlock>
+                                              <Run Text="{Binding StatementIndex, Mode=OneWay}"/>
+                                              <Run Text=". utasítás – "/>
+                                              <Run Text="{Binding StatementType, Mode=OneWay}"/>
+                                          </TextBlock>
+                                      </DataTemplate>
+                                  </ComboBox.ItemTemplate>
+                        </ComboBox>
+
+                        <TextBlock Text="Végrehajtási terv" Margin="0,0,0,4"/>
+
+                        <ComboBox ItemsSource="{Binding PlansForSummary}"
+                      SelectedItem="{Binding SelectedSummaryPlan, Mode=TwoWay}"
+                      MinWidth="240"
+                      HorizontalAlignment="Left"
+                      Margin="0,0,0,12">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                            <Run Text="{Binding PlanIndex, Mode=OneWay}"/>
+                            <Run Text=". terv – "/>
+                            <Run Text="{Binding Root.NodeType, Mode=OneWay}"/>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+
+                        <TextBlock Text="A gomb megnyomásával megerősíted, hogy a kiválasztott terv a kiválasztott SQL-utasításhoz tartozik."
+                            TextWrapping="Wrap"
+                            Margin="0,0,0,12"/>
+
+                        <Button Content="Összegzés készítése"
+                            Command="{Binding CreateSummaryCommand}"
+                            HorizontalAlignment="Left"
+                            Padding="16,8"
+                            Margin="0,0,0,12"/>
+
+                        <TextBlock Text="{Binding SummaryStatus}" TextWrapping="Wrap"/>                      
+
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
         </TabControl>
 

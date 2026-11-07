@@ -19,6 +19,14 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
     /// </summary>
     public class MainViewModel : ViewModelBase
     {
+        #region fields  
+
+        private readonly AnalysisSummaryWindowService _summaryWindowService = new();
+        private readonly CombinedAnalysisService _combinedAnalysisService = AnalysisServiceFactory.CreateCombinedAnalysisService();
+        private SqlStatementSummary? _selectedSummaryStatement;
+        private ExecutionPlan? _selectedSummaryPlan;
+        private StatementPlanPair? _summaryPair;
+
         /// <summary>
         /// Az SQL-dokumentum verziója, amellyel kiszűrhetők
         /// a fájlcsere vagy felületürítés előtt indított elemzések eredményei.
@@ -58,20 +66,33 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         /// A végrehajtási terv fájában kijelölt csomópontot tárolja.
         /// </summary>
         private PlanNode? _selectedNode;
+        private readonly SqlAnalysisService _analysisService;
+        private readonly PlanAnalysisService _planAnalysisService;
 
+        #endregion
+
+        #region properties and commands
         // A felület parancsai: SQL-elemzés, SQL- és JSON-betöltés, valamint felületürítés.
         public ICommand AnalyzeCommand { get; }
         public ICommand OpenSqlCommand { get; }
         public ICommand OpenJsonCommand { get; }
         public ICommand DeleteContent { get; }
+        public ICommand CreateSummaryCommand { get; }      
 
         /// <summary>
         /// Az Üzenetek fülön megjelenített, időbélyeggel ellátott naplóbejegyzések.
         /// </summary>
         public ObservableCollection<string> Messages { get; } = new ObservableCollection<string>();
 
-        private readonly SqlAnalysisService _analysisService;
-        private readonly PlanAnalysisService _planAnalysisService;
+        /// <summary>
+        /// Az összegzéshez kiválasztható, feldolgozott SELECT utasítások.
+        /// </summary>
+        public ObservableCollection<SqlStatementSummary> StatementsForSummary { get; } = new();
+
+        /// <summary>
+        /// Az összegzéshez kiválasztható végrehajtási tervek.
+        /// </summary>
+        public ObservableCollection<ExecutionPlan> PlansForSummary { get; } = new();
 
         /// <summary>
         /// A Javaslatok fülön megjelenített elemzési találatok.
@@ -82,25 +103,6 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         /// A végrehajtási tervek elemzéséből származó találatok.
         /// </summary>
         public ObservableCollection<PlanAnalysisFinding> PlanSuggestions { get; } = new();
-
-        /// <summary>
-        /// Létrehozza a főablak parancsait, és hozzárendeli a végrehajtandó műveleteket.
-        /// </summary>
-        /// <summary>
-        /// Létrehozza az elemző szolgáltatásokat és a főablak parancsait.
-        /// </summary>
-        public MainViewModel(AppSettings settings)
-        {
-            ArgumentNullException.ThrowIfNull(settings);
-
-            _analysisService = AnalysisServiceFactory.CreateSqlAnalysisService(settings);
-            _planAnalysisService = AnalysisServiceFactory.CreatePlanAnalysisService(settings);
-
-            OpenSqlCommand = new AsyncRelayCommand(OpenSqlAsync);
-            OpenJsonCommand = new AsyncRelayCommand(OpenJsonAsync);
-            AnalyzeCommand = new AsyncRelayCommand(AnalyzeAsync);
-            DeleteContent = new AsyncRelayCommand(DeleteWindow);
-        }
 
         /// <summary>
         /// A kijelölt tervcsomópont, amelynek adatai a részletező panelen jelennek meg.
@@ -119,12 +121,17 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         /// <summary>
         /// A betöltött SQL-szöveg. Változásáról értesíti a felületet.
         /// </summary>
-        public string SqlText {
-            get {return sqlText;} 
-            set {
-                if (value == sqlText)
+        public string SqlText
+        {
+            get => sqlText;
+            set
+            {
+                string normalizedText = (value ?? string.Empty).ReplaceLineEndings("\r\n");
+
+                if (normalizedText == sqlText)
                     return;
-                sqlText = value;
+
+                sqlText = normalizedText;
                 OnPropertyChanged();
             }
         }
@@ -159,6 +166,110 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             }
         }
 
+        #endregion
+
+        #region constructors
+        /// <summary>
+        /// Létrehozza a főablak parancsait, és hozzárendeli a végrehajtandó műveleteket.
+        /// </summary>
+        /// <summary>
+        /// Létrehozza az elemző szolgáltatásokat és a főablak parancsait.
+        /// </summary>
+        public MainViewModel(AppSettings settings)
+        {
+            ArgumentNullException.ThrowIfNull(settings);
+
+            _analysisService = AnalysisServiceFactory.CreateSqlAnalysisService(settings);
+            _planAnalysisService = AnalysisServiceFactory.CreatePlanAnalysisService(settings);
+            
+
+            OpenSqlCommand = new AsyncRelayCommand(OpenSqlAsync);
+            OpenJsonCommand = new AsyncRelayCommand(OpenJsonAsync);
+            AnalyzeCommand = new AsyncRelayCommand(AnalyzeAsync);
+            DeleteContent = new AsyncRelayCommand(DeleteWindow);
+            CreateSummaryCommand = new AsyncRelayCommand(CreateSummaryAsync);
+
+        }
+        #endregion
+
+        #region methods
+
+        /// <summary>
+        /// Az összegzéshez kiválasztott SQL-utasítás.
+        /// </summary>
+        public SqlStatementSummary? SelectedSummaryStatement
+        {
+            get => _selectedSummaryStatement;
+            set
+            {
+                if (_selectedSummaryStatement == value)
+                    return;
+
+                _selectedSummaryStatement = value;
+                OnPropertyChanged();
+                ClearSummaryPair();
+            }
+        }
+
+        /// <summary>
+        /// Az összegzéshez kiválasztott végrehajtási terv.
+        /// </summary>
+        public ExecutionPlan? SelectedSummaryPlan
+        {
+            get => _selectedSummaryPlan;
+            set
+            {
+                if (_selectedSummaryPlan == value)
+                    return;
+
+                _selectedSummaryPlan = value;
+                OnPropertyChanged();
+                ClearSummaryPair();
+            }
+        }
+
+        /// <summary>
+        /// A megerősített párosítás állapotát mutatja.
+        /// </summary>
+        public string SummaryStatus => _summaryPair is null
+            ? "Válassz SQL-utasítást és tervet, majd erősítsd meg a párosítást."
+            : $"Párosítva: {_summaryPair.Statement.StatementIndex}. SQL-utasítás és {_summaryPair.Plan.PlanIndex}. terv.";
+
+        private void ClearSummaryPair()
+        {
+            _summaryPair = null;            
+            OnPropertyChanged(nameof(SummaryStatus));
+        }
+
+        /// <summary>
+        /// Ellenőrzi a kiválasztást, és eltárolja az összetartozónak jelölt elemeket.
+        /// </summary>
+        private Task CreateSummaryAsync()
+        {
+            if (SelectedSummaryStatement is null || SelectedSummaryPlan is null)
+            {
+                ReportMessage("Az összegzéshez válassz SQL-utasítást és végrehajtási tervet.");
+                return Task.CompletedTask;
+            }
+
+            if (!StatementsForSummary.Contains(SelectedSummaryStatement) ||
+                !PlansForSummary.Contains(SelectedSummaryPlan))
+            {
+                ClearSummaryPair();
+                ReportMessage("A kiválasztott elemek már nem tartoznak az aktuális elemzéshez.");
+                return Task.CompletedTask;
+            }
+
+            _summaryPair = new StatementPlanPair(SelectedSummaryStatement, SelectedSummaryPlan);
+            var result = _combinedAnalysisService.Analyze(_summaryPair, Suggestions, PlanSuggestions);
+
+            OnPropertyChanged(nameof(SummaryStatus));
+
+            _summaryWindowService.Show(result);
+
+            return Task.CompletedTask;
+        }
+
         /// <summary>
         /// Kiüríti a megjelenített SQL-t, terveket, javaslatokat és üzeneteket.
         /// A dokumentumverzió növelésével érvényteleníti a korábban indított elemzések eredményét.
@@ -173,9 +284,13 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             SelectedNode = null;
 
             StatusMessage = "Nincs betöltött fájl";
-            PlanRoots = new List<PlanNode>();
+            PlanRoots = new List<PlanNode>();            
             SqlText = string.Empty;
-
+            StatementsForSummary.Clear();
+            SelectedSummaryStatement = null;
+            SelectedSummaryPlan = null;
+            ClearSummaryPair();
+            PlansForSummary.Clear();
             PlanSuggestions.Clear();
 
             return Task.CompletedTask;
@@ -190,7 +305,9 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         private async Task AnalyzeAsync()
         {
             Suggestions.Clear();
-
+            StatementsForSummary.Clear();
+            SelectedSummaryStatement = null;
+            ClearSummaryPair();
             StatusMessage = "SQL feldolgozása…";
 
             string sql = SqlText;
@@ -203,6 +320,15 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 
             if (summary.IsSuccess)
             {
+                foreach (var statement in summary.Statements)
+                {
+                    if (statement.StatementType == "SELECT")
+                        StatementsForSummary.Add(statement);
+                }
+
+                SelectedSummaryStatement = StatementsForSummary.Count == 1 ? StatementsForSummary[0] : null;
+
+
                 ReportMessage($"SQL feldolgozva. Utasítások száma: {summary.StatementCount}.");
                 var findings = _analysisService.Analyze(summary.Statements);
 
@@ -249,6 +375,9 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 
             SqlText = string.Empty;
             Suggestions.Clear();
+            SelectedSummaryStatement = null;
+            ClearSummaryPair();
+            StatementsForSummary.Clear();
 
             try
             {
@@ -296,12 +425,23 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 }
                 else
                 {
-                    var roots = _planService.ParsePlans(content);
+                    var plans = _planService.ParsePlans(content);
+
+                    SelectedSummaryPlan = null;
+                    ClearSummaryPair();
+                    PlansForSummary.Clear();
+
+                    foreach (var plan in plans)
+                    {
+                        PlansForSummary.Add(plan);
+                    }
+
+                    SelectedSummaryPlan = PlansForSummary.Count == 1 ? PlansForSummary[0] : null;
 
                     SelectedNode = null;
-                    PlanRoots = roots;
+                    PlanRoots = plans.Select(plan => plan.Root).ToList();
 
-                    StatusMessage = $"Betöltve: {Path.GetFileName(path)} ({roots.Count} terv)";
+                    StatusMessage = $"Betöltve: {Path.GetFileName(path)} ({plans.Count} terv)";
 
                     AnalyzePlans();
                 }
@@ -347,3 +487,5 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         }
     }
 }
+
+#endregion

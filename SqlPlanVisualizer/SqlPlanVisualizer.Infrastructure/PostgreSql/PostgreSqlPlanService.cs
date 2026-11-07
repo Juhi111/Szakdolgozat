@@ -4,7 +4,7 @@ using SqlPlanVisualizer.Infrastructure.PostgreSql.Parsers;
 namespace SqlPlanVisualizer.Infrastructure.PostgreSql
 {
     /// <summary>
-    /// Az EXPLAIN JSON tartalmát feldolgozza és tervmodellekké alakítja.
+    /// Az EXPLAIN JSON tartalmát végrehajtási tervekké alakítja.
     /// </summary>
     public class PostgreSqlPlanService
     {
@@ -12,19 +12,25 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
         private readonly PostgreSqlPlanMapper _mapper = new();
 
         /// <summary>
-        /// Ellenőrzi a JSON-t, majd előállítja a végrehajtási tervek gyökércsomópontjait.
+        /// Ellenőrzi a JSON-t, majd előállítja a terveket az időadataikkal együtt.
         /// </summary>
-        public List<PlanNode> ParsePlans(string json)
+        public List<ExecutionPlan> ParsePlans(string json)
         {
-            var plans = _parser.Parse(json);
-            var roots = new List<PlanNode>();
+            var parsedPlans = _parser.Parse(json);
+            var plans = new List<ExecutionPlan>();
 
-            foreach (var plan in plans)
+            foreach (var dto in parsedPlans)
             {
-                roots.Add(_mapper.MapNode(plan.Plan!));
+                var root = _mapper.MapNode(dto.Plan!);
+
+                plans.Add(new ExecutionPlan(plans.Count + 1, root)
+                {
+                    PlanningTime = dto.PlanningTime,
+                    ExecutionTime = dto.ExecutionTime
+                });
             }
 
-            return roots;
+            return plans;
         }
     }
 }

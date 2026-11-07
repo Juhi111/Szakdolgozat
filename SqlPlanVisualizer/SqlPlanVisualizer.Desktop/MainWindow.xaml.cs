@@ -34,6 +34,36 @@ namespace SqlPlanVisualizer.Desktop
         }
 
         /// <summary>
+        /// Kijelöli az összegzéshez kiválasztott teljes SQL-utasítást, és odagörget.
+        /// </summary>
+        private void SummaryStatementComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            SqlTextBox.SelectionLength = 0;
+
+            if (sender is not System.Windows.Controls.ComboBox comboBox || comboBox.SelectedItem is not SqlStatementSummary statement || statement.TextStart is not int start)
+            {
+                return;
+            }
+
+            int length = statement.TextLength;
+            string text = SqlTextBox.Text;
+
+            if (start < 0 || start > text.Length ||
+                length <= 0 || length > text.Length - start)
+            {
+                return;
+            }
+
+            SqlTextBox.Focus();
+            SqlTextBox.Select(start, length);
+
+            int lineIndex = SqlTextBox.GetLineIndexFromCharacterIndex(start);
+
+            if (lineIndex >= 0)
+                SqlTextBox.ScrollToLine(lineIndex);
+        }
+
+        /// <summary>
         /// A végrehajtási terv fájában megváltozott kijelölést
         /// továbbítja a MainViewModel SelectedNode tulajdonságának.
         /// Ezzel adatbindingon keresztül frissül a részletező panel.

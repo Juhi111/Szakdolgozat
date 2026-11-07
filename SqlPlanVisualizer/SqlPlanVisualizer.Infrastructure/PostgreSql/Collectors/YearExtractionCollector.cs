@@ -1,5 +1,6 @@
 ﻿using System;
 using PgSqlParser;
+using SqlPlanVisualizer.Core.Enums;
 using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Core.Models.Occurences;
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Ast;
