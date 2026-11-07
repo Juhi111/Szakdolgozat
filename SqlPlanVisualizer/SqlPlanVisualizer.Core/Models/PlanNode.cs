@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 
 namespace SqlPlanVisualizer.Core.Models
 {
@@ -13,6 +13,8 @@ namespace SqlPlanVisualizer.Core.Models
         public double? TotalCost { get; set; }
         public double? ActualTotalTime { get; set; }
         public double? ActualLoops { get; set; }    
+        /// <summary>A Filter támogatott részkifejezéseinek AST-azonosítói.</summary>
+        public HashSet<string> FilterExpressionSignatures { get; } = new(StringComparer.Ordinal);
         public Dictionary<string, JsonElement> AdditionalProperties { get; } = new();
     }
 }

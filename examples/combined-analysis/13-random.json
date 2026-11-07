@@ -1,0 +1,31 @@
+[
+  {
+    "Plan": {
+      "Node Type": "Sort",
+      "Sort Key": [
+        "random()"
+      ],
+      "Sort Method": "external merge",
+      "Sort Space Type": "Disk",
+      "Sort Space Used": 2048,
+      "Plan Rows": 50000,
+      "Actual Rows": 50000,
+      "Actual Loops": 1,
+      "Plans": [
+        {
+          "Node Type": "Seq Scan",
+          "Relation Name": "customers",
+          "Alias": "c",
+          "Plan Rows": 50000,
+          "Actual Rows": 50000,
+          "Actual Loops": 1,
+          "Startup Cost": 0,
+          "Total Cost": 1500,
+          "Actual Total Time": 24
+        }
+      ]
+    },
+    "Planning Time": 0.3,
+    "Execution Time": 30
+  }
+]

@@ -1,4 +1,5 @@
-﻿using SqlPlanVisualizer.Infrastructure.PostgreSql.Dtos;
+using SqlPlanVisualizer.Infrastructure.PostgreSql.Ast;
+using SqlPlanVisualizer.Infrastructure.PostgreSql.Dtos;
 using SqlPlanVisualizer.Core.Models;
 
 namespace SqlPlanVisualizer.Infrastructure.PostgreSql
@@ -46,6 +47,7 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
                 planNode.Children.Add(childNode);
             }
 
+            PlanFilterExpressions.Populate(planNode);
             return planNode;
         }
     }

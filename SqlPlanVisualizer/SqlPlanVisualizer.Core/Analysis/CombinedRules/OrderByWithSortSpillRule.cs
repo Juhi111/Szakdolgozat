@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using SqlPlanVisualizer.Core.Interfaces;
@@ -20,7 +20,7 @@ namespace SqlPlanVisualizer.Core.Analysis.CombinedRules
             if (query is null || query.IsSetOperation || !query.HasOrderBy)
                 return Array.Empty<CombinedAnalysisFinding>();
 
-            var sort = FindTopLevelSort(analysis.Pair.Plan.Root);
+            var sort = PlanShape.TopSort(analysis.Pair.Plan.Root);
 
             if (sort is null)
                 return Array.Empty<CombinedAnalysisFinding>();
@@ -48,20 +48,5 @@ namespace SqlPlanVisualizer.Core.Analysis.CombinedRules
             };
         }
 
-        /// <summary>
-        /// Megkeresi a gyökér rendezését vagy a gyökér Limit közvetlen rendező gyermekét.
-        /// </summary>
-        private static PlanNode? FindTopLevelSort(PlanNode root)
-        {
-            if (root.NodeType == "Sort")
-                return root;
-
-            if (root.NodeType != "Limit" || root.Children.Count != 1)
-                return null;
-
-            var child = root.Children[0];
-
-            return child.NodeType == "Sort" ? child : null;
-        }
     }
 }

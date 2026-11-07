@@ -1,4 +1,4 @@
-﻿using SqlPlanVisualizer.Core.Models.Occurences;
+using SqlPlanVisualizer.Core.Models.Occurences;
 
 namespace SqlPlanVisualizer.Core.Models
 {
@@ -10,6 +10,14 @@ namespace SqlPlanVisualizer.Core.Models
         public bool IsSetOperation { get; init; }
         public bool HasOrderBy { get; init; }
         public bool HasRowLimit { get; init; }
+        public bool HasGroupBy { get; init; }
+        public bool HasDistinct { get; init; }
+        public bool IsUnionDistinct { get; init; }
+        public bool OrdersByRandom { get; init; }
+        public int? OffsetSourceOffset { get; init; }
+
+        /// <summary>A felső szintű WHERE/HAVING felismert mintái, helyfüggetlen AST-azonosítóval.</summary>
+        public List<SqlPredicateSummary> Predicates { get; } = new();
 
         /// <summary>
         /// Jelzi, hogy a FROM rész kizárólag közvetlen táblahivatkozásokat tartalmaz.

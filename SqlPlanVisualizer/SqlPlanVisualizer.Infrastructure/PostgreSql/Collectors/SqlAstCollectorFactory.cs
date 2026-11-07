@@ -1,4 +1,4 @@
-﻿namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Collectors
+namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Collectors
 {
     /// <summary>
     /// Létrehozza az SQL feldolgozásához használt collectorokat.
@@ -30,7 +30,8 @@
                 new OffsetCollector(),
                 new UnionDeduplicationCollector(),
                 new NaturalJoinCollector(),
-                new RandomOrderingCollector()
+                new RandomOrderingCollector(),
+                new PredicateCorrelationCollector()
             };
         }
     }

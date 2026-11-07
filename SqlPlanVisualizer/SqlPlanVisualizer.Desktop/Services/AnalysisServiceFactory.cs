@@ -1,4 +1,4 @@
-﻿using SqlPlanVisualizer.Core.Analysis;
+using SqlPlanVisualizer.Core.Analysis;
 using SqlPlanVisualizer.Core.Analysis.CombinedRules;
 using SqlPlanVisualizer.Core.Analysis.PlanRules;
 using SqlPlanVisualizer.Core.Analysis.Rules;
@@ -82,12 +82,7 @@ namespace SqlPlanVisualizer.Desktop.Services
         /// </summary>
         public static CombinedAnalysisService CreateCombinedAnalysisService()
         {
-            return new CombinedAnalysisService(new ICombinedAnalysisRule[]
-            {
-                new OrderedLimitWithLargeSortRule(),
-                new OrderByWithSortSpillRule(),
-                new FunctionFilterWithHighRemovalRule()
-            });
+            return new CombinedAnalysisService(CombinedRuleFactory.CreateDefault());
         }
     }
 }

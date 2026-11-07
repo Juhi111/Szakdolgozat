@@ -1,0 +1,19 @@
+[
+  {
+    "Plan": {
+      "Node Type": "Seq Scan",
+      "Relation Name": "customers",
+      "Alias": "c",
+      "Plan Rows": 1,
+      "Actual Rows": 1,
+      "Actual Loops": 1,
+      "Startup Cost": 0,
+      "Total Cost": 1500,
+      "Actual Total Time": 24,
+      "Rows Removed by Filter": 49999,
+      "Filter": "CASE WHEN $1 = 'email'::text THEN email ELSE phone END = $2"
+    },
+    "Planning Time": 0.3,
+    "Execution Time": 30
+  }
+]

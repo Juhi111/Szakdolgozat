@@ -1,0 +1,41 @@
+[
+  {
+    "Plan": {
+      "Node Type": "Limit",
+      "Plan Rows": 100,
+      "Actual Rows": 100,
+      "Actual Loops": 1,
+      "Plans": [
+        {
+          "Node Type": "Sort",
+          "Parent Relationship": "Outer",
+          "Sort Key": [
+            "customer_id"
+          ],
+          "Sort Space Type": "Disk",
+          "Sort Method": "external merge",
+          "Plan Rows": 250000,
+          "Actual Rows": 100,
+          "Actual Loops": 1,
+          "Plans": [
+            {
+              "Node Type": "Seq Scan",
+              "Relation Name": "customers",
+              "Alias": "c",
+              "Plan Rows": 250000,
+              "Actual Rows": 250000,
+              "Actual Loops": 1,
+              "Startup Cost": 0,
+              "Total Cost": 1500,
+              "Actual Total Time": 24,
+              "Parent Relationship": "Outer"
+            }
+          ],
+          "Sort Space Used": 2048
+        }
+      ]
+    },
+    "Planning Time": 0.3,
+    "Execution Time": 30
+  }
+]
