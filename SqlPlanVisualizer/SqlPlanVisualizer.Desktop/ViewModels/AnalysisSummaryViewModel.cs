@@ -1,4 +1,9 @@
-﻿using SqlPlanVisualizer.Core.Models;
+﻿using PgSqlParser;
+using SqlPlanVisualizer.Core.Models;
+using SqlPlanVisualizer.Desktop.Commands;
+using SqlPlanVisualizer.Desktop.Services;
+using System.Windows;
+using System.Windows.Input;
 
 namespace SqlPlanVisualizer.Desktop.ViewModels
 {
@@ -7,10 +12,14 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
     /// </summary>
     public class AnalysisSummaryViewModel
     {
+
+        public ICommand SaveResultToPdf { get; }
+
         public AnalysisSummaryViewModel(CombinedAnalysisResult result)
         {
             ArgumentNullException.ThrowIfNull(result);
             Result = result;
+            SaveResultToPdf = new AsyncRelayCommand(SaveToPdf);
         }
 
         public CombinedAnalysisResult Result { get; }
@@ -32,5 +41,32 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 
         public string PlanFindingsHeader =>
             $"Tervtalálatok ({Result.PlanFindings.Count})";
+
+        public Task SaveToPdf()
+        {
+            var savefileDialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = "PDF mentése",
+                Filter = "PDF fájl (*.pdf)|*.pdf",
+                DefaultExt = ".pdf",
+                FileName = "Elemzés.pdf"
+            };
+
+            bool? result = savefileDialog.ShowDialog();
+
+            if (result == true)
+            {
+                var path = savefileDialog.FileName;
+
+                var pdfService = new PdfExportService(Result, path);
+                pdfService.ExportAnalysisSummaryToPdf();
+            }
+            else
+                MessageBox.Show("Sikertelen mentés");
+            
+
+            return Task.CompletedTask;
+        }
     }
+
 }
