@@ -11,244 +11,309 @@
         MinHeight="600"
         MinWidth="900"
         WindowStartupLocation="CenterScreen">
-    <Grid Background="#F3F4F6">
-    
-    <Grid.RowDefinitions>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="*"/>
-        <RowDefinition Height="300" MinHeight="180"/>
-        <RowDefinition Height="Auto"/>
-    </Grid.RowDefinitions>
-    
-    <StackPanel x:Name="ToolbarPanel"
-                Grid.Row="0"
-                Orientation="Horizontal"
-                MinHeight="55"
-                Margin="12">
-            <Button x:Name="OpenSqlButton" Content="SQL megnyitása" Width="150" Margin="2,8,2,8" Padding="16,8,16,8" VerticalAlignment="Center" Height="39" Command="{Binding OpenSqlCommand}"/>
-            <Button x:Name="OpenJsonButton" Content="JSON megnyitása" Width="150" VerticalAlignment="Center" Padding="16,8,16,8" Margin="2,8,2,8" Height="39" Command="{Binding OpenJsonCommand}"/>
-            <Button x:Name="AnalyzeButton" Content="Elemzés" Width="150" Padding="16,8,16,8" Margin="2,8,2,8" VerticalAlignment="Center" Height="39" Command="{Binding AnalyzeCommand}"/>
-            <Button x:Name="DeleteButton" Content="Felület ürítése" Width="150" Padding="16,8,16,8" Margin="2,8,2,8" VerticalAlignment="Center" Height="39" Command="{Binding DeleteContent}"/>
-        </StackPanel>
-        
-    <Grid Grid.Row="1" Margin="12,0,12,8">
+    <DockPanel Background="#F3F4F6">
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_Fájl">
+                <MenuItem Header="SQL megnyitása..." Command="{Binding OpenSqlCommand}"/>
+                <MenuItem Header="EXPLAIN JSON megnyitása..." Command="{Binding OpenJsonCommand}"/>
+                <Separator/>
+                <MenuItem Header="Felület ürítése" Command="{Binding DeleteContent}"/>
+                <Separator/>
+                <MenuItem Header="_Kilépés" Click="ExitMenuItem_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Elemzés">
+                <MenuItem Header="Elemzés indítása" Command="{Binding AnalyzeCommand}"/>
+            </MenuItem>
+            <MenuItem Header="_Beállítások">
+                <MenuItem Header="Alkalmazás beállításai..."
+              Click="SettingsMenuItem_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Előzmények">
+                <MenuItem Header="Mentett elemzések..."
+              Click="HistoryMenuItem_Click"/>
+            </MenuItem>
+        </Menu>
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3*" MinWidth="180"/>
-            <ColumnDefinition Width="5"/>
-            <ColumnDefinition Width="4*" MinWidth="220"/>
-            <ColumnDefinition Width="5"/>
-            <ColumnDefinition Width="3*" MinWidth="180"/>
-        </Grid.ColumnDefinitions>
-        
-            <Border Grid.Column="0"
-                 Background="White"
-                 BorderBrush="#D1D5DB"
-                 BorderThickness="1"
-                 CornerRadius="4"
-                 Margin="0,0,6,0">
+        <Grid Background="#F3F4F6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="59*"/>
+                <ColumnDefinition Width="341*"/>
+            </Grid.ColumnDefinitions>
 
-                <Grid x:Name="SqlPanel">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="300" MinHeight="180"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>          
 
-                    <TextBlock Grid.Row="0"
-                        Text="SQL lekérdezés"
-                        FontSize="18"
-                        FontWeight="SemiBold"
-                        Margin="12"/>
+            <Grid Grid.Row="1" Margin="12,0,12,8" Grid.ColumnSpan="2">
 
-                    <TextBox x:Name="SqlTextBox"                        
-                        Grid.Row="1"
-                        Text="{Binding SqlText, Mode=OneWay}"
-                        Margin="12,0,12,12"                        
-                        FontFamily="Consolas"
-                        FontSize="14"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch"
-                        IsReadOnly="True"
-                        IsEnabled="True"
-                        SelectionBrush="LightSkyBlue"
-                        SelectionOpacity="0.5"
-                        IsInactiveSelectionHighlightEnabled="True"
-                        AcceptsReturn="True"
-                        IsHitTestVisible="True"
-                        Focusable="True"
-                        TextWrapping="NoWrap"                        
-                        VerticalScrollBarVisibility="Auto"
-                        HorizontalScrollBarVisibility="Auto"/>
-                </Grid>
-            </Border>            
-        <GridSplitter Grid.Column="1"
-                      HorizontalAlignment="Stretch"
-                      VerticalAlignment="Stretch"
-                      ResizeDirection="Columns"
-                      ResizeBehavior="PreviousAndNext"
-                      Background="#D1D5DB"/>        
-        <Border Grid.Column="2"
-                Background="White"
-                BorderBrush="#D1D5DB"
-                BorderThickness="1"
-                CornerRadius="4"
-                Margin="6,0">
-            <Grid x:Name="PlanPanel">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0"
-                           Text="Végrehajtási terv"
-                           FontSize="18"
-                           FontWeight="SemiBold"
-                           Margin="12"/>
-                    <TreeView x:Name="PlanTreeView"
-                        SelectedItemChanged="PlanTreeView_SelectedItemChanged"
-                        Grid.Row="1"
-                        Margin="12,0,12,12"
-                        ItemsSource="{Binding PlanRoots}">
-                        <TreeView.ItemTemplate>
-                            <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{Binding NodeType}"/>
-                                    <TextBlock Text="{Binding RelationName}"
-                                        Margin="8,0,0,0"
-                                        Foreground="Gray"/>
-                                </StackPanel>
-                            </HierarchicalDataTemplate>
-                        </TreeView.ItemTemplate>
-                    </TreeView>
-                
-                </Grid>
-        </Border>
-        
-        <GridSplitter Grid.Column="3"
-                      HorizontalAlignment="Stretch"
-                      VerticalAlignment="Stretch"
-                      ResizeDirection="Columns"
-                      ResizeBehavior="PreviousAndNext"
-                      Background="#D1D5DB"/>
-        
-        <Border Grid.Column="4"
-                Background="White"
-                BorderBrush="#D1D5DB"
-                BorderThickness="1"
-                CornerRadius="4"
-                Margin="6,0,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" MinWidth="180"/>
+                    <ColumnDefinition Width="5"/>
+                    <ColumnDefinition Width="4*" MinWidth="220"/>
+                    <ColumnDefinition Width="5"/>
+                    <ColumnDefinition Width="3*" MinWidth="180"/>
+                </Grid.ColumnDefinitions>
 
-                <Grid x:Name="DetailsPanel">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
+                <Border Grid.Column="0"
+                     Background="White"
+                     BorderBrush="#D1D5DB"
+                     BorderThickness="1"
+                     CornerRadius="4"
+                     Margin="0,0,6,0">
 
-                    <TextBlock Grid.Row="0"
-                        Text="Művelet részletei"
-                        FontSize="18"
-                        FontWeight="SemiBold"
-                        Margin="12"/>
+                    <Grid x:Name="SqlPanel">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
 
-                    <ScrollViewer x:Name="Details"
-                         Grid.Row="1"
-                         Margin="12,0,12,12"
-                         VerticalScrollBarVisibility="Auto"
-                         HorizontalScrollBarVisibility="Disabled">
+                        <TextBlock Grid.Row="0"
+                            Text="SQL lekérdezés"
+                            FontSize="18"
+                            FontWeight="SemiBold"
+                            Margin="12"/>
 
-                        <StackPanel>
-                            <TextBlock Text="{Binding SelectedNode.NodeType,
-                                      FallbackValue='Válassz egy műveletet',
-                                      TargetNullValue='Válassz egy műveletet'}"
-                                      FontSize="20"
-                                      FontWeight="SemiBold"
-                                      TextWrapping="Wrap"
-                                      Margin="0,0,0,16"/>
+                        <TextBox x:Name="SqlTextBox"                        
+                            Grid.Row="1"
+                            Text="{Binding SqlText, Mode=OneWay}"
+                            Margin="12,0,12,12"                        
+                            FontFamily="Consolas"
+                            FontSize="14"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            IsReadOnly="True"
+                            IsEnabled="True"
+                            SelectionBrush="LightSkyBlue"
+                            SelectionOpacity="0.5"
+                            IsInactiveSelectionHighlightEnabled="True"
+                            AcceptsReturn="True"
+                            IsHitTestVisible="True"
+                            Focusable="True"
+                            TextWrapping="NoWrap"                        
+                            VerticalScrollBarVisibility="Auto"
+                            HorizontalScrollBarVisibility="Auto"/>
+                    </Grid>
+                </Border>
+                <GridSplitter Grid.Column="1"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"
+                          Background="#D1D5DB"/>
+                <Border Grid.Column="2"
+                    Background="White"
+                    BorderBrush="#D1D5DB"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Margin="6,0">
+                    <Grid x:Name="PlanPanel">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0"
+                               Text="Végrehajtási terv"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Margin="12"/>
+                        <TreeView x:Name="PlanTreeView"
+                            SelectedItemChanged="PlanTreeView_SelectedItemChanged"
+                            Grid.Row="1"
+                            Margin="12,0,12,12"
+                            ItemsSource="{Binding PlanRoots}">
+                            <TreeView.ItemTemplate>
+                                <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding NodeType}"/>
+                                        <TextBlock Text="{Binding RelationName}"
+                                            Margin="8,0,0,0"
+                                            Foreground="Gray"/>
+                                    </StackPanel>
+                                </HierarchicalDataTemplate>
+                            </TreeView.ItemTemplate>
+                        </TreeView>
 
-                            <TextBlock Text="Tábla"
-                                Foreground="Gray"/>
-                            <TextBlock Text="{Binding SelectedNode.RelationName,
-                                      FallbackValue='—',
-                                      TargetNullValue='—'}"
-                                TextWrapping="Wrap"
-                                Margin="0,0,0,12"/>
+                    </Grid>
+                </Border>
 
-                            <TextBlock Text="Becsült kimeneti sorok"
-                                Foreground="Gray"/>
-                            <TextBlock Text="{Binding SelectedNode.PlanRows,
-                                      FallbackValue='—',
-                                      TargetNullValue='—'}"
-                                Margin="0,0,0,12"/>
+                <GridSplitter Grid.Column="3"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"
+                          Background="#D1D5DB"/>
 
-                            <TextBlock Text="Tényleges kimeneti sorok / végrehajtás"
-                                TextWrapping="Wrap"
-                                Foreground="Gray"/>
-                            <TextBlock Text="{Binding SelectedNode.ActualRows,
-                                      FallbackValue='—',
-                                      TargetNullValue='—'}"
-                                Margin="0,0,0,12"/>
+                <Border Grid.Column="4"
+                    Background="White"
+                    BorderBrush="#D1D5DB"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Margin="6,0,0,0">
 
-                            <TextBlock Text="Kezdő költség"
-                                Foreground="Gray"/>
-                            <TextBlock Text="{Binding SelectedNode.StartupCost,
-                                      FallbackValue='—',
-                                      TargetNullValue='—'}"
-                                Margin="0,0,0,12"/>
+                    <Grid x:Name="DetailsPanel">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
 
-                            <TextBlock Text="Teljes költség"
-                                Foreground="Gray"/>
-                            <TextBlock Text="{Binding SelectedNode.TotalCost,
-                                      FallbackValue='—',
-                                      TargetNullValue='—'}"
-                                Margin="0,0,0,12"/>
+                        <TextBlock Grid.Row="0"
+                            Text="Művelet részletei"
+                            FontSize="18"
+                            FontWeight="SemiBold"
+                            Margin="12"/>
 
-                            <TextBlock Text="Idő / végrehajtás (ms)"
-                                TextWrapping="Wrap"
-                                Foreground="Gray"/>
-                            <TextBlock Text="{Binding SelectedNode.ActualTotalTime,
-                                      FallbackValue='—',
-                                      TargetNullValue='—'}"
-                                Margin="0,0,0,12"/>
-                            <TextBlock Text="Végrehajtások száma"
-                                Foreground="Gray"/>
-                            <TextBlock Text="{Binding SelectedNode.ActualLoops,
-                                      FallbackValue='—',
-                                      TargetNullValue='—'}"
-                                Margin="0,0,0,12"/>
-                            <TextBlock Text="További adatok"
-                                FontWeight="SemiBold"
-                                FontSize="14"
-                                Margin="0,16,0,8"/>
-                            <ItemsControl ItemsSource="{Binding SelectedNode.AdditionalProperties}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Margin="0,0,0,10">
-                                            <TextBlock Text="{Binding Key}"
-                                                Foreground="Gray"
-                                                TextWrapping="Wrap"/>
+                        <ScrollViewer x:Name="Details"
+                             Grid.Row="1"
+                             Margin="12,0,12,12"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Disabled">
 
-                                            <TextBlock Text="{Binding Value}"
-                                                Margin="0,2,0,0"
-                                                TextWrapping="Wrap"/>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
-                    </ScrollViewer>
-                </Grid>
-            </Border>
+                            <StackPanel>
+                                <TextBlock Text="{Binding SelectedNode.NodeType,
+                                          FallbackValue='Válassz egy műveletet',
+                                          TargetNullValue='Válassz egy műveletet'}"
+                                          FontSize="20"
+                                          FontWeight="SemiBold"
+                                          TextWrapping="Wrap"
+                                          Margin="0,0,0,16"/>
 
-    </Grid>
-        <TabControl Grid.Row="2" Margin="12,0,12,8">
-            <TabItem Header="Javaslatok">
-                <Grid x:Name="SuggestionsPanel">
-                    <ListView x:Name="SuggestionsListView"
-                        SelectionChanged="SuggestionsListView_SelectionChanged"                        
-                        Margin="8"
-                        ItemsSource="{Binding Suggestions}"
-                        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                        ScrollViewer.VerticalScrollBarVisibility="Auto"
-                        ScrollViewer.CanContentScroll="False">
+                                <TextBlock Text="Tábla"
+                                    Foreground="Gray"/>
+                                <TextBlock Text="{Binding SelectedNode.RelationName,
+                                          FallbackValue='—',
+                                          TargetNullValue='—'}"
+                                    TextWrapping="Wrap"
+                                    Margin="0,0,0,12"/>
+
+                                <TextBlock Text="Becsült kimeneti sorok"
+                                    Foreground="Gray"/>
+                                <TextBlock Text="{Binding SelectedNode.PlanRows,
+                                          FallbackValue='—',
+                                          TargetNullValue='—'}"
+                                    Margin="0,0,0,12"/>
+
+                                <TextBlock Text="Tényleges kimeneti sorok / végrehajtás"
+                                    TextWrapping="Wrap"
+                                    Foreground="Gray"/>
+                                <TextBlock Text="{Binding SelectedNode.ActualRows,
+                                          FallbackValue='—',
+                                          TargetNullValue='—'}"
+                                    Margin="0,0,0,12"/>
+
+                                <TextBlock Text="Kezdő költség"
+                                    Foreground="Gray"/>
+                                <TextBlock Text="{Binding SelectedNode.StartupCost,
+                                          FallbackValue='—',
+                                          TargetNullValue='—'}"
+                                    Margin="0,0,0,12"/>
+
+                                <TextBlock Text="Teljes költség"
+                                    Foreground="Gray"/>
+                                <TextBlock Text="{Binding SelectedNode.TotalCost,
+                                          FallbackValue='—',
+                                          TargetNullValue='—'}"
+                                    Margin="0,0,0,12"/>
+
+                                <TextBlock Text="Idő / végrehajtás (ms)"
+                                    TextWrapping="Wrap"
+                                    Foreground="Gray"/>
+                                <TextBlock Text="{Binding SelectedNode.ActualTotalTime,
+                                          FallbackValue='—',
+                                          TargetNullValue='—'}"
+                                    Margin="0,0,0,12"/>
+                                <TextBlock Text="Végrehajtások száma"
+                                    Foreground="Gray"/>
+                                <TextBlock Text="{Binding SelectedNode.ActualLoops,
+                                          FallbackValue='—',
+                                          TargetNullValue='—'}"
+                                    Margin="0,0,0,12"/>
+                                <TextBlock Text="További adatok"
+                                    FontWeight="SemiBold"
+                                    FontSize="14"
+                                    Margin="0,16,0,8"/>
+                                <ItemsControl ItemsSource="{Binding SelectedNode.AdditionalProperties}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Margin="0,0,0,10">
+                                                <TextBlock Text="{Binding Key}"
+                                                    Foreground="Gray"
+                                                    TextWrapping="Wrap"/>
+
+                                                <TextBlock Text="{Binding Value}"
+                                                    Margin="0,2,0,0"
+                                                    TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+
+            </Grid>
+            <TabControl Grid.Row="2" Margin="12,0,12,8" Grid.ColumnSpan="2">
+                <TabItem Header="Javaslatok">
+                    <Grid x:Name="SuggestionsPanel">
+                        <ListView x:Name="SuggestionsListView"
+                            SelectionChanged="SuggestionsListView_SelectionChanged"                        
+                            Margin="8"
+                            ItemsSource="{Binding Suggestions}"
+                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                            ScrollViewer.VerticalScrollBarVisibility="Auto"
+                            ScrollViewer.CanContentScroll="False">
+
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="4,6">
+                                        <TextBlock Text="{Binding Title}"
+                                                   FontWeight="SemiBold"
+                                                   FontSize="15"
+                                                   TextWrapping="Wrap"/>
+
+                                        <TextBlock Text="{Binding StatementIndex,
+                                                     StringFormat='Utasítás sorszáma: {0}'}"
+                                                     Foreground="Gray"
+                                                     Margin="0,4,0,0"/>
+
+                                        <TextBlock Text="{Binding Description}"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,4,0,0"/>
+
+                                        <TextBlock Text="{Binding Recommendation}"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Üzenetek">
+                    <Grid x:Name="MessagesPanel">
+                        <ListBox x:Name="MessagesListBox"
+                                 Margin="8"
+                                 ItemsSource="{Binding Messages}"/>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Tervjavaslatok">
+                    <ListView x:Name="PlanSuggestionsListView"
+                  Margin="8"
+                  ItemsSource="{Binding PlanSuggestions}"
+                  SelectionChanged="PlanSuggestionsListView_SelectionChanged"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                  ScrollViewer.CanContentScroll="False">
 
                         <ListView.ItemContainerStyle>
                             <Style TargetType="ListViewItem">
@@ -260,150 +325,102 @@
                             <DataTemplate>
                                 <StackPanel Margin="4,6">
                                     <TextBlock Text="{Binding Title}"
-                                               FontWeight="SemiBold"
-                                               FontSize="15"
-                                               TextWrapping="Wrap"/>
+                                   FontWeight="SemiBold"
+                                   FontSize="15"
+                                   TextWrapping="Wrap"/>
 
-                                    <TextBlock Text="{Binding StatementIndex,
-                                                 StringFormat='Utasítás sorszáma: {0}'}"
-                                                 Foreground="Gray"
-                                                 Margin="0,4,0,0"/>
+                                    <TextBlock Text="{Binding PlanIndex, StringFormat='Terv sorszáma: {0}'}"
+                                   Foreground="Gray"
+                                   Margin="0,4,0,0"/>
+
+                                    <TextBlock Text="{Binding Node.NodeType, StringFormat='Művelet: {0}'}"
+                                   Foreground="Gray"
+                                   Margin="0,4,0,0"/>
 
                                     <TextBlock Text="{Binding Description}"
-                                               TextWrapping="Wrap"
-                                               Margin="0,4,0,0"/>
+                                   TextWrapping="Wrap"
+                                   Margin="0,4,0,0"/>
 
                                     <TextBlock Text="{Binding Recommendation}"
-                                               TextWrapping="Wrap"
-                                               Margin="0,4,0,0"/>
+                                   TextWrapping="Wrap"
+                                   Margin="0,4,0,0"/>
                                 </StackPanel>
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
-                </Grid>
-            </TabItem>
+                </TabItem>
+                <TabItem Header="Összegzés">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="12">
+                            <TextBlock Text="SQL és végrehajtási terv összekapcsolása"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,12"/>
 
-            <TabItem Header="Üzenetek">
-                <Grid x:Name="MessagesPanel">
-                    <ListBox x:Name="MessagesListBox"
-                             Margin="8"
-                             ItemsSource="{Binding Messages}"/>
-                </Grid>
-            </TabItem>
-            <TabItem Header="Tervjavaslatok">
-                <ListView x:Name="PlanSuggestionsListView"
-              Margin="8"
-              ItemsSource="{Binding PlanSuggestions}"
-              SelectionChanged="PlanSuggestionsListView_SelectionChanged"
-              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-              ScrollViewer.VerticalScrollBarVisibility="Auto"
-              ScrollViewer.CanContentScroll="False">
+                            <TextBlock Text="Az SQL-fájl elemzése és az EXPLAIN JSON betöltése után válaszd ki az összetartozó elemeket."
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,12"/>
 
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                        </Style>
-                    </ListView.ItemContainerStyle>
+                            <TextBlock Text="SQL-utasítás" Margin="0,0,0,4"/>
 
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Margin="4,6">
-                                <TextBlock Text="{Binding Title}"
-                               FontWeight="SemiBold"
-                               FontSize="15"
-                               TextWrapping="Wrap"/>
+                            <ComboBox ItemsSource="{Binding StatementsForSummary}"
+                                      SelectedItem="{Binding SelectedSummaryStatement, Mode=TwoWay}"
+                                      SelectionChanged="SummaryStatementComboBox_SelectionChanged"
+                                      MinWidth="240"
+                                      HorizontalAlignment="Left"
+                                      Margin="0,0,0,12">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock>
+                                                  <Run Text="{Binding StatementIndex, Mode=OneWay}"/>
+                                                  <Run Text=". utasítás – "/>
+                                                  <Run Text="{Binding StatementType, Mode=OneWay}"/>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
 
-                                <TextBlock Text="{Binding PlanIndex, StringFormat='Terv sorszáma: {0}'}"
-                               Foreground="Gray"
-                               Margin="0,4,0,0"/>
+                            <TextBlock Text="Végrehajtási terv" Margin="0,0,0,4"/>
 
-                                <TextBlock Text="{Binding Node.NodeType, StringFormat='Művelet: {0}'}"
-                               Foreground="Gray"
-                               Margin="0,4,0,0"/>
+                            <ComboBox ItemsSource="{Binding PlansForSummary}"
+                          SelectedItem="{Binding SelectedSummaryPlan, Mode=TwoWay}"
+                          MinWidth="240"
+                          HorizontalAlignment="Left"
+                          Margin="0,0,0,12">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock>
+                                <Run Text="{Binding PlanIndex, Mode=OneWay}"/>
+                                <Run Text=". terv – "/>
+                                <Run Text="{Binding Root.NodeType, Mode=OneWay}"/>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
 
-                                <TextBlock Text="{Binding Description}"
-                               TextWrapping="Wrap"
-                               Margin="0,4,0,0"/>
+                            <TextBlock Text="A gomb megnyomásával megerősíted, hogy a kiválasztott terv a kiválasztott SQL-utasításhoz tartozik."
+                                TextWrapping="Wrap"
+                                Margin="0,0,0,12"/>
 
-                                <TextBlock Text="{Binding Recommendation}"
-                               TextWrapping="Wrap"
-                               Margin="0,4,0,0"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </TabItem>
-            <TabItem Header="Összegzés">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="12">
-                        <TextBlock Text="SQL és végrehajtási terv összekapcsolása"
-                       FontSize="16"
-                       FontWeight="SemiBold"
-                       Margin="0,0,0,12"/>
+                            <Button Content="Összegzés készítése"
+                                Command="{Binding CreateSummaryCommand}"
+                                HorizontalAlignment="Left"
+                                Padding="16,8"
+                                Margin="0,0,0,12"/>
 
-                       <TextBlock Text="Az SQL-fájl elemzése és az EXPLAIN JSON betöltése után válaszd ki az összetartozó elemeket."
-                       TextWrapping="Wrap"
-                       Margin="0,0,0,12"/>
+                            <TextBlock Text="{Binding SummaryStatus}" TextWrapping="Wrap"/>
 
-                        <TextBlock Text="SQL-utasítás" Margin="0,0,0,4"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
 
-                        <ComboBox ItemsSource="{Binding StatementsForSummary}"
-                                  SelectedItem="{Binding SelectedSummaryStatement, Mode=TwoWay}"
-                                  SelectionChanged="SummaryStatementComboBox_SelectionChanged"
-                                  MinWidth="240"
-                                  HorizontalAlignment="Left"
-                                  Margin="0,0,0,12">
-                                  <ComboBox.ItemTemplate>
-                                      <DataTemplate>
-                                          <TextBlock>
-                                              <Run Text="{Binding StatementIndex, Mode=OneWay}"/>
-                                              <Run Text=". utasítás – "/>
-                                              <Run Text="{Binding StatementType, Mode=OneWay}"/>
-                                          </TextBlock>
-                                      </DataTemplate>
-                                  </ComboBox.ItemTemplate>
-                        </ComboBox>
+            <StatusBar Grid.Row="3" Grid.ColumnSpan="2">
+                <StatusBarItem>
+                    <TextBlock Text="{Binding StatusMessage}"/>
+                </StatusBarItem>
+            </StatusBar>
 
-                        <TextBlock Text="Végrehajtási terv" Margin="0,0,0,4"/>
-
-                        <ComboBox ItemsSource="{Binding PlansForSummary}"
-                      SelectedItem="{Binding SelectedSummaryPlan, Mode=TwoWay}"
-                      MinWidth="240"
-                      HorizontalAlignment="Left"
-                      Margin="0,0,0,12">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock>
-                            <Run Text="{Binding PlanIndex, Mode=OneWay}"/>
-                            <Run Text=". terv – "/>
-                            <Run Text="{Binding Root.NodeType, Mode=OneWay}"/>
-                                    </TextBlock>
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
-
-                        <TextBlock Text="A gomb megnyomásával megerősíted, hogy a kiválasztott terv a kiválasztott SQL-utasításhoz tartozik."
-                            TextWrapping="Wrap"
-                            Margin="0,0,0,12"/>
-
-                        <Button Content="Összegzés készítése"
-                            Command="{Binding CreateSummaryCommand}"
-                            HorizontalAlignment="Left"
-                            Padding="16,8"
-                            Margin="0,0,0,12"/>
-
-                        <TextBlock Text="{Binding SummaryStatus}" TextWrapping="Wrap"/>                      
-
-                    </StackPanel>
-                </ScrollViewer>
-            </TabItem>
-        </TabControl>
-
-        <StatusBar Grid.Row="3">
-            <StatusBarItem>
-                <TextBlock Text="{Binding StatusMessage}"/>
-            </StatusBarItem>
-        </StatusBar>
-
-    </Grid>
+        </Grid>
+    </DockPanel>
 </Window>

@@ -1,0 +1,88 @@
+﻿<Window x:Class="SqlPlanVisualizer.Desktop.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Beállítások"
+        Width="560"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        Loaded="SettingsWindow_Loaded">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel x:Name="SettingsPanel" IsEnabled="False">
+            <TextBlock Text="Elemzési előzmények"
+                       FontSize="20"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,16"/>
+
+            <TextBlock Text="Ezek a beállítások az előzménymentés későbbi bekötésekor lépnek működésbe."
+                       TextWrapping="Wrap"
+                       Foreground="Gray"
+                       Margin="0,0,0,16"/>
+
+            <CheckBox x:Name="SaveHistoryCheckBox"
+                      Content="Elemzések automatikus mentése"
+                      IsChecked="{Binding SaveAnalysisHistory}"
+                      Margin="0,0,0,12"/>
+
+            <StackPanel IsEnabled="{Binding IsChecked, ElementName=SaveHistoryCheckBox}">
+                <CheckBox Content="A bemeneti SQL és JSON tartalmának mentése is"
+                          IsChecked="{Binding IncludeSourceFiles}"
+                          Margin="0,0,0,8"/>
+
+                <TextBlock Text="Bemenetek nélkül csak az eredmények lesznek visszanézhetők."
+                           TextWrapping="Wrap"
+                           Foreground="Gray"
+                           Margin="0,0,0,16"/>
+
+                <TextBlock Text="Előzmények mentési mappája"
+                           Margin="0,0,0,6"/>
+
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox x:Name="HistoryDirectoryTextBox"
+             Text="{Binding HistoryDirectory, UpdateSourceTrigger=PropertyChanged}"
+             Padding="6"
+             VerticalContentAlignment="Center"/>
+
+                    <Button Grid.Column="1"
+            Content="Tallózás..."
+            Padding="12,6"
+            Margin="8,0,0,0"
+            Click="BrowseHistoryDirectory_Click"/>
+                </Grid>
+
+                <TextBlock Text="Mentési formátum: JSON"
+                           Foreground="Gray"/>
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,24,0,0">
+
+            <Button x:Name="SaveButton"
+                    Content="Mentés"
+                    Width="100"
+                    Padding="8"
+                    Margin="0,0,8,0"
+                    IsEnabled="False"
+                    Click="SaveButton_Click"/>
+
+            <Button Content="Mégse"
+                    Width="100"
+                    Padding="8"
+                    IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

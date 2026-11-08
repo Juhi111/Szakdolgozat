@@ -21,6 +21,13 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
     {
         #region fields  
 
+        private readonly UserSettingsService _userSettingsService = new();
+        private readonly AnalysisHistoryMapper _historyMapper = new();
+        private readonly AnalysisHistoryService _historyService = new();
+
+        private string? _analyzedSqlText;
+        private string? _loadedExplainJson;
+
         private readonly AnalysisSummaryWindowService _summaryWindowService = new();
         private readonly CombinedAnalysisService _combinedAnalysisService = AnalysisServiceFactory.CreateCombinedAnalysisService();
         private SqlStatementSummary? _selectedSummaryStatement;
@@ -244,12 +251,12 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         /// <summary>
         /// Ellenőrzi a kiválasztást, és eltárolja az összetartozónak jelölt elemeket.
         /// </summary>
-        private Task CreateSummaryAsync()
+        private async Task CreateSummaryAsync()
         {
             if (SelectedSummaryStatement is null || SelectedSummaryPlan is null)
             {
                 ReportMessage("Az összegzéshez válassz SQL-utasítást és végrehajtási tervet.");
-                return Task.CompletedTask;
+                return;
             }
 
             if (!StatementsForSummary.Contains(SelectedSummaryStatement) ||
@@ -257,17 +264,22 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             {
                 ClearSummaryPair();
                 ReportMessage("A kiválasztott elemek már nem tartoznak az aktuális elemzéshez.");
-                return Task.CompletedTask;
+                return;
             }
 
             _summaryPair = new StatementPlanPair(SelectedSummaryStatement, SelectedSummaryPlan);
-            var result = _combinedAnalysisService.Analyze(_summaryPair, Suggestions, PlanSuggestions);
+
+            var result = _combinedAnalysisService.Analyze(
+                _summaryPair, Suggestions, PlanSuggestions);
+
+            string? sqlSnapshot = _analyzedSqlText;
+            string? jsonSnapshot = _loadedExplainJson;
 
             OnPropertyChanged(nameof(SummaryStatus));
 
             _summaryWindowService.Show(result);
 
-            return Task.CompletedTask;
+            await SaveHistoryAsync(result, sqlSnapshot, jsonSnapshot);
         }
 
         /// <summary>
@@ -278,11 +290,9 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         private Task DeleteWindow()
         {
             _sqlDocumentVersion++;
-
             Suggestions.Clear();
             Messages.Clear();
             SelectedNode = null;
-
             StatusMessage = "Nincs betöltött fájl";
             PlanRoots = new List<PlanNode>();            
             SqlText = string.Empty;
@@ -292,6 +302,8 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             ClearSummaryPair();
             PlansForSummary.Clear();
             PlanSuggestions.Clear();
+            _analyzedSqlText = null;
+            _loadedExplainJson = null;
 
             return Task.CompletedTask;
         }
@@ -304,6 +316,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         /// <returns>Az elemzés befejezését jelző feladat.</returns>
         private async Task AnalyzeAsync()
         {
+            _analyzedSqlText = null;
             Suggestions.Clear();
             StatementsForSummary.Clear();
             SelectedSummaryStatement = null;
@@ -320,6 +333,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 
             if (summary.IsSuccess)
             {
+                _analyzedSqlText = sql;
                 foreach (var statement in summary.Statements)
                 {
                     if (statement.StatementType == "SELECT")
@@ -372,8 +386,8 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 return;
 
             _sqlDocumentVersion++;
-
             SqlText = string.Empty;
+            _analyzedSqlText = null;
             Suggestions.Clear();
             SelectedSummaryStatement = null;
             ClearSummaryPair();
@@ -391,8 +405,8 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 {
                     SqlText = content;
                     StatusMessage = $"Betöltve: {Path.GetFileName(path)}";
-                }
-                
+                }              
+
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -426,6 +440,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 else
                 {
                     var plans = _planService.ParsePlans(content);
+                    _loadedExplainJson = content;
 
                     SelectedSummaryPlan = null;
                     ClearSummaryPair();
@@ -444,6 +459,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                     StatusMessage = $"Betöltve: {Path.GetFileName(path)} ({plans.Count} terv)";
 
                     AnalyzePlans();
+                    
                 }
             }
             catch (UnauthorizedAccessException ex)
@@ -484,6 +500,27 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             }
 
             ReportMessage($"Tervelemzés elkészült. Találatok száma: {findings.Count}.");
+        }
+
+        private async Task SaveHistoryAsync(CombinedAnalysisResult result, string? sqlText, string? explainJson)
+        {
+            try
+            {
+                var settings = await _userSettingsService.LoadAsync();
+
+                if (!settings.SaveAnalysisHistory)
+                    return;
+
+                var entry = _historyMapper.Map(result, settings.IncludeSourceFiles, sqlText, explainJson);
+
+                await _historyService.SaveAsync(entry, settings.HistoryDirectory);
+
+                ReportMessage("Az elemzési összegzés bekerült az előzményekbe.");
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or ArgumentException or NotSupportedException)
+            {
+                ReportMessage($"Az összegzés elkészült, de az előzmény mentése nem sikerült: {ex.Message}");
+            }
         }
     }
 }

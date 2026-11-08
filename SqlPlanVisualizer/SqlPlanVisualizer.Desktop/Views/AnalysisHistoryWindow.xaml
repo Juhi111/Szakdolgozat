@@ -1,0 +1,165 @@
+﻿<Window x:Class="SqlPlanVisualizer.Desktop.Views.AnalysisHistoryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Elemzési előzmények"
+        Width="1100"
+        Height="700"
+        MinWidth="800"
+        MinHeight="500"
+        WindowStartupLocation="CenterOwner"
+        Loaded="Window_Loaded">
+
+    <Window.Resources>
+        <DataTemplate x:Key="FindingTemplate">
+            <Border BorderBrush="#D1D5DB"
+                    BorderThickness="1"
+                    Padding="12"
+                    Margin="0,0,0,10">
+                <StackPanel>
+                    <TextBlock Text="{Binding Title}"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               TextWrapping="Wrap"/>
+
+                    <TextBlock Text="{Binding RuleId}"
+                               Foreground="Gray"
+                               Margin="0,4,0,8"/>
+
+                    <TextBlock Text="{Binding NodeType}"
+                               TextWrapping="Wrap"/>
+
+                    <TextBlock Text="{Binding RelationName}"
+                               Foreground="Gray"
+                               TextWrapping="Wrap"/>
+
+                    <TextBlock Text="{Binding SqlObservation}"
+                               TextWrapping="Wrap"
+                               Margin="0,6,0,0"/>
+
+                    <TextBlock Text="{Binding PlanObservation}"
+                               TextWrapping="Wrap"
+                               Margin="0,6,0,0"/>
+
+                    <TextBlock Text="{Binding Description}"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0"/>
+
+                    <TextBlock Text="Javaslat"
+                               FontWeight="SemiBold"
+                               Margin="0,10,0,4"/>
+
+                    <TextBlock Text="{Binding Recommendation}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+
+        <Style x:Key="FindingListStyle" TargetType="ListView">
+            <Setter Property="ItemTemplate"
+                    Value="{StaticResource FindingTemplate}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility"
+                    Value="Disabled"/>
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment"
+                                Value="Stretch"/>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="280"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <ListBox ItemsSource="{Binding Entries}"
+                 SelectedItem="{Binding SelectedEntry, Mode=TwoWay}"
+                 Margin="0,0,12,0"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Margin="6">
+                        <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:yyyy.MM.dd. HH:mm:ss zzz}'}"
+                                   FontWeight="SemiBold"/>
+
+                        <TextBlock Text="{Binding StatementIndex, StringFormat='SQL-utasítás: {0}'}"
+                                   Margin="0,4,0,0"/>
+
+                        <TextBlock Text="{Binding PlanIndex, StringFormat='Végrehajtási terv: {0}'}"/>
+
+                        <TextBlock Text="{Binding CombinedFindings.Count, StringFormat='Összekapcsolt találatok: {0}'}"
+                                   Foreground="Gray"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <TabControl Grid.Column="1">
+            <TabItem Header="Összekapcsolt találatok">
+                <ListView ItemsSource="{Binding SelectedEntry.CombinedFindings}"
+                          Style="{StaticResource FindingListStyle}"/>
+            </TabItem>
+
+            <TabItem Header="SQL-találatok">
+                <ListView ItemsSource="{Binding SelectedEntry.SqlFindings}"
+                          Style="{StaticResource FindingListStyle}"/>
+            </TabItem>
+
+            <TabItem Header="Tervtalálatok">
+                <ListView ItemsSource="{Binding SelectedEntry.PlanFindings}"
+                          Style="{StaticResource FindingListStyle}"/>
+            </TabItem>
+
+            <TabItem Header="SQL">
+                <TextBox Text="{Binding SelectedEntry.SqlText, Mode=OneWay,
+                                TargetNullValue='Nincs mentett SQL-bemenet.'}"
+                         IsReadOnly="True"
+                         FontFamily="Consolas"
+                         Padding="10"
+                         TextWrapping="NoWrap"
+                         HorizontalScrollBarVisibility="Auto"
+                         VerticalScrollBarVisibility="Auto"/>
+            </TabItem>
+
+            <TabItem Header="EXPLAIN JSON">
+                <TextBox Text="{Binding SelectedEntry.ExplainJson, Mode=OneWay,
+                                TargetNullValue='Nincs mentett JSON-bemenet.'}"
+                         IsReadOnly="True"
+                         FontFamily="Consolas"
+                         Padding="10"
+                         TextWrapping="NoWrap"
+                         HorizontalScrollBarVisibility="Auto"
+                         VerticalScrollBarVisibility="Auto"/>
+            </TabItem>
+
+            <TabItem Header="Betöltési hibák">
+                <ListBox ItemsSource="{Binding Errors}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}"
+                                       TextWrapping="Wrap"
+                                       Margin="6"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </TabItem>
+        </TabControl>
+
+        <TextBlock Grid.Row="1"
+                   Grid.ColumnSpan="2"
+                   Text="{Binding StatusMessage}"
+                   TextWrapping="Wrap"
+                   Margin="0,12,0,0"/>
+    </Grid>
+</Window>

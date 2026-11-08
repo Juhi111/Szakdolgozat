@@ -11,7 +11,7 @@ namespace SqlPlanVisualizer.Desktop.Commands
         /// <summary>
         /// A parancs indításakor végrehajtandó aszinkron művelet.
         /// </summary>
-        private readonly Func<Task> _execute;
+        private readonly Func<Task> _execute;        
 
         // <summary>
         /// Jelzi, hogy a parancs végrehajtása folyamatban van-e.
@@ -29,7 +29,6 @@ namespace SqlPlanVisualizer.Desktop.Commands
                 throw new ArgumentNullException(nameof(execute));
             _execute = execute;            
         }
-
         // <summary>
         /// Értesíti a parancshoz kapcsolt vezérlőket a végrehajthatóság változásáról.
         /// </summary>
@@ -67,7 +66,7 @@ namespace SqlPlanVisualizer.Desktop.Commands
 
             try
             {
-                await _execute();
+                await _execute();                
             }
             finally { 
                 _isExecuting = false;

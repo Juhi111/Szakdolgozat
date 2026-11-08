@@ -127,5 +127,30 @@ namespace SqlPlanVisualizer.Desktop
                 viewModel.SelectedNode = finding.Node;
             }
         }
+
+        private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        private void SettingsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var window = new SqlPlanVisualizer.Desktop.Views.SettingsWindow
+            {
+                Owner = this
+            };
+
+            window.ShowDialog();
+        }
+
+        private void HistoryMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var window = new SqlPlanVisualizer.Desktop.Views.AnalysisHistoryWindow
+            {
+                Owner = this
+            };
+
+            window.ShowDialog();
+        }
     }
 }
