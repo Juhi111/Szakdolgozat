@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Infrastructure.FileSystem;
 using System;
@@ -43,9 +43,8 @@ namespace SqlPlanVisualizer.Desktop.Views
 
             settings.HistoryDirectory = settings.HistoryDirectory.Trim();
 
-            if (settings.SaveAnalysisHistory &&
-                (string.IsNullOrWhiteSpace(settings.HistoryDirectory) ||
-                 !Path.IsPathFullyQualified(settings.HistoryDirectory)))
+            if (string.IsNullOrWhiteSpace(settings.HistoryDirectory) ||
+                !Path.IsPathFullyQualified(settings.HistoryDirectory))
             {
                 MessageBox.Show(this,
                     "Adj meg egy teljes elérési utat az előzmények mentéséhez.",

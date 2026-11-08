@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -77,7 +77,10 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
                  version.ValueKind != JsonValueKind.Number ||
                 !version.TryGetInt32(out int formatVersion) ||                
                 !root.TryGetProperty("Id", out _) ||
-                !root.TryGetProperty("CreatedAt", out _))
+                !root.TryGetProperty("CreatedAt", out _) ||
+                !HasArray(root, "SqlFindings") ||
+                !HasArray(root, "PlanFindings") ||
+                !HasArray(root, "CombinedFindings"))
             {
                 throw new JsonException("A fájl nem érvényes elemzési előzmény.");
             }
@@ -103,6 +106,11 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
             }
 
             return entry;
+        }
+
+        private static bool HasArray(JsonElement root, string name)
+        {
+            return root.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.Array;
         }
 
         /// <summary>

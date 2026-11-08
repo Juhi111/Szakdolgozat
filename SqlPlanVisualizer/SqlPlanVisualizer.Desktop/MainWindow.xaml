@@ -1,4 +1,4 @@
-﻿<Window x:Class="SqlPlanVisualizer.Desktop.MainWindow"
+<Window x:Class="SqlPlanVisualizer.Desktop.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -357,7 +357,7 @@
                            FontWeight="SemiBold"
                            Margin="0,0,0,12"/>
 
-                            <TextBlock Text="Az SQL-fájl elemzése és az EXPLAIN JSON betöltése után válaszd ki az összetartozó elemeket."
+                            <TextBlock Text="Töltsd be az SQL- és EXPLAIN JSON-fájlt, indítsd el az Elemzést, majd válaszd ki az összetartozó elemeket."
                            TextWrapping="Wrap"
                            Margin="0,0,0,12"/>
 

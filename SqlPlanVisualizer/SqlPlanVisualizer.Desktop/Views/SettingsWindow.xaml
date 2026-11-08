@@ -1,4 +1,4 @@
-﻿<Window x:Class="SqlPlanVisualizer.Desktop.Views.SettingsWindow"
+<Window x:Class="SqlPlanVisualizer.Desktop.Views.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Beállítások"
@@ -20,19 +20,20 @@
                        FontWeight="SemiBold"
                        Margin="0,0,0,16"/>
 
-            <TextBlock Text="Ezek a beállítások az előzménymentés későbbi bekötésekor lépnek működésbe."
+            <TextBlock Text="Bekapcsolva minden elkészített összegzést automatikusan elmentünk."
                        TextWrapping="Wrap"
                        Foreground="Gray"
                        Margin="0,0,0,16"/>
 
             <CheckBox x:Name="SaveHistoryCheckBox"
-                      Content="Elemzések automatikus mentése"
+                      Content="Összegzések automatikus mentése"
                       IsChecked="{Binding SaveAnalysisHistory}"
                       Margin="0,0,0,12"/>
 
-            <StackPanel IsEnabled="{Binding IsChecked, ElementName=SaveHistoryCheckBox}">
+            <StackPanel>
                 <CheckBox Content="A bemeneti SQL és JSON tartalmának mentése is"
                           IsChecked="{Binding IncludeSourceFiles}"
+                          IsEnabled="{Binding IsChecked, ElementName=SaveHistoryCheckBox}"
                           Margin="0,0,0,8"/>
 
                 <TextBlock Text="Bemenetek nélkül csak az eredmények lesznek visszanézhetők."

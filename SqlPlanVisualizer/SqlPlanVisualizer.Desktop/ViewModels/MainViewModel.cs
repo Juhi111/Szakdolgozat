@@ -1,4 +1,4 @@
-﻿using SqlPlanVisualizer.Core.Analysis;
+using SqlPlanVisualizer.Core.Analysis;
 using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Desktop.Commands;
 using SqlPlanVisualizer.Desktop.Services;
@@ -27,6 +27,8 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 
         private string? _analyzedSqlText;
         private string? _loadedExplainJson;
+        private List<ExecutionPlan> _loadedPlans = new();
+        private int _planDocumentVersion;
 
         private readonly AnalysisSummaryWindowService _summaryWindowService = new();
         private readonly CombinedAnalysisService _combinedAnalysisService = AnalysisServiceFactory.CreateCombinedAnalysisService();
@@ -304,73 +306,95 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             PlanSuggestions.Clear();
             _analyzedSqlText = null;
             _loadedExplainJson = null;
+            _loadedPlans.Clear();
+            _planDocumentVersion++;
 
             return Task.CompletedTask;
         }
 
         /// <summary>
-        /// Háttérszálon feldolgozza az aktuális SQL-szöveget, majd alkalmazza az elemzési szabályokat.
-        /// Megjeleníti a találatokat és jelzi a kihagyott utasításokat vagy a feldolgozási hibát.
-        /// Ha közben megváltozott a dokumentumverzió, az eredményt figyelmen kívül hagyja.
+        /// A betöltött SQL és tervek elemzését párhuzamosan futtatja.
+        /// Csak a változatlan bemenethez tartozó eredményeket jeleníti meg.
         /// </summary>
-        /// <returns>Az elemzés befejezését jelző feladat.</returns>
         private async Task AnalyzeAsync()
         {
+            string sql = SqlText;
+            var plans = _loadedPlans.ToArray();
+            int sqlVersion = _sqlDocumentVersion;
+            int planVersion = _planDocumentVersion;
+            bool hasSql = !string.IsNullOrWhiteSpace(sql);
+
             _analyzedSqlText = null;
             Suggestions.Clear();
+            PlanSuggestions.Clear();
             StatementsForSummary.Clear();
+            PlansForSummary.Clear();
             SelectedSummaryStatement = null;
+            SelectedSummaryPlan = null;
             ClearSummaryPair();
-            StatusMessage = "SQL feldolgozása…";
 
-            string sql = SqlText;
-            int documentVersion = _sqlDocumentVersion;
-
-            var summary = await Task.Run(() => _queryService.ParseSummary(sql));
-
-            if (documentVersion != _sqlDocumentVersion)
+            if (!hasSql && plans.Length == 0)
+            {
+                ReportMessage("Az elemzéshez tölts be SQL- vagy EXPLAIN JSON-fájlt.");
                 return;
-
-            if (summary.IsSuccess)
-            {
-                _analyzedSqlText = sql;
-                foreach (var statement in summary.Statements)
-                {
-                    if (statement.StatementType == "SELECT")
-                        StatementsForSummary.Add(statement);
-                }
-
-                SelectedSummaryStatement = StatementsForSummary.Count == 1 ? StatementsForSummary[0] : null;
-
-
-                ReportMessage($"SQL feldolgozva. Utasítások száma: {summary.StatementCount}.");
-                var findings = _analysisService.Analyze(summary.Statements);
-
-                foreach (var finding in findings)
-                {
-                    Suggestions.Add(finding);
-                }
-
-                int skippedCount = 0;
-
-                foreach (var statement in summary.Statements)
-                {
-                    if (statement.StatementType == "SELECT")
-                        continue;
-
-                    skippedCount++;
-
-                    ReportMessage(
-                        $"A(z) {statement.StatementIndex}. utasítás kimaradt az elemzésből " +
-                        $"({statement.StatementType}). Jelenleg csak SELECT utasításokat elemzünk.");
-                }
-                ReportMessage(
-                    $"Elemzés elkészült. Elemzett utasítások: {summary.StatementCount - skippedCount}. " +
-                    $"Kihagyott utasítások: {skippedCount}.");
             }
-            else
+
+            StatusMessage = "SQL és végrehajtási tervek elemzése…";
+
+            var sqlTask = Task.Run(() =>
             {
-                ReportMessage($"Hiba az SQL feldolgozásakor: {summary.ErrorMessage}");
+                var summary = hasSql ? _queryService.ParseSummary(sql) : null;
+                var findings = summary?.IsSuccess == true
+                    ? _analysisService.Analyze(summary.Statements)
+                    : new List<SqlAnalysisFinding>();
+                return (Summary: summary, Findings: findings);
+            });
+            var planTask = Task.Run(() => _planAnalysisService.Analyze(plans.Select(plan => plan.Root)));
+
+            try
+            {
+                await Task.WhenAll(sqlTask, planTask);
+                var sqlResult = await sqlTask;
+                var planFindings = await planTask;
+
+                if (sqlVersion == _sqlDocumentVersion && sqlResult.Summary is { } summary)
+                {
+                    if (summary.IsSuccess)
+                    {
+                        _analyzedSqlText = sql;
+                        foreach (var statement in summary.Statements)
+                        {
+                            if (statement.StatementType == "SELECT")
+                                StatementsForSummary.Add(statement);
+                            else
+                                ReportMessage($"A(z) {statement.StatementIndex}. utasítás kimaradt ({statement.StatementType}). Csak SELECT utasításokat elemzünk.");
+                        }
+
+                        foreach (var finding in sqlResult.Findings)
+                            Suggestions.Add(finding);
+
+                        SelectedSummaryStatement = StatementsForSummary.Count == 1 ? StatementsForSummary[0] : null;
+                        ReportMessage($"SQL-elemzés elkészült. Elemzett utasítások: {StatementsForSummary.Count}. Találatok: {Suggestions.Count}.");
+                    }
+                    else
+                        ReportMessage($"Hiba az SQL feldolgozásakor: {summary.ErrorMessage}");
+                }
+
+                if (planVersion == _planDocumentVersion && plans.Length > 0)
+                {
+                    foreach (var plan in plans)
+                        PlansForSummary.Add(plan);
+                    foreach (var finding in planFindings)
+                        PlanSuggestions.Add(finding);
+
+                    SelectedSummaryPlan = PlansForSummary.Count == 1 ? PlansForSummary[0] : null;
+                    ReportMessage($"Tervelemzés elkészült. Tervek: {plans.Length}. Találatok: {PlanSuggestions.Count}.");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Felületi parancshatár: a háttérfeladat hibája ne jusson az async void parancsig.
+                ReportMessage($"Az elemzés nem sikerült: {ex.Message}");
             }
         }
 
@@ -441,24 +465,19 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 {
                     var plans = _planService.ParsePlans(content);
                     _loadedExplainJson = content;
+                    _loadedPlans = plans;
+                    _planDocumentVersion++;
 
                     SelectedSummaryPlan = null;
                     ClearSummaryPair();
                     PlansForSummary.Clear();
 
-                    foreach (var plan in plans)
-                    {
-                        PlansForSummary.Add(plan);
-                    }
-
-                    SelectedSummaryPlan = PlansForSummary.Count == 1 ? PlansForSummary[0] : null;
+                    PlanSuggestions.Clear();
 
                     SelectedNode = null;
                     PlanRoots = plans.Select(plan => plan.Root).ToList();
 
-                    StatusMessage = $"Betöltve: {Path.GetFileName(path)} ({plans.Count} terv)";
-
-                    AnalyzePlans();
+                    ReportMessage($"Betöltve: {Path.GetFileName(path)} ({plans.Count} terv). A vizsgálathoz indítsd el az Elemzést.");
                     
                 }
             }
@@ -483,23 +502,6 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         private void ReportMessage(string message) { 
             StatusMessage = message;
             Messages.Add($"[{DateTime.Now:HH:mm:ss}] {message}");
-        }
-
-        /// <summary>
-        /// Elemzi a betöltött terveket, és frissíti a tervhez tartozó javaslatokat.
-        /// </summary>
-        private void AnalyzePlans()
-        {
-            PlanSuggestions.Clear();
-
-            var findings = _planAnalysisService.Analyze(PlanRoots);
-
-            foreach (var finding in findings)
-            {
-                PlanSuggestions.Add(finding);
-            }
-
-            ReportMessage($"Tervelemzés elkészült. Találatok száma: {findings.Count}.");
         }
 
         private async Task SaveHistoryAsync(CombinedAnalysisResult result, string? sqlText, string? explainJson)
