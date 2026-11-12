@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -16,13 +16,38 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
             WriteIndented = true
         };
 
-        public UserSettingsService()
+        public UserSettingsService() : this(Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "SqlPlanVisualizer", "user-settings.json"))
         {
-            string applicationDirectory = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "SqlPlanVisualizer");
+        }
 
-            settingsPath = Path.Combine(applicationDirectory, "user-settings.json");
+        public UserSettingsService(string settingsPath)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(settingsPath);
+            if (!Path.IsPathFullyQualified(settingsPath))
+                throw new ArgumentException("Teljes fájlútvonal szükséges.", nameof(settingsPath));
+
+            this.settingsPath = settingsPath;
+        }
+
+        /// <summary>
+        /// Biztonsági másolat után alapbeállításokra állítja vissza a konfigurációt.
+        /// Sikertelen másolatkészítés esetén az eredeti fájlt nem írja felül.
+        /// Az előzményfájlokat nem módosítja.
+        /// </summary>
+        public async Task<(UserSettings Settings, string? BackupPath)> ResetAsync()
+        {
+            string? backupPath = null;
+            if (File.Exists(settingsPath))
+            {
+                backupPath = settingsPath + $".{Guid.NewGuid():N}.bak";
+                File.Copy(settingsPath, backupPath, overwrite: false);
+            }
+
+            var settings = CreateDefaultSettings();
+            await SaveAsync(settings);
+            return (settings, backupPath);
         }
 
         /// <summary>

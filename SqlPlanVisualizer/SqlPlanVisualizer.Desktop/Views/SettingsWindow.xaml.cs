@@ -28,11 +28,51 @@ namespace SqlPlanVisualizer.Desktop.Views
             catch (Exception ex) when (
                 ex is IOException or UnauthorizedAccessException or JsonException)
             {
+                ResetButton.Visibility = Visibility.Visible;
                 MessageBox.Show(this,
                     $"Nem sikerült betölteni a beállításokat.\n\n{ex.Message}",
                     "Betöltési hiba",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
+            }
+        }
+
+        private async void ResetButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show(this,
+                "Visszaállítod az alapbeállításokat?\n\n" +
+                "A jelenlegi beállításfájlról biztonsági másolat készül. " +
+                "Az automatikus mentés kikapcsol, a mentési mappa az alapértelmezett lesz. " +
+                "A korábbi előzményfájlok megmaradnak.",
+                "Beállítások helyreállítása", MessageBoxButton.YesNo,
+                MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes)
+                return;
+
+            ResetButton.IsEnabled = false;
+            try
+            {
+                var result = await settingsService.ResetAsync();
+                DataContext = result.Settings;
+                SettingsPanel.IsEnabled = true;
+                SaveButton.IsEnabled = true;
+                ResetButton.Visibility = Visibility.Collapsed;
+
+                string backup = result.BackupPath is null
+                    ? string.Empty
+                    : $"\n\nBiztonsági másolat: {result.BackupPath}";
+                MessageBox.Show(this, "Az alapbeállítások visszaállítása elkészült." + backup,
+                    "Beállítások helyreállítása", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex) when (
+                ex is IOException or UnauthorizedAccessException or JsonException)
+            {
+                MessageBox.Show(this,
+                    $"Nem sikerült visszaállítani a beállításokat.\n\n{ex.Message}",
+                    "Helyreállítási hiba", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                ResetButton.IsEnabled = true;
             }
         }
 

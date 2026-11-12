@@ -90,15 +90,15 @@
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Margin="6">
-                        <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:yyyy.MM.dd. HH:mm:ss zzz}'}"
+                        <TextBlock Text="{Binding Entry.CreatedAt, StringFormat='{}{0:yyyy.MM.dd. HH:mm:ss zzz}'}"
                                    FontWeight="SemiBold"/>
 
-                        <TextBlock Text="{Binding StatementIndex, StringFormat='SQL-utasítás: {0}'}"
+                        <TextBlock Text="{Binding Entry.StatementIndex, StringFormat='SQL-utasítás: {0}'}"
                                    Margin="0,4,0,0"/>
 
-                        <TextBlock Text="{Binding PlanIndex, StringFormat='Végrehajtási terv: {0}'}"/>
+                        <TextBlock Text="{Binding Entry.PlanIndex, StringFormat='Végrehajtási terv: {0}'}"/>
 
-                        <TextBlock Text="{Binding CombinedFindings.Count, StringFormat='Összekapcsolt találatok: {0}'}"
+                        <TextBlock Text="{Binding Entry.CombinedFindings.Count, StringFormat='Összekapcsolt találatok: {0}'}"
                                    Foreground="Gray"/>
                     </StackPanel>
                 </DataTemplate>
@@ -107,22 +107,22 @@
 
         <TabControl Grid.Column="1">
             <TabItem Header="Összekapcsolt találatok">
-                <ListView ItemsSource="{Binding SelectedEntry.CombinedFindings}"
+                <ListView ItemsSource="{Binding SelectedEntry.Entry.CombinedFindings}"
                           Style="{StaticResource FindingListStyle}"/>
             </TabItem>
 
             <TabItem Header="SQL-találatok">
-                <ListView ItemsSource="{Binding SelectedEntry.SqlFindings}"
+                <ListView ItemsSource="{Binding SelectedEntry.Entry.SqlFindings}"
                           Style="{StaticResource FindingListStyle}"/>
             </TabItem>
 
             <TabItem Header="Tervtalálatok">
-                <ListView ItemsSource="{Binding SelectedEntry.PlanFindings}"
+                <ListView ItemsSource="{Binding SelectedEntry.Entry.PlanFindings}"
                           Style="{StaticResource FindingListStyle}"/>
             </TabItem>
 
             <TabItem Header="SQL">
-                <TextBox Text="{Binding SelectedEntry.SqlText, Mode=OneWay,
+                <TextBox Text="{Binding SelectedEntry.Entry.SqlText, Mode=OneWay,
                                 TargetNullValue='Nincs mentett SQL-bemenet.'}"
                          IsReadOnly="True"
                          FontFamily="Consolas"
@@ -133,7 +133,7 @@
             </TabItem>
 
             <TabItem Header="EXPLAIN JSON">
-                <TextBox Text="{Binding SelectedEntry.ExplainJson, Mode=OneWay,
+                <TextBox Text="{Binding SelectedEntry.Entry.ExplainJson, Mode=OneWay,
                                 TargetNullValue='Nincs mentett JSON-bemenet.'}"
                          IsReadOnly="True"
                          FontFamily="Consolas"

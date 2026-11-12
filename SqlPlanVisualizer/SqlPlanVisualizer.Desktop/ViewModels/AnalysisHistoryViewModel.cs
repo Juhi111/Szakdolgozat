@@ -1,4 +1,4 @@
-﻿using SqlPlanVisualizer.Core.Models.History;
+using SqlPlanVisualizer.Core.Models.History;
 using SqlPlanVisualizer.Desktop.Commands;
 using SqlPlanVisualizer.Desktop.Services;
 using SqlPlanVisualizer.Infrastructure.FileSystem;
@@ -18,7 +18,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         public ICommand ExportPdfCommand { get; }
         public ICommand DeleteSelectedCommand { get; }
         public ICommand DeleteAllCommand { get; }
-        private AnalysisHistoryEntry? selectedEntry;
+        private LoadedHistoryEntry? selectedEntry;
         private string statusMessage = "Előzmények betöltése…";
 
         public AnalysisHistoryViewModel()
@@ -38,13 +38,13 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 return;
             }
 
-            await pdfExportService.ExportHistoryToPdfAsync(entry);
+            await pdfExportService.ExportHistoryToPdfAsync(entry.Entry);
         }
 
-        public ObservableCollection<AnalysisHistoryEntry> Entries { get; } = new();
+        public ObservableCollection<LoadedHistoryEntry> Entries { get; } = new();
         public ObservableCollection<string> Errors { get; } = new();
 
-        public AnalysisHistoryEntry? SelectedEntry
+        public LoadedHistoryEntry? SelectedEntry
         {
             get => selectedEntry;
             set
@@ -67,17 +67,18 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             }
         }
 
-        public async Task LoadAsync()
+        public async Task<bool> LoadAsync()
         {
-            Entries.Clear();
-            Errors.Clear();
-            SelectedEntry = null;
             StatusMessage = "Előzmények betöltése…";
 
             try
             {
                 var settings = await settingsService.LoadAsync();
                 var result = await historyService.LoadAllAsync(settings.HistoryDirectory);
+
+                Entries.Clear();
+                Errors.Clear();
+                SelectedEntry = null;
 
                 foreach (var entry in result.Entries)
                     Entries.Add(entry);
@@ -88,13 +89,16 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 SelectedEntry = Entries.Count > 0 ? Entries[0] : null;
 
                 StatusMessage = $"Betöltött előzmények: {Entries.Count}. Hibás fájlok: {Errors.Count}.";
+                return true;
             }
             catch (Exception ex) when (
                 ex is IOException or UnauthorizedAccessException or
                 JsonException or ArgumentException or NotSupportedException)
             {
                 StatusMessage = "Nem sikerült betölteni az előzményeket.";
-                Errors.Add(ex.Message);
+                if (!Errors.Contains(ex.Message))
+                    Errors.Add(ex.Message);
+                return false;
             }
         }
 
@@ -110,7 +114,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 return;
 
             var confirmation = MessageBox.Show(
-                $"Törlöd a(z) {entry.CreatedAt:yyyy.MM.dd. HH:mm:ss} időpontban " +
+                $"Törlöd a(z) {entry.Entry.CreatedAt:yyyy.MM.dd. HH:mm:ss} időpontban " +
                 "mentett elemzést?\n\nA törlés nem vonható vissza.",
                 "Előzmény törlése",
                 MessageBoxButton.YesNo,
@@ -122,17 +126,20 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 
             try
             {
-                var settings = await settingsService.LoadAsync();
+                bool deleted = await historyService.DeleteAsync(entry);
 
-                bool deleted = await historyService.DeleteAsync(
-                    entry.Id,
-                    settings.HistoryDirectory);
+                // A sikeresen törölt vagy már hiányzó elem ne maradjon a listában
+                // akkor sem, ha az ezt követő újratöltés hibát jelez.
+                Entries.Remove(entry);
+                SelectedEntry = Entries.FirstOrDefault();
 
-                await LoadAsync();
-
-                StatusMessage = deleted
+                bool refreshed = await LoadAsync();
+                string deletionStatus = deleted
                     ? "A kijelölt előzmény törölve."
-                    : "A bejegyzés fájlja már nem található. A lista frissítve.";
+                    : "A bejegyzés fájlja már nem található.";
+                StatusMessage = refreshed
+                    ? deletionStatus
+                    : deletionStatus + " " + StatusMessage;
             }
             catch (Exception ex) when (
                 ex is IOException or
@@ -181,18 +188,20 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 
                 var result = await historyService.DeleteAllAsync(directory);
 
-                await LoadAsync();
+                bool refreshed = await LoadAsync();
+                string refreshStatus = StatusMessage;
 
                 foreach (string error in result.Errors)
                 {
-                    Errors.Add(error);
+                    if (!Errors.Contains(error))
+                        Errors.Add(error);
                 }
 
-                StatusMessage = result.Errors.Count == 0
-                    ? $"Törölt előzmények száma: {result.DeletedCount}."
-                    : $"Törölt előzmények száma: {result.DeletedCount}. " +
-                      $"Hibák vagy kihagyott fájlok: {result.Errors.Count}. " +
-                      "Részletek a Betöltési hibák fülön.";
+                StatusMessage = $"Törölt előzmények száma: {result.DeletedCount}.";
+                if (!refreshed)
+                    StatusMessage += " " + refreshStatus;
+                if (Errors.Count > 0)
+                    StatusMessage += $" Jelzett hibák: {Errors.Count}. Részletek a Betöltési hibák fülön.";
             }
             catch (Exception ex) when (
                 ex is IOException or

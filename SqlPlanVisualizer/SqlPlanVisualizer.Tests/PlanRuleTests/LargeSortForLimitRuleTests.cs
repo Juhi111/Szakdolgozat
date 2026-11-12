@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using SqlPlanVisualizer.Core.Analysis.PlanRules;
 using SqlPlanVisualizer.Core.Models;
 using Xunit;
@@ -49,6 +49,25 @@ namespace SqlPlanVisualizer.Tests.PlanRuleTests
             scan.ActualRows = 1000;
 
             Assert.Empty(rule.Analyze(limit));
+        }
+
+        [Theory]
+        [InlineData(9960d, false)]
+        [InlineData(10000d, true)]
+        [InlineData(300000000000d, true)]
+        public void Analyze_PreservesFractionalAndLargeRatios(double inputRows, bool expected)
+        {
+            var limit = new PlanNode { NodeType = "Limit", ActualRows = 100, ActualLoops = 1 };
+            var sort = new PlanNode { NodeType = "Sort" };
+            var scan = new PlanNode { NodeType = "Seq Scan", ActualRows = inputRows, ActualLoops = 1 };
+            sort.AdditionalProperties["Parent Relationship"] = JsonSerializer.SerializeToElement("Outer");
+            scan.AdditionalProperties["Parent Relationship"] = JsonSerializer.SerializeToElement("Outer");
+            limit.Children.Add(sort);
+            sort.Children.Add(scan);
+
+            var findings = new LargeSortForLimitRule(1000, 100).Analyze(limit);
+
+            Assert.Equal(expected ? 1 : 0, findings.Count);
         }
     }
 }

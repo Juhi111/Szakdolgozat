@@ -1,4 +1,4 @@
-﻿using SqlPlanVisualizer.Core.Interfaces;
+using SqlPlanVisualizer.Core.Interfaces;
 using SqlPlanVisualizer.Core.Models;
 
 namespace SqlPlanVisualizer.Core.Analysis.PlanRules
@@ -49,7 +49,7 @@ namespace SqlPlanVisualizer.Core.Analysis.PlanRules
             if (outputRows <= 0 || inputRows < _minimumInputRows)
                 return findings;
 
-            int ratio = Convert.ToInt32(inputRows / outputRows);
+            double ratio = inputRows / outputRows;
 
             if (!double.IsFinite(ratio) || ratio < _inputOutputRatioThreshold)
                 return findings;

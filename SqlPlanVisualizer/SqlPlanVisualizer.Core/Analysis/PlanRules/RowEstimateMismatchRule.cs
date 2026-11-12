@@ -1,4 +1,4 @@
-﻿using SqlPlanVisualizer.Core.Interfaces;
+using SqlPlanVisualizer.Core.Interfaces;
 using SqlPlanVisualizer.Core.Models;
 
 namespace SqlPlanVisualizer.Core.Analysis.PlanRules
@@ -39,13 +39,15 @@ namespace SqlPlanVisualizer.Core.Analysis.PlanRules
             if (node.PlanRows is not double estimated || node.ActualRows is not double actual || node.ActualLoops is not double loops)
                 return findings;
 
-            if (!double.IsFinite(estimated) || !double.IsFinite(actual) || !double.IsFinite(loops) || estimated <= 0 || actual <= 0 || loops <= 0)
+            if (!double.IsFinite(estimated) || !double.IsFinite(actual) || !double.IsFinite(loops) || estimated <= 0 || actual < 0 || loops <= 0)
                 return findings;
 
-            double ratio = Math.Max(estimated, actual) / Math.Min(estimated, actual);
+            double? ratio = actual > 0
+                ? Math.Max(estimated, actual) / Math.Min(estimated, actual)
+                : null;
             double difference = Math.Abs(actual - estimated);
 
-            if (ratio < _ratioThreshold || difference < _differenceThreshold)
+            if ((ratio.HasValue && ratio.Value < _ratioThreshold) || difference < _differenceThreshold)
                 return findings;
 
             string direction = actual > estimated ? "több" : "kevesebb";
@@ -57,7 +59,9 @@ namespace SqlPlanVisualizer.Core.Analysis.PlanRules
                 Description =
                     $"A(z) {node.NodeType} művelet becsült kimenete {estimated:N0} sor, " +
                     $"a tényleges kimenete végrehajtásonként átlagosan {actual:N0} sor. " +
-                    $"A tényleges érték {ratio:N1}-szeres arányban {direction} a becsültnél.",
+                    (ratio.HasValue
+                        ? $"A tényleges érték {ratio.Value:N1}-szeres arányban {direction} a becsültnél."
+                        : "A jelentett tényleges sorszám nulla; ezért arányt nem számítunk."),
                 Recommendation =
                     "Ellenőrizd, hogy a művelet teljesen lefutott-e: például egy LIMIT " +
                     "vagy létezésvizsgálat miatt a végrehajtás korábban megállhatott. " +

@@ -72,6 +72,13 @@
                     HorizontalAlignment="Right"
                     Margin="0,24,0,0">
 
+            <Button x:Name="ResetButton"
+                    Content="Alapbeállítások visszaállítása"
+                    Padding="8"
+                    Margin="0,0,8,0"
+                    Visibility="Collapsed"
+                    Click="ResetButton_Click"/>
+
             <Button x:Name="SaveButton"
                     Content="Mentés"
                     Width="100"
@@ -80,7 +87,7 @@
                     IsEnabled="False"
                     Click="SaveButton_Click"/>
 
-            <Button Content="Mégse"
+            <Button x:Name="CancelButton" Content="Mégse"
                     Width="100"
                     Padding="8"
                     IsCancel="True"/>

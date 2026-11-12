@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Windows;
 using SqlPlanVisualizer.Core.Models.History;
 
 namespace SqlPlanVisualizer.Infrastructure.FileSystem
@@ -133,17 +132,17 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
         /// A hibás fájlokról külön hibalistát ad vissza.
         /// </summary>
         public async Task<(
-            List<AnalysisHistoryEntry> Entries,
+            List<LoadedHistoryEntry> Entries,
             List<string> Errors)> LoadAllAsync(string directory)
         {
-            var entries = new List<AnalysisHistoryEntry>();
+            var entries = new List<LoadedHistoryEntry>();
             var errors = new List<string>();
 
             foreach (string path in GetHistoryPaths(directory))
             {
                 try
                 {
-                    entries.Add(await LoadAsync(path));
+                    entries.Add(new LoadedHistoryEntry(Path.GetFullPath(path), await LoadAsync(path)));
                 }
                 catch (Exception ex) when (
                     ex is IOException or
@@ -155,47 +154,37 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
             }
 
             return (
-                entries.OrderByDescending(entry => entry.CreatedAt).ToList(),
+                entries.OrderByDescending(item => item.Entry.CreatedAt).ToList(),
                 errors);
         }
 
         /// <summary>
-        /// Az azonosító alapján megkeresi és törli az előzmény fájlját.
-        /// Ha nem található, false értékkel tér vissza.
+        /// Közvetlenül a kiválasztott fájlt törli, az azonosító ellenőrzése után.
+        /// Más előzményfájlokat nem olvas be. Hiányzó fájl esetén false értéket ad.
         /// </summary>
-        public async Task<bool> DeleteAsync(
-            Guid entryId,
-            string directory)
+        public async Task<bool> DeleteAsync(LoadedHistoryEntry item)
         {
-            if (entryId == Guid.Empty)
+            ArgumentNullException.ThrowIfNull(item);
+
+            AnalysisHistoryEntry current;
+            try
             {
-                throw new ArgumentException(
-                    "Az előzmény azonosítója nem lehet üres.",
-                    nameof(entryId));
+                current = await LoadAsync(item.FilePath);
+            }
+            catch (FileNotFoundException)
+            {
+                return false;
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return false;
             }
 
-            foreach (string path in GetHistoryPaths(directory))
-            {
-                AnalysisHistoryEntry entry;
+            if (current.Id != item.Entry.Id)
+                throw new IOException("Az előzményfájl tartalma megváltozott. Frissítsd a listát törlés előtt.");
 
-                try
-                {
-                    entry = await LoadAsync(path);
-                }
-                catch (JsonException)
-                {
-                    // Más JSON-fájlt vagy hibás előzményt nem törlünk.
-                    continue;
-                }
-
-                if (entry.Id != entryId)
-                    continue;
-
-                File.Delete(path);
-                return true;
-            }
-
-            return false;
+            File.Delete(item.FilePath);
+            return true;
         }
 
         /// <summary>
@@ -226,8 +215,7 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
                     JsonException)
                 {
                     errors.Add(
-                        $"{Path.GetFileName(path)}: " +
-                        $"Nem lett törölve. {ex.Message}");
+                        $"{Path.GetFileName(path)}: {ex.Message}");
                 }
             }
 

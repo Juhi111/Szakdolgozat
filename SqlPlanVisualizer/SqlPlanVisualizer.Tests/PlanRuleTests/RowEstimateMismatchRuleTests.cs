@@ -1,4 +1,4 @@
-﻿using PgSqlParser;
+using PgSqlParser;
 using SqlPlanVisualizer.Core.Analysis;
 using SqlPlanVisualizer.Core.Analysis.PlanRules;
 using SqlPlanVisualizer.Core.Models;
@@ -69,6 +69,32 @@ namespace SqlPlanVisualizer.Tests.PlanRuleTests
             var sortedFinding = Assert.Single(contextRule.Analyze(limitedScan, scanBelowSortContext));
 
             Assert.DoesNotContain("korábban leállíthatta", sortedFinding.Description);
+        }
+
+        [Theory]
+        [InlineData(100000d, 1d, true)]
+        [InlineData(100000d, 0d, false)]
+        [InlineData(100d, 1d, false)]
+        public void Analyze_ZeroRows_RequiresExecutionAndSignificantDifference(
+            double estimated, double loops, bool expected)
+        {
+            var node = new PlanNode
+            {
+                NodeType = "Seq Scan", PlanRows = estimated,
+                ActualRows = 0, ActualLoops = loops
+            };
+            node.AdditionalProperties["Parent Relationship"] = JsonSerializer.SerializeToElement("Outer");
+            var parent = new PlanAnalysisContext(new PlanNode { NodeType = "Limit", ActualLoops = 1 }, 1);
+            var context = new PlanAnalysisContext(node, 1, parent);
+
+            var findings = new RowEstimateMismatchRule(10, 1000).Analyze(node, context);
+
+            Assert.Equal(expected ? 1 : 0, findings.Count);
+            if (expected)
+            {
+                Assert.Contains("arányt nem számítunk", findings[0].Description);
+                Assert.Contains("korábban leállíthatta", findings[0].Description);
+            }
         }
     }
 }
