@@ -1,4 +1,4 @@
-﻿using SqlPlanVisualizer.Core.Analysis;
+﻿using SqlPlanVisualizer.Core.Analysis.Rules;
 using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Infrastructure.PostgreSql;
 using Xunit;

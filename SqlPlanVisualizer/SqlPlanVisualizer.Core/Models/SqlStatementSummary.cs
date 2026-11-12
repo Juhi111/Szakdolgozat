@@ -1,4 +1,4 @@
-﻿using SqlPlanVisualizer.Core.Models.Occurences;
+﻿using SqlPlanVisualizer.Core.Models.Occurrences;
 
 namespace SqlPlanVisualizer.Core.Models
 {

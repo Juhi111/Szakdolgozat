@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SqlPlanVisualizer.Core.Models.Occurences
+namespace SqlPlanVisualizer.Core.Models.Occurrences
 {
     public class NullComparisonOccurrence
     {

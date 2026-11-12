@@ -1,7 +1,7 @@
-﻿using Google.Protobuf;
+﻿using SqlPlanVisualizer.Infrastructure.PostgreSql.Collectors;
+using Google.Protobuf;
 using SqlPlanVisualizer.Core.Models;
-using SqlPlanVisualizer.Core.Models.Occurences;
-using SqlPlanVisualizer.Infrastructure.PostgreSql;
+using SqlPlanVisualizer.Core.Models.Occurrences;
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Ast;
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Parsers;
 using Xunit;

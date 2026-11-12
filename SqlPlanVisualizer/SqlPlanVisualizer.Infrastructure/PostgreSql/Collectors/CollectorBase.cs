@@ -3,7 +3,7 @@ using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Ast;
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Collectors;
 
-namespace SqlPlanVisualizer.Infrastructure.PostgreSql
+namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Collectors
 {
     public abstract class CollectorBase<TNode> : ISqlAstCollector where TNode : class, IMessage
     {

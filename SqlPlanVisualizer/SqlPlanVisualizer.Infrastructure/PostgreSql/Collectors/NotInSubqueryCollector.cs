@@ -1,9 +1,10 @@
-﻿using PgSqlParser;
+﻿using SqlPlanVisualizer.Core.Models.Occurrences;
+using PgSqlParser;
 using SqlPlanVisualizer.Core.Enums;
 using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Ast;
 
-namespace SqlPlanVisualizer.Infrastructure.PostgreSql
+namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Collectors
 {
     public class NotInSubqueryCollector : CollectorBase<BoolExpr>
     {

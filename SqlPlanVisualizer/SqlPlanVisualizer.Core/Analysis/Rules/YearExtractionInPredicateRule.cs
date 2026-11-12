@@ -1,7 +1,7 @@
 ﻿using SqlPlanVisualizer.Core.Interfaces;
 using SqlPlanVisualizer.Core.Models;
 
-namespace SqlPlanVisualizer.Core.Analysis
+namespace SqlPlanVisualizer.Core.Analysis.Rules
 {
     public class YearExtractionInPredicateRule : ISqlAnalysisRule
     {

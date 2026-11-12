@@ -1,4 +1,4 @@
-﻿namespace SqlPlanVisualizer.Core.Models.Occurences
+﻿namespace SqlPlanVisualizer.Core.Models.Occurrences
 {
     public class OptionalParameterFilterOccurrence
     {

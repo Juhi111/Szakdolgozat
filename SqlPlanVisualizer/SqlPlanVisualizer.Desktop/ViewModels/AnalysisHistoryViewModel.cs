@@ -1,4 +1,3 @@
-using SqlPlanVisualizer.Core.Models.History;
 using SqlPlanVisualizer.Desktop.Commands;
 using SqlPlanVisualizer.Desktop.Services;
 using SqlPlanVisualizer.Infrastructure.FileSystem;

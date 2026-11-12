@@ -1,4 +1,4 @@
-﻿namespace SqlPlanVisualizer.Core.Models
+﻿namespace SqlPlanVisualizer.Core.Models.Occurrences
 {
     public class NotInSubqueryOccurrence
     {

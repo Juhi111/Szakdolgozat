@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using PgSqlParser;
 using SqlPlanVisualizer.Core.Models;
-using SqlPlanVisualizer.Core.Models.Occurences;
+using SqlPlanVisualizer.Core.Models.Occurrences;
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Ast;
 
-namespace SqlPlanVisualizer.Infrastructure.PostgreSql
+namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Collectors
 {
     public class PossibleCartesianProductCollector : CollectorBase<SelectStmt>
     {

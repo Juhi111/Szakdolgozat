@@ -1,6 +1,6 @@
-﻿namespace SqlPlanVisualizer.Core.Models.Occurences
+﻿namespace SqlPlanVisualizer.Core.Models.Occurrences
 {
-    public class RandomOrderingOccurrence
+    public class NaturalJoinOccurrence
     {
         public string Location { get; set; } = string.Empty;
         public int? SourceOffset { get; set; }

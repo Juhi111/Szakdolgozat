@@ -1,5 +1,3 @@
-using SqlPlanVisualizer.Core.Models.Occurences;
-
 namespace SqlPlanVisualizer.Core.Models
 {
     /// <summary>
@@ -29,9 +27,5 @@ namespace SqlPlanVisualizer.Core.Models
         /// </summary>
         public List<SqlRelationSummary> Relations { get; } = new();
 
-        /// <summary>
-        /// A lekérdezési blokk WHERE feltételében felismert oszlopon végzett függvényhívások.
-        /// </summary>
-        public List<FunctionOnColumnOccurrence> FunctionsInWhere { get; } = new();
     }
 }

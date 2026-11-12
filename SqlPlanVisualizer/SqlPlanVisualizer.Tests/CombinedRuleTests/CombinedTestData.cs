@@ -1,3 +1,4 @@
+using SqlPlanVisualizer.Core.Analysis.Rules;
 using System.Text.Json;
 using SqlPlanVisualizer.Core.Analysis;
 using SqlPlanVisualizer.Core.Analysis.CombinedRules;

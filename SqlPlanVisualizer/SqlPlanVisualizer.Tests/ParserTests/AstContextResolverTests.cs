@@ -1,6 +1,5 @@
 ﻿using PgSqlParser;
 using SqlPlanVisualizer.Core.Enums;
-using SqlPlanVisualizer.Infrastructure.PostgreSql;
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Ast;
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Parsers;
 using Xunit;

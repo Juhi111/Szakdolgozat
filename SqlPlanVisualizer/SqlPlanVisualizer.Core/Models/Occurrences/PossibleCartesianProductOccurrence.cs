@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace SqlPlanVisualizer.Core.Models.Occurences
+namespace SqlPlanVisualizer.Core.Models.Occurrences
 {
     public class PossibleCartesianProductOccurrence
     {

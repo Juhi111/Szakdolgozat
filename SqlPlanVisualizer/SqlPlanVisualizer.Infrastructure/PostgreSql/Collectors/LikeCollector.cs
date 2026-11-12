@@ -1,13 +1,13 @@
 ﻿using PgSqlParser;
 using SqlPlanVisualizer.Core.Enums;
 using SqlPlanVisualizer.Core.Models;
-using SqlPlanVisualizer.Core.Models.Occurences;
+using SqlPlanVisualizer.Core.Models.Occurrences;
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Ast;
 using System;
 using System.Linq;
 using System.Text;
 
-namespace SqlPlanVisualizer.Infrastructure.PostgreSql
+namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Collectors
 {
     public class LikeCollector : CollectorBase<A_Expr>
     {
