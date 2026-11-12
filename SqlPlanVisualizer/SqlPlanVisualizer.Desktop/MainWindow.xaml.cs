@@ -149,7 +149,6 @@ namespace SqlPlanVisualizer.Desktop
             {
                 Owner = this
             };
-
             window.ShowDialog();
         }
     }

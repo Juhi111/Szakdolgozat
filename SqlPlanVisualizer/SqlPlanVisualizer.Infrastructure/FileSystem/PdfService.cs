@@ -3,6 +3,8 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using SqlPlanVisualizer.Core.Models;
+using SqlPlanVisualizer.Core.Analysis;
+using SqlPlanVisualizer.Core.Models.History;
 
 namespace SqlPlanVisualizer.Infrastructure.FileSystem
 {
@@ -20,7 +22,7 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
         /// Először ideiglenes fájlba generál, és csak siker esetén cseréli a célfájlt.
         /// A mentési és dokumentumgenerálási hibákat a hívó kezeli.
         /// </summary>
-        public void SaveResultToPdf(CombinedAnalysisResult result, string path)
+        public void SaveHistoryToPdf(AnalysisHistoryEntry result, string path)
         {
             ArgumentNullException.ThrowIfNull(result);
             ArgumentException.ThrowIfNullOrWhiteSpace(path);
@@ -46,7 +48,21 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
             }
         }
 
-        private static IDocument CreateDocument(CombinedAnalysisResult result)
+        /// <summary>A friss elemzés eredményét PDF-be menti.</summary>
+        public void SaveResultToPdf(CombinedAnalysisResult result, string path)
+        {
+            ArgumentNullException.ThrowIfNull(result);
+
+            var entry = new AnalysisHistoryMapper().Map(
+                result,
+                includeSourceFiles: false,
+                sqlText: null,
+                explainJson: null);
+
+            SaveHistoryToPdf(entry, path);
+        }
+
+        private static IDocument CreateDocument(AnalysisHistoryEntry result)
         {
             return Document.Create(document => document.Page(page =>
             {
@@ -61,7 +77,8 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
                     column.Item().Background(Colors.Grey.Lighten4).Padding(12).Column(info =>
                     {
                         info.Spacing(5);
-                        info.Item().Text($"{result.Pair.Statement.StatementIndex}. SQL-utasítás - {result.Pair.Plan.PlanIndex}. végrehajtási terv").SemiBold();
+                        info.Item()
+    .Text($"{result.StatementIndex}. SQL-utasítás - {result.PlanIndex}. végrehajtási terv").SemiBold();
                         info.Item().Text($"Tervezési idő: {FormatTime(result.PlanningTime)}");
                         info.Item().Text($"Végrehajtási idő: {FormatTime(result.ExecutionTime)}");
                     });
@@ -99,8 +116,8 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
                     {
                         Card(column, finding.Title, body =>
                         {
-                            string relation = string.IsNullOrWhiteSpace(finding.Node.RelationName) ? string.Empty : $" ({finding.Node.RelationName})";
-                            Field(body, "Művelet", finding.Node.NodeType + relation);
+                            string relation = string.IsNullOrWhiteSpace(finding.RelationName) ? string.Empty : $" ({finding.RelationName})";
+                            Field(body, "Művelet", finding.NodeType + relation);
                             Field(body, "Értékelés", finding.Description);
                             Field(body, "Javaslat", finding.Recommendation);
                         });
