@@ -25,7 +25,7 @@ namespace SqlPlanVisualizer.Core.Analysis.PlanRules
             if (PlanNodePropertyReader.TryReadDouble(node, "Disk Usage", out double diskUsage) &&
                 diskUsage > 0)
             {
-                details.Add($"A csomópont közvetlen adatai szerint a lemezhasználat {diskUsage:N0} kB.");
+                details.Add($"Az Aggregate művelet saját adatai szerint a lemezhasználat {diskUsage:N0} kB.");
             }
 
             foreach (var worker in PlanNodePropertyReader.GetWorkers(node))
@@ -46,13 +46,13 @@ namespace SqlPlanVisualizer.Core.Analysis.PlanRules
             findings.Add(new PlanAnalysisFinding(node)
             {
                 RuleId = "HASH_AGGREGATE_SPILL",
-                Title = "Lemezre kerülő hash aggregálás",
+                Title = "Az összesítéshez lemezterület is kellett",
                 Description = string.Join(" ", details) +
-                    " Ez önmagában nem bizonyít teljesítményproblémát.",
-                Recommendation = "Ellenőrizd az aggregálás futási idejét és a feldolgozott adatmennyiséget. " +
-                    "Vizsgáld meg, csökkenthető-e az aggregálás bemenete korábbi szűréssel, az eredmény megváltoztatása nélkül. " +
-                    "Jelentős sorszámbecslési eltérés esetén ellenőrizd a statisztikákat. " +
-                    "A memóriakeret növelésénél vedd figyelembe az egyidejű műveletek és párhuzamos dolgozók memóriaigényét."
+                    " A hash alapú összesítés adatainak egy része lemezre került. Ez többlet I/O-munkát jelenthet; a futási idő mutatja meg, hogy érdemes-e beavatkozni.",
+                Recommendation = "Nézd meg, mennyi időt töltött a művelet az összesítéssel, és mennyi adatot kapott. Korábbi szűréssel esetenként " +
+                    "csökkenthető a bemenet, ha az eredmény változatlan marad. Nagy becslési eltérésnél ellenőrizd a táblák statisztikáit. A " +
+                    "memóriakeretet csak mérés alapján módosítsd: az egyidejű műveletek és párhuzamos dolgozók együtt több memóriát " +
+                    "használhatnak."
             });
 
             return findings;

@@ -31,21 +31,14 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
                 {
                     StatementIndex = statement.StatementIndex,
                     RuleId = "ROW_FILTER_IN_HAVING",
-                    Title = "Csoportosítási kulcs szűrése HAVING-ban",
-                    Description =
-                        $"Hely: {occurrence.Location}. " +
-                        $"A(z) {predicate} feltétel a GROUP BY listában szereplő oszlophivatkozást szűri, " +
-                        "és nem tartalmaz aggregáló függvényt. " +
-                        "A feltétel közvetlenül a HAVING része, vagy annak AND kapcsolattal összekötött ága.",
-                    Recommendation =
-                        "Mérlegeld ennek a feltételnek a WHERE részbe helyezését, " +
-                        "hogy a lekérdezés egyértelműen a csoportosítás előtti sorokat szűrje. " +
-                        "Ha már van WHERE feltétel, megfelelő zárójelezéssel, AND kapcsolattal egészítsd ki. " +
-                        "Az aggregált értékekre vonatkozó feltételeket hagyd a HAVING részben. " +
-                        "Az átírás előtt ellenőrizd a teljes lekérdezés jelentését, különösen az illékony " +
-                        "vagy mellékhatásos kifejezéseket. A PostgreSQL tervezője ezt a szűrést " +
-                        "már magától is előrehozhatja, ezért gyorsulás nem garantált. " +
-                        "A végrehajtási terveket EXPLAIN (ANALYZE, BUFFERS) segítségével hasonlítsd össze.",
+                    Title = "Csoportosítás után szűrünk egy csoportosító oszlopra",
+                    Description = $"A HAVING részben a(z) {predicate} feltétel egy GROUP BY oszlopot vizsgál, nem egy összesített értéket. A feltétel " +
+                        "önállóan vagy AND kapcsolaton keresztül szerepel, ezért érdemes megvizsgálni a csoportosítás előtti szűrés lehetőségét. " +
+                        $"Hely: {occurrence.Location}.",
+                    Recommendation = "Ellenőrizd, áthelyezhető-e ez a feltétel a WHERE részbe az eredmény megőrzésével. A meglévő WHERE feltételhez megfelelő " +
+                        "zárójelezéssel és AND kapcsolattal illeszd. Az összesített értékek feltételei maradjanak a HAVING részben. Változó " +
+                        "eredményű vagy mellékhatásos kifejezéseknél külön ellenőrzés kell. A PostgreSQL ezt az áthelyezést már magától is " +
+                        "elvégezheti, ezért hasonlítsd össze a terveket.",
                     SourceOffset = occurrence.SourceOffset
                 });
             }

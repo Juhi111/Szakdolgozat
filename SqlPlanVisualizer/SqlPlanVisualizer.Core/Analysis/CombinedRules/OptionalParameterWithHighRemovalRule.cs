@@ -4,6 +4,9 @@ public sealed class OptionalParameterWithHighRemovalRule : PredicateWithHighRemo
 {
     public OptionalParameterWithHighRemovalRule() : base(
         "OPTIONAL_PARAMETER_FILTER", "OPTIONAL_PARAMETER_WITH_HIGH_REMOVAL",
-        "Opcionális paraméteres szűrés sok eldobott sorral",
-        "Mérd meg külön a NULL és nem NULL paraméteres futásokat. Szükség esetén külön lekérdezési változatokkal vizsgáld a tervet; ez az egy mérés nem bizonyít általános tervhibát.") { }
+        "Opcionális paraméteres szűrés mellett sok sor kiesett",
+        "Mérd meg a NULL és a jellemző nem NULL paraméterekkel futó lekérdezéseket is, az alkalmazás tényleges " +
+            "paraméterezésével. Ha a közös terv valamelyik esetben lassú, vizsgáld meg a szűrt és szűrés nélküli változat " +
+            "különválasztását. Egyetlen futás alapján nem állapítható meg, hogy az általános, több paraméterértékhez használt terv " +
+            "hibás.") { }
 }

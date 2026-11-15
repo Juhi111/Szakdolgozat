@@ -33,15 +33,13 @@ namespace SqlPlanVisualizer.Core.Analysis.PlanRules
             findings.Add(new PlanAnalysisFinding(node)
             {
                 RuleId = "HIGH_HEAP_FETCHES",
-                Title = "Sok táblahozzáférés index-only beolvasás közben",
-                Description = $"Az Index Only Scan művelet {heapFetches:N0} heap sorlekérést végzett. " +
-                    "A beolvasás ezért nem tudta teljesen elkerülni a táblához történő hozzáférést. " +
-                    "Ez nem ugyanennyi különböző táblalapot vagy fizikai lemezolvasást jelent.",
-                Recommendation = "Ellenőrizd a művelet futási idejét és bufferadatait. " +
-                    "Vizsgáld meg a tábla módosítási gyakoriságát és a VACUUM/autovacuum működését, " +
-                    "amely a visibility map karbantartásában is részt vesz. " +
-                    "A gyakran módosított tábláknál a heap-hozzáférés természetes lehet; " +
-                    "a magas érték önmagában nem bizonyít hibás indexet vagy rossz végrehajtási tervet."
+                Title = "Az index mellett a táblát is sokszor el kellett érni",
+                Description = $"Az Index Only Scan {heapFetches:N0} alkalommal kért le sort a táblából (Heap Fetches), így a művelet nem tudott " +
+                    "kizárólag az index adataira támaszkodni. Ez a szám nem különböző táblalapokat vagy fizikai lemezolvasásokat jelent.",
+                Recommendation = "Ellenőrizd a futási időt és a Buffers mezők olvasási adatait. A visibility map jelzi, mely táblalapokon hagyható el a " +
+                    "sorok láthatóságának külön ellenőrzése; ezt a VACUUM is karbantartja. Nézd meg az autovacuum működését és a tábla " +
+                    "módosítási gyakoriságát. Gyakran változó táblán a táblahozzáférés természetes lehet, és a magas érték nem bizonyít " +
+                    "hibás indexet."
             });
 
             return findings;

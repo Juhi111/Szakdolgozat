@@ -4,6 +4,8 @@ public sealed class LikeWithoutWildcardWithHighRemovalRule : PredicateWithHighRe
 {
     public LikeWithoutWildcardWithHighRemovalRule() : base(
         "LIKE_WITHOUT_WILDCARD", "LIKE_WITHOUT_WILDCARD_WITH_HIGH_REMOVAL",
-        "Helyettesítő karakter nélküli keresés sok eldobott sorral",
-        "Ellenőrizd, hogy pontos egyezést szeretnél-e. LIKE esetén az escape-szabályok, ILIKE esetén a kis- és nagybetűk kezelése is számít; csak azonos jelentésű feltételre cserélj, és mérd meg az indexelés hatását.") { }
+        "Teljes szövegegyezés keresése mellett sok sor kiesett",
+        "Ellenőrizd, pontos egyezés-e a cél, és milyen index segítheti azt. A LIKE mintájának escape-kezelése, az adattípus és " +
+            "az összehasonlítási szabályok is számítanak; az ILIKE a kis- és nagybetűket is másként kezeli, mint egy egyszerű = " +
+            "feltétel. Csak azonos jelentésű feltételre cserélj, és a gyorsulást mérd meg.") { }
 }

@@ -23,28 +23,14 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
                 {
                     StatementIndex = statement.StatementIndex,
                     RuleId = "LEADING_WILDCARD_SEARCH",
-                    Title = "Keresés kezdő helyettesítő karakterrel",
+                    Title = "A keresési minta helyettesítő karakterrel kezdődik",
 
-                    Description =
-                        $"Hely: {occurrence.Location}. "
-                        + $"A {operatorName} mintája "
-                        + $"('{occurrence.Pattern}') aktív % vagy _ "
-                        + "helyettesítő karakterrel kezdődik. "
-                        + "Nincs rögzített kezdőszövege, amely alapján "
-                        + "a szokásos B-tree prefixkeresés szűkíthetné "
-                        + "a keresési tartományt. "
-                        + "Ez lehetséges teljesítményprobléma, "
-                        + "önmagában nem bizonyít lassulást.",
+                    Description = $"A {operatorName} mintája ('{occurrence.Pattern}') % vagy _ helyettesítő karakterrel kezdődik. Emiatt nincs rögzített " +
+                        $"kezdőszöveg, amely alapján egy hagyományos B-tree index szűkíthetné a keresést. Hely: {occurrence.Location}.",
 
-                    Recommendation =
-                        "Ellenőrizd a tényleges végrehajtást "
-                        + "EXPLAIN (ANALYZE, BUFFERS) segítségével. "
-                        + "Gyakori részszövegkeresésnél megfontolható "
-                        + "pg_trgm alapú GIN vagy GiST index; "
-                        + "ennek hatékonysága a mintától is függ. "
-                        + "A kezdő helyettesítő karaktert csak akkor "
-                        + "hagyd el, ha a keresés kívánt jelentése "
-                        + "ezt megengedi.",
+                    Recommendation = "Ellenőrizd a keresés futási idejét és a feldolgozott sorok számát. Gyakori részszövegkereséshez megfontolható a pg_trgm " +
+                        "bővítmény GIN vagy GiST indexe; az előny a mintától is függ. A kezdő helyettesítő karaktert csak akkor hagyd el, ha " +
+                        "valóban elegendő a szöveg elején keresni, mert ez megváltoztatja a találatokat.",
 
                     SourceOffset = occurrence.SourceOffset
                 });

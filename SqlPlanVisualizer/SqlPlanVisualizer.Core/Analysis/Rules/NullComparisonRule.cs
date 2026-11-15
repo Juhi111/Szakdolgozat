@@ -20,9 +20,11 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
                 {
                     StatementIndex = statement.StatementIndex,
                     RuleId = "NULL_COMPARISON",
-                    Title = "NULL összehasonlítása hagyományos operátorral",
-                    Description =$"Hely: {occurrence.Location}. Az összehasonlítás {occurrence.Operator} operátort használ NULL értékkel. A szokásos SQL-szemantika szerint ennek eredménye UNKNOWN, nem igaz vagy hamis.",
-                    Recommendation =$"Ha a cél a hiányzó vagy nem hiányzó értékek vizsgálata, használd a {suggestedOperator} feltételt.",
+                    Title = "NULL vizsgálata nem megfelelő összehasonlítással",
+                    Description = $"A feltétel {occurrence.Operator} operátorral hasonlít NULL értékhez. A szokásos SQL-szabályok szerint ez ismeretlen " +
+                        $"(UNKNOWN) eredményt ad, így nem alkalmas a hiányzó értékek közvetlen vizsgálatára. Hely: {occurrence.Location}.",
+                    Recommendation = $"A hiányzó vagy nem hiányzó értékek vizsgálatához használd a {suggestedOperator} feltételt. Ellenőrizd a teljes logikai " +
+                        "kifejezést is, hogy a módosítás a kívánt sorokat válassza ki.",
                     SourceOffset = occurrence.SourceOffset
                 });
             }

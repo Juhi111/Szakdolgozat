@@ -55,31 +55,27 @@ namespace SqlPlanVisualizer.Core.Analysis.PlanRules
             findings.Add(new PlanAnalysisFinding(node)
             {
                 RuleId = "ROW_ESTIMATE_MISMATCH",
-                Title = "Jelentős eltérés a becsült és tényleges sorszám között",
+                Title = "A visszaadott sorok száma jelentősen eltért a becsléstől",
                 Description =
-                    $"A(z) {node.NodeType} művelet becsült kimenete {estimated:N0} sor, " +
-                    $"a tényleges kimenete végrehajtásonként átlagosan {actual:N0} sor. " +
+                    $"A(z) {node.NodeType} művelethez a tervező {estimated:N0} kimeneti sort becsült, " +
+                    $"a végrehajtás viszont alkalmanként átlagosan {actual:N0} sort adott tovább. " +
                     (ratio.HasValue
-                        ? $"A tényleges érték {ratio.Value:N1}-szeres arányban {direction} a becsültnél."
-                        : "A jelentett tényleges sorszám nulla; ezért arányt nem számítunk."),
-                Recommendation =
-                    "Ellenőrizd, hogy a művelet teljesen lefutott-e: például egy LIMIT " +
-                    "vagy létezésvizsgálat miatt a végrehajtás korábban megállhatott. " +
-                    "Ha az eltérés becslési pontatlanságból ered, ellenőrizd az érintett " +
-                    "táblák statisztikáinak frissességét és a szűrési feltételeket. " +
-                    "Szükség esetén vizsgáld meg az ANALYZE és az összefüggő oszlopokhoz " +
-                    "tartozó kiterjesztett statisztikák alkalmazhatóságát. " +
-                    "Az eltérés önmagában nem bizonyít teljesítményproblémát."
+                        ? $"A mért és a becsült érték eltérési aránya {ratio.Value:N1}-szeres; a mért sorszám {direction} a becsültnél."
+                        : "A jelentett tényleges sorszám nulla; ezért eltérési arányt nem számítunk. Ez a jelentett átlag, nem feltétlenül minden végrehajtás pontos sorszáma."),
+                Recommendation = "Először ellenőrizd, teljesen lefutott-e a művelet: a LIMIT vagy egy létezésvizsgálat korán leállíthatja a sorok " +
+                    "lekérését. Ha valóban pontatlan volt a becslés, nézd meg a táblák statisztikáinak frissességét és a szűrés feltételeit. " +
+                    "Az ANALYZE frissítheti a statisztikákat; összefüggő oszlopoknál kiterjesztett statisztika is segíthet. Az eltérés " +
+                    "jelentőségét a választott terv és a futási idő alapján értékeld."
             });
 
             if (actual < estimated && HasPotentialLimitingAncestor(context))
             {
                 findings[0].Description +=
-                    " A művelet fölött LIMIT található, amely korábban leállíthatta a sorok lekérését. " +
+                    " A tervben fölötte LIMIT található, amely már elegendő eredménysor után leállíthatta a sorok lekérését. " +
                     "A kisebb tényleges sorszám ezért önmagában nem bizonyít pontatlan becslést.";
 
                 findings[0].Recommendation =
-                    "A statisztikák módosítása előtt ellenőrizd, hogy a művelet teljes bemenetét feldolgozta-e. " +
+                    "A fölérendelt LIMIT miatt kezdd a korai leállás ellenőrzésével. " +
                     findings[0].Recommendation;
             }
 

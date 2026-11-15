@@ -26,11 +26,15 @@ public class HavingFilterWithHighRemovalRule : ICombinedAnalysisRule
             new CombinedAnalysisFinding
             {
                 RuleId = "HAVING_FILTER_WITH_HIGH_REMOVAL",
-                Title = "Csoportkulcs szűrése sok eldobott csoporttal",
-                SqlObservation = "A felső szintű HAVING a csoportkulcsot konstanssal hasonlítja össze.",
+                Title = "Sok csoport kiesett a HAVING szűrésekor",
+                SqlObservation = "A fő lekérdezés HAVING feltétele egy csoportosító oszlopot hasonlít konstanshoz, nem egy összesített értéket vizsgál.",
                 PlanObservation = finding.Description,
-                Description = "Az aggregálás Filter mezőjében ugyanaz a feltétel szerepel, és az aggregáló művelet sok eredménycsoportot dobott el. Ez a szám csoportokra, nem a tábla eredeti soraira vonatkozik.",
-                Recommendation = "Ellenőrizd, áthelyezhető-e a csoportkulcs feltétele a WHERE részbe az eredmény megváltoztatása nélkül. Hasonlítsd össze a terveket; az optimalizáló ezt az áthelyezést egyes esetekben már elvégzi.",
+                Description = "Az összesítést végző művelet Filter mezőjében is szerepel ez a feltétel, és a művelet sok elkészült csoportot szűrt ki. " +
+                    "Az eldobott sorszám itt csoportokat jelent, nem az eredeti tábla sorait. Érdemes ellenőrizni, elkerülhető-e a később " +
+                    "kieső csoportok előállítása.",
+                Recommendation = "Vizsgáld meg, áttehető-e a csoportosító oszlop feltétele a WHERE részbe az eredmény megőrzésével. Az összesített " +
+                    "értékek feltételei maradjanak a HAVING részben. Hasonlítsd össze a terveket és a futási időket; a PostgreSQL egyes " +
+                    "esetekben már magától előrehozza ezt a szűrést.",
                 RelatedPlanFinding = finding
             }
         };

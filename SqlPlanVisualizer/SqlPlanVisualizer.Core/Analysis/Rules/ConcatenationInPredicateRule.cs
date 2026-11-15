@@ -21,32 +21,15 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
                 {
                     StatementIndex = statement.StatementIndex,
                     RuleId = "CONCATENATION_IN_PREDICATE",
-                    Title = "Összefűzés szűrési feltételben",
+                    Title = "Keresés összefűzött oszlopértékekben",
 
-                    Description =
-                        $"Hely: {occurrence.Location}. "
-                        + "A WHERE vagy JOIN ON környezetben "
-                        + "oszlophivatkozást tartalmazó || lánc szerepel. "
-                        + $"Érintett oszlophivatkozások: {columns}. "
-                        + "Ha szöveges összefűzésről van szó, a feltétel "
-                        + "az összefűzött értéket használja, ezért az "
-                        + "egyes oszlopok indexei nem feltétlenül "
-                        + "alkalmasak a keresés gyorsítására.",
+                    Description = $"A szűrés || operátorral összekapcsolt kifejezést tartalmaz. Érintett oszlopok: {columns}. Szöveges összefűzés esetén az " +
+                        $"egyes oszlopok indexei nem feltétlenül segítik az összefűzött érték keresését. Hely: {occurrence.Location}.",
 
-                    Recommendation =
-                        "Ellenőrizd az operandusok típusát és a "
-                        + "végrehajtási tervet. Ha az üzleti feltétel "
-                        + "külön mezőértékek egyezését keresi, "
-                        + "mérlegeld a mezők külön összehasonlítását. "
-                        + "Az összefűzött érték nem bontható fel "
-                        + "automatikusan: a mezőhatárok, az elválasztók "
-                        + "és a NULL-kezelés befolyásolják az eredményt. "
-                        + "Ha az összefűzött érték szerinti keresés "
-                        + "szükséges és gyakori, vizsgáld meg a teljes "
-                        + "kifejezéshez illeszkedő kifejezésindex "
-                        + "lehetőségét. A tényleges hatást "
-                        + "EXPLAIN (ANALYZE, BUFFERS) segítségével "
-                        + "ellenőrizd.",
+                    Recommendation = "Ellenőrizd az értékek típusát és azt, hogy valóban az összefűzött eredményre kell-e keresni. Ha külön mezőértékek " +
+                        "egyezése a cél, mérlegeld azok külön összehasonlítását. Az elválasztók, a mezőhatárok és a NULL-kezelés miatt ez nem " +
+                        "mindig egyenértékű. Gyakori keresésnél a teljes összefűzésre készített kifejezésindex is szóba jöhet; a hatását " +
+                        "méréssel ellenőrizd.",
 
                     SourceOffset = occurrence.SourceOffset
                 });

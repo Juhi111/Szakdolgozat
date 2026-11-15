@@ -20,21 +20,12 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
                 {
                     StatementIndex = statement.StatementIndex,
                     RuleId = "NATURAL_JOIN_USAGE",
-                    Title = "Implicit kapcsolási oszlopok NATURAL JOIN esetén",
-                    Description =
-                        $"Hely: {occurrence.Location}. " +
-                        "A lekérdezés NATURAL JOIN kapcsolatot használ. " +
-                        "A kapcsolási oszlopokat a két bemenet közös oszlopnevei határozzák meg, " +
-                        "ezért egy sémamódosítás a lekérdezés szövegének változtatása nélkül " +
-                        "is megváltoztathatja a kapcsolat jelentését.",
-                    Recommendation =
-                        "Mérlegeld a szándékolt kapcsolási oszlopok explicit megadását JOIN ... USING " +
-                        "vagy JOIN ... ON formában. Őrizd meg a kapcsolat típusát, " +
-                        "például a LEFT JOIN működését. Az ON és USING eredményoszlopai eltérhetnek, " +
-                        "ezért a kiválasztott oszlopokat is ellenőrizd. " +
-                        "Az elemző sémaadatok nélkül nem tudja meghatározni a közös oszlopokat, " +
-                        "és nem végez automatikus átírást. Ez karbantarthatósági jelzés, " +
-                        "önmagában nem jelent teljesítményproblémát.",
+                    Title = "A kapcsolási oszlopokat a NATURAL JOIN választja ki",
+                    Description = "A NATURAL JOIN minden közös nevű oszlopot felhasznál a kapcsoláshoz. Egy új, azonos nevű oszlop ezért az SQL módosítása " +
+                        $"nélkül is megváltoztathatja az eredményt. Ez elsősorban karbantarthatósági kockázat. Hely: {occurrence.Location}.",
+                    Recommendation = "Add meg a szándékolt kapcsolási oszlopokat JOIN ... USING vagy JOIN ... ON formában. Tartsd meg a kapcsolás típusát, " +
+                        "például a LEFT JOIN viselkedését. Az ON és USING eltérő eredményoszlopokat adhat, ezért az oszloplistát is ellenőrizd. " +
+                        "Az elemző a táblák sémája nélkül nem tudja kiválasztani helyetted a kapcsolási kulcsokat.",
                     SourceOffset = occurrence.SourceOffset
                 });
             }

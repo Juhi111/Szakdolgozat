@@ -63,15 +63,14 @@ namespace SqlPlanVisualizer.Core.Analysis.PlanRules
             findings.Add(new PlanAnalysisFinding(node)
             {
                 RuleId = "REPEATED_SEQUENTIAL_SCAN",
-                Title = "Sokszor ismételt szekvenciális beolvasás",
-                Description = $"A Seq Scan művelet {loops:N0} alkalommal futott " +
-                    $"({executionContext}). A jelentett sorszámok alapján összesen körülbelül " +
-                    $"{examinedRows:N0} sort vizsgált meg. Ugyanazok a sorok többször is beleszámíthatnak.",
-                Recommendation = "Ellenőrizd a beolvasás szűrőfeltételét és az ismétlések futásidejét. " +
-                    "Vizsgáld meg, segíthet-e a belső keresési kulcshoz illeszkedő index. " +
-                    "Korrelált al-lekérdezésnél mérlegeld az egyszeri előaggregálás vagy összekapcsolás lehetőségét, " +
-                    "a NULL-értékek és duplikációk kezelésének megőrzésével. " +
-                    "A Nested Loop vagy a korrelált lekérdezés önmagában nem hibás."
+                Title = "Sokszor újra lefutott ugyanaz a táblabeolvasás",
+                Description = $"A Seq Scan művelet {loops:N0} alkalommal futott ({executionContext}). A jelentett adatokból számítva körülbelül " +
+                    $"{examinedRows:N0} sorvizsgálat történt összesen. Ebbe ugyanaz a táblasor többször is beleszámíthat; az érték nem ennyi " +
+                    "különböző rekordot jelent.",
+                Recommendation = "Nézd meg a beolvasás feltételét és azt, mennyi időt igényelnek az ismétlések. Egy megfelelő index segíthet az egyes " +
+                    "belső keresésekben. Ha a külső soroktól függő allekérdezés fut újra, mérlegeld az egyszeri összesítés vagy JOIN " +
+                    "lehetőségét, a NULL-értékek és ismétlődések azonos kezelésével. A Nested Loop és az ismételt beolvasás kis bemenetnél " +
+                    "megfelelő megoldás is lehet."
             });
 
             return findings;
@@ -91,13 +90,13 @@ namespace SqlPlanVisualizer.Core.Analysis.PlanRules
 
                     if (relationship == "SubPlan")
                     {
-                        description = "SubPlan ágában";
+                        description = "egy allekérdezés SubPlan ágában";
                         return true;
                     }
 
                     if (relationship == "Inner" && current.Parent.Node.NodeType == "Nested Loop")
                     {
-                        description = "Nested Loop belső ágában";
+                        description = "egy Nested Loop kapcsolás belső ágában";
                         return true;
                     }
                 }

@@ -19,12 +19,12 @@ namespace SqlPlanVisualizer.Core.Analysis.PlanRules
             if (PlanNodePropertyReader.TryReadDouble(node, "Lossy Heap Blocks", out double lossyBlocks) &&
                 lossyBlocks > 0)
             {
-                string detail = $"A csomópont által jelentett veszteséges blokkok száma: {lossyBlocks:N0}.";
+                string detail = $"Csak lap szinten azonosított blokkok (Lossy Heap Blocks): {lossyBlocks:N0}.";
 
                 if (PlanNodePropertyReader.TryReadDouble(node, "Exact Heap Blocks", out double exactBlocks) &&
                     exactBlocks >= 0)
                 {
-                    detail += $" Pontos blokkok száma: {exactBlocks:N0}.";
+                    detail += $" Pontos sorhelyeket tartalmazó blokkok (Exact Heap Blocks): {exactBlocks:N0}.";
                 }
 
                 details.Add(detail);
@@ -39,12 +39,12 @@ namespace SqlPlanVisualizer.Core.Analysis.PlanRules
                 }
 
                 string label = PlanNodePropertyReader.GetWorkerLabel(worker);
-                string detail = $"{label}: {workerLossyBlocks:N0} veszteséges blokk.";
+                string detail = $"{label}: {workerLossyBlocks:N0} lap szinten azonosított (lossy) blokk.";
 
                 if (PlanNodePropertyReader.TryReadDouble(worker, "Exact Heap Blocks", out double workerExactBlocks) &&
                     workerExactBlocks >= 0)
                 {
-                    detail += $" Pontos blokkok száma: {workerExactBlocks:N0}.";
+                    detail += $" Pontos sorhelyeket tartalmazó blokkok (Exact Heap Blocks): {workerExactBlocks:N0}.";
                 }
 
                 details.Add(detail);
@@ -56,15 +56,14 @@ namespace SqlPlanVisualizer.Core.Analysis.PlanRules
             findings.Add(new PlanAnalysisFinding(node)
             {
                 RuleId = "LOSSY_BITMAP_HEAP_SCAN",
-                Title = "Veszteséges bitmap beolvasás",
+                Title = "A bitmap beolvasásnál teljes táblalapokat kellett ellenőrizni",
                 Description = string.Join(" ", details) +
-                    " A veszteséges blokkoknál a bitmap csak a lapot azonosítja, " +
+                    " A lossy jelölésnél a bitmap csak a megfelelő táblalapot ismeri, nem a pontos sorhelyeket, " +
                     "ezért a sorokon újra ellenőrizni kell az indexfeltételt. Ez nem jelent adatvesztést.",
-                Recommendation = "Ellenőrizd a művelet futási idejét és a Rows Removed by Index Recheck értékét. " +
-                    "Vizsgáld meg az alkalmazott index típusát és a feltétel szelektivitását. " +
-                    "Ha a veszteséges bitmap a szűk memóriakeret miatt alakult ki, " +
-                    "mérlegeld a work_mem célzott emelését a párhuzamos terhelés figyelembevételével. " +
-                    "A veszteséges blokkok jelenléte önmagában nem bizonyít rossz végrehajtási tervet."
+                Recommendation = "Nézd meg a futási időt és a Rows Removed by Index Recheck mezőt: ez mutatja az indexfeltétel újraellenőrzésekor " +
+                    "eldobott sorokat. Ellenőrizd az index típusát és azt, mennyire szűkíti a keresést a feltétel. Ha a lap szintű jelölés " +
+                    "oka a kevés memória, próbáld ki a work_mem célzott emelését, az egyidejű terhelés figyelembevételével. A lossy blokkok " +
+                    "jelenléte önmagában nem hibás terv."
             });
             return findings;
         }

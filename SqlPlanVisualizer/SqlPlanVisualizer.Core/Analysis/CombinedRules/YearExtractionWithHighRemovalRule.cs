@@ -4,6 +4,8 @@ public sealed class YearExtractionWithHighRemovalRule : PredicateWithHighRemoval
 {
     public YearExtractionWithHighRemovalRule() : base(
         "YEAR_EXTRACTION_IN_PREDICATE", "YEAR_EXTRACTION_WITH_HIGH_REMOVAL",
-        "Évkivonásos szűrés sok eldobott sorral",
-        "Vizsgáld meg, kifejezhető-e az évfeltétel az eredeti dátumoszlopra vonatkozó tartománnyal. Az időzónát, az összehasonlító operátort és a határértékeket is őrizd meg.") { }
+        "Év szerinti szűrés mellett sok sor kiesett",
+        "Dátum vagy időbélyeg esetén vizsgáld meg, kifejezhető-e a feltétel az eredeti oszlopra megadott tartománnyal. Vedd " +
+            "figyelembe az időzónát, az összehasonlítás irányát és a határértékeket. Intervallumértékre ez nem általános " +
+            "helyettesítő. Az eredmény azonosságát és az indexhasználat, illetve a futási idő változását is ellenőrizd.") { }
 }

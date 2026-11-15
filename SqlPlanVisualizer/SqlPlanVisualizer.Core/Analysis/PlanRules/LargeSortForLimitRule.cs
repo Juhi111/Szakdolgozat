@@ -55,24 +55,23 @@ namespace SqlPlanVisualizer.Core.Analysis.PlanRules
                 return findings;
 
             string recommendation = input.NodeType == "Aggregate"
-                ? "A rendezés aggregált eredményt kapott. Vizsgáld meg, csökkenthető-e az aggregáció bemenete " +
+                ? "A rendezés már összesített adatokat kapott. Nézd meg, csökkenthető-e az összesítéshez feldolgozott sorok száma " +
                   "az eredmény megváltoztatása nélkül. Az aggregált érték szerinti sorrendet egy alapadatokon " +
                   "létrehozott index nem feltétlenül szolgálja ki. "
-                : "Vizsgáld meg, csökkenthető-e a rendezés bemenete. Gyakori lekérdezésnél ellenőrizd, " +
+                : "Nézd meg, lehet-e kevesebb adatot átadni a rendezésnek az eredmény megőrzésével. Gyakori lekérdezésnél ellenőrizd, " +
                   "kiszolgálható-e a szűrés és a kívánt sorrend megfelelő indexszel. ";
 
             recommendation +=
-                "A nagy bemenet/kimenet arány önmagában nem bizonyít lassú rendezést. " +
+                "A rendezés tényleges ideje alapján értékeld, mekkora gondot jelent ez az adatmennyiség. " +
                 "Vedd figyelembe a futási időt és az esetleges OFFSET értékét is.";
 
             findings.Add(new PlanAnalysisFinding(node)
             {
                 RuleId = "LARGE_SORT_FOR_LIMIT",
-                Title = "Sok rendezési bemenet kevés eredménysorhoz",
-                Description = $"A rendezés bemenete a jelentett átlagok és végrehajtásszámok alapján " +
-                    $"összesen körülbelül {inputRows:N0} sor volt, miközben a LIMIT " +
-                    $"{outputRows:N0} sort adott vissza. A bemenet/kimenet arány {ratio:N0}-szeres. " +
-                    "A LIMIT kis kimenete tehát nem jelentett ugyanilyen kis rendezési bemenetet.",
+                Title = "A sorlimit ellenére sok adat került a rendezésbe",
+                Description = $"A rendezés körülbelül {inputRows:N0} bemeneti sort kapott, miközben a LIMIT összesen {outputRows:N0} sort adott tovább. " +
+                    $"Ez {ratio:N0}-szeres bemenet/kimenet arány. Az értékeket a jelentett átlagokból és végrehajtásszámokból számítottuk. A " +
+                    "kevés visszaadott sor tehát nem jelentett kevés feldolgozandó adatot.",
                 Recommendation = recommendation
             });
 

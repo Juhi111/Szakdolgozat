@@ -28,33 +28,16 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
                 {
                     StatementIndex = statement.StatementIndex,
                     RuleId = "OPTIONAL_PARAMETER_FILTER",
-                    Title = "Opcionális paraméteres szűrés",
+                    Title = "Ugyanaz a feltétel kapcsolja be és ki a szűrést",
 
-                    Description =
-                        $"Hely: {occurrence.Location}. "
-                        + $"A feltétel a(z) {parameter} IS NULL OR "
-                        + $"{columnReference} = {parameter} mintát követi, "
-                        + "esetleg felcserélt ágakkal vagy operandusokkal. "
-                        + "NULL paraméternél ez a részfeltétel minden "
-                        + "sorra igaz; egyébként oszlopértékre szűr. "
-                        + "A két esethez eltérő végrehajtási stratégia "
-                        + "lehet kedvező.",
+                    Description = $"A(z) {parameter} IS NULL OR {columnReference} = {parameter} minta NULL paraméternél minden sort átenged ezen a " +
+                        "részfeltételen, más értéknél pedig az oszlopra szűr. A két esethez eltérő terv lehet kedvező. A felismert alakban az " +
+                        $"ágak vagy az összehasonlítás oldalai fel is lehetnek cserélve. Hely: {occurrence.Location}.",
 
-                    Recommendation =
-                        "Ellenőrizd a végrehajtási tervet NULL és "
-                        + "jellemző nem NULL paraméterértékekkel is, "
-                        + "az alkalmazás tényleges paraméterezési és "
-                        + "előkészítettutasítás-használata mellett. "
-                        + "Vizsgáld meg, hogy általános vagy az adott "
-                        + "paraméterértékhez készített terv fut-e. "
-                        + "Ha mérhető probléma jelentkezik, mérlegeld "
-                        + "a szűrés nélküli és a szűrt lekérdezés "
-                        + "különválasztását, vagy csak az aktív "
-                        + "feltételek paraméterezett összeállítását. "
-                        + "A paraméterértékeket ne fűzd az SQL szövegébe. "
-                        + "JOIN ON feltételnél őrizd meg a kapcsolás "
-                        + "jelentését is. Ha a meglévő terv megfelelő, "
-                        + "nem szükséges átírás.",
+                    Recommendation = "Vizsgáld meg a NULL és a jellemző nem NULL paraméterekkel futó terveket, az alkalmazás tényleges előkészített " +
+                        "lekérdezéseivel. Ha a közös terv valamelyik esetben lassú, mérlegeld a szűrt és szűrés nélküli lekérdezés " +
+                        "különválasztását. A paramétereket továbbra is külön add át. JOIN ON feltételnél a kapcsolás és a NULL-értékek kezelése " +
+                        "is maradjon azonos.",
 
                     SourceOffset = occurrence.SourceOffset
                 });

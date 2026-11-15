@@ -36,12 +36,12 @@ namespace SqlPlanVisualizer.Core.Analysis.CombinedRules
                 new CombinedAnalysisFinding
                 {
                     RuleId = "ORDER_BY_WITH_SORT_SPILL",
-                    Title = "Az ORDER BY rendezése lemezterületet használt",
-                    SqlObservation = "Az SQL felső szintű lekérdezése ORDER BY rendezést tartalmaz.",
+                    Title = "Az ORDER BY rendezéshez lemezterület is kellett",
+                    SqlObservation = "Az SQL fő lekérdezése ORDER BY feltétellel kéri az eredmény rendezését.",
                     PlanObservation = planFinding.Description,
-                    Description = "A párosított terv felső szintű rendezése lemezterületet is használt. " +
-                        "Ez összekapcsolja az SQL rendezési igényét a tervben megfigyelt lemezhasználattal, " +
-                        "de önmagában nem bizonyít teljesítményproblémát.",
+                    Description = "A párosított terv ehhez tartozó felső szintű rendezése nem kizárólag memóriában dolgozott: lemezterületet is használt. " +
+                        "Így a kért sorrendhez további olvasás és írás társulhat. A rendezés futási ideje alapján ítélhető meg, mekkora szerepe " +
+                        "van ennek a teljes lekérdezésben.",
                     Recommendation = planFinding.Recommendation,
                     RelatedPlanFinding = planFinding
                 }

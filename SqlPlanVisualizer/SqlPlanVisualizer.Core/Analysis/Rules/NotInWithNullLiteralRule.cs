@@ -20,21 +20,13 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
                 {
                     StatementIndex = statement.StatementIndex,
                     RuleId = "NOT_IN_WITH_NULL_LITERAL",
-                    Title = "NULL-literál a NOT IN értéklistában",
-                    Description =
-                        $"Hely: {occurrence.Location}. " +
-                        "A NOT IN értéklistája közvetlen NULL-literált tartalmaz. " +
-                        "Szokásos skalár összehasonlításnál a listában szereplő értékkel egyező " +
-                        "bal oldali értékre az eredmény hamis, egyezés hiányában pedig ismeretlen (NULL), " +
-                        "nem igaz. Önálló WHERE feltételként ez nem engedi át a sorokat. " +
-                        "Összetett logikai kifejezésben a teljes feltétel eredménye a többi ágtól is függ.",
-                    Recommendation =
-                        "Ellenőrizd, hogy a NULL véletlenül került-e az értéklistába. " +
-                        "Ha csak konkrét értékeket szeretnél kizárni, távolítsd el a NULL-elemet. " +
-                        "Ha a bal oldali NULL-értékeket is meg szeretnéd tartani, " +
-                        "azt külön IS NULL feltétellel fejezd ki. " +
-                        "A NOT IN listába írt NULL nem helyettesíti az IS NULL vagy IS NOT NULL vizsgálatot. " +
-                        "Az átírásnál a kívánt NULL-kezelést és a teljes logikai feltételt is ellenőrizd.",
+                    Title = "NULL szerepel a kizárandó értékek között",
+                    Description = "A NOT IN listában közvetlenül NULL szerepel. Szokásos skalár összehasonlításnál egyezéskor hamis, egyezés hiányában " +
+                        "ismeretlen az eredmény: önálló WHERE feltételként így egyetlen sort sem enged át. Összetett feltételnél a többi logikai " +
+                        $"ág is számít. Hely: {occurrence.Location}.",
+                    Recommendation = "Ha konkrét értékeket szeretnél kizárni, távolítsd el a véletlenül bekerült NULL-elemet. A hiányzó értékeket külön IS " +
+                        "NULL vagy IS NOT NULL feltétellel kezeld. Ha a bal oldali NULL-értékeket meg szeretnéd tartani, ezt külön IS NULL ággal " +
+                        "fejezd ki, és ellenőrizd a teljes feltétel zárójelezését.",
                     SourceOffset = occurrence.SourceOffset
                 });
             }

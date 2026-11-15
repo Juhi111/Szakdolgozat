@@ -20,21 +20,11 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
                 {
                     StatementIndex = statement.StatementIndex,
                     RuleId = "UNION_DEDUPLICATION",
-                    Title = "UNION duplikációeltávolítással",
-                    Description =
-                        $"Hely: {occurrence.Location}. " +
-                        "A lekérdezés UNION műveletet használ ALL nélkül. " +
-                        "Ez eltávolítja az azonos eredménysorokat, ami az összefűzésen felül " +
-                        "további feldolgozást igényelhet.",
-                    Recommendation =
-                        "Ellenőrizd, hogy szükséges-e az eredménysorok egyedisége. " +
-                        "Ha az ismétlődések megengedettek, vagy a teljes eredmény egyedisége " +
-                        "bizonyított, mérlegeld a UNION ALL használatát. " +
-                        "Az ágak közötti átfedés hiánya önmagában nem elég: " +
-                        "az egyes ágakon belüli ismétlődések is számítanak. " +
-                        "Összetett halmazműveletnél a teljes kifejezés jelentését ellenőrizd. " +
-                        "Az elemző nem ismeri az egyediségi megszorításokat, ezért nem végez automatikus átírást. " +
-                        "A tényleges költséget a végrehajtási terv alapján vizsgáld meg.",
+                    Title = "A UNION az ismétlődő sorokat is eltávolítja",
+                    Description = $"A UNION az eredmények egyesítése mellett az azonos sorokat is eltávolítja. Ez további feldolgozást igényelhet a UNION ALL művelethez képest. Hely: {occurrence.Location}.",
+                    Recommendation = "Ha az ismétlődések megengedettek, vagy a teljes eredmény biztosan egyedi, mérlegeld a UNION ALL használatát. Az ágak " +
+                        "közötti átfedés hiánya nem elég: egy ágon belül is lehetnek ismétlődések. Összetett halmazműveletnél a teljes eredményt " +
+                        "ellenőrizd. Az elemző nem ismeri az egyediségi megszorításokat; a módosítás helyességét és hatását külön vizsgáld meg.",
                     SourceOffset = occurrence.SourceOffset
                 });
             }

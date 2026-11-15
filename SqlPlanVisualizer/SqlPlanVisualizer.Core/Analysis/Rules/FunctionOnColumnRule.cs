@@ -30,28 +30,15 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
 
                     RuleId = "FUNCTION_ON_COLUMN",
 
-                    Title = "Függvény alkalmazása oszlopra szűrési feltételben",
+                    Title = "Szűrés függvénnyel átalakított oszlopra",
 
-                    Description =
-                        $"Hely: {occurrence.Location}. "
-                        + $"A {expression} függvényhívás WHERE vagy "
-                        + "JOIN ON környezetben szerepel. "
-                        + "A feltétel az oszlop átalakított értékét használja, "
-                        + "ezért az eredeti oszlopon lévő egyszerű index "
-                        + "nem feltétlenül alkalmas a keresés gyorsítására. "
-                        + "Ez önmagában nem bizonyít teljesítményproblémát.",
+                    Description = $"A szűrés a(z) {expression} kifejezést használja az oszlop eredeti értéke helyett. Az eredeti oszlopra készített " +
+                        $"hagyományos index nem feltétlenül alkalmas ennek a keresésnek a gyorsítására. Hely: {occurrence.Location}.",
 
-                    Recommendation =
-                        "Ellenőrizd a végrehajtási tervet "
-                        + "EXPLAIN (ANALYZE, BUFFERS) segítségével. "
-                        + "Gyakran használt feltételnél vizsgáld meg "
-                        + "a teljes keresési kifejezéshez illeszkedő "
-                        + "kifejezésindex lehetőségét és a már meglévő "
-                        + "indexeket. Összetett kifejezésnél a belső "
-                        + "függvényhívásra készített index önmagában "
-                        + "nem feltétlenül elegendő. "
-                        + "A függvényt csak akkor hagyd el vagy írd át, "
-                        + "ha az összehasonlítás jelentése megmarad.",
+                    Recommendation = "Gyakori keresésnél ellenőrizd, van-e a teljes keresési kifejezéshez illeszkedő index, vagy érdemes-e ilyet létrehozni. " +
+                        "Ezt nevezzük kifejezésindexnek. Összetett feltételnél a belső függvényhívás indexelése önmagában kevés lehet. A " +
+                        "függvény elhagyása megváltoztathatja az egyezés szabályait, ezért csak azonos jelentésű feltételre cserélj. A várható " +
+                        "előnyt a végrehajtási tervvel ellenőrizd.",
 
                     SourceOffset = occurrence.SourceOffset
                 });

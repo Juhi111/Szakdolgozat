@@ -56,32 +56,32 @@ namespace SqlPlanVisualizer.Core.Analysis.PlanRules
             string recommendation = node.NodeType switch
             {
                 "Seq Scan" =>
-                    "A szekvenciális beolvasás sok sort megvizsgált, majd kiszűrt. " +
+                    "A Seq Scan sorban olvassa a táblát, majd ellenőrzi a feltételt. " +
                     "Ellenőrizd, segíthet-e a szűréshez illeszkedő index a szükséges sorok közvetlen elérésében. ",
 
                 "Index Scan" or "Index Only Scan" or "Bitmap Heap Scan" =>
-                    "Az indexes hozzáférés után további szűrés sok sort eldobott. " +
-                    "Hasonlítsd össze az indexelérés feltételét a Filter feltétellel. " +
+                    "Az index használata után is sok sor fennakadt a további szűrésen. " +
+                    "Hasonlítsd össze az Index Cond (indexkeresés) és a Filter (utólagos szűrés) feltételeit. " +
                     "Gyakori és költséges lekérdezésnél vizsgáld meg egy megfelelő összetett vagy részleges index lehetőségét. ",
 
                 _ =>
-                    "Vizsgáld meg, előrébb hozható-e a szűrés az eredmény megváltoztatása nélkül. "
+                    "Ellenőrizd, csökkenthető-e korábbi szűréssel a művelet bemenete, az eredmény megőrzésével. "
             };
 
             recommendation +=
-                "A döntést a futási idő és a bufferadatok alapján hozd meg; " +
+                "A futási idő és a Buffers mezők olvasási adatai alapján döntsd el, érdemes-e változtatni; " +
                 "a nagy eldobási arány önmagában nem bizonyít rossz végrehajtási tervet.";
 
             var conditions = new List<string>();
 
             if (PlanNodePropertyReader.TryReadString(node, "Index Cond", out string indexCondition))
-                conditions.Add($"Index Cond: {indexCondition}.");
+                conditions.Add($"Indexkeresési feltétel (Index Cond): {indexCondition}.");
 
             if (PlanNodePropertyReader.TryReadString(node, "Recheck Cond", out string recheckCondition))
-                conditions.Add($"Recheck Cond: {recheckCondition}.");
+                conditions.Add($"Újraellenőrzött feltétel (Recheck Cond): {recheckCondition}.");
 
             if (PlanNodePropertyReader.TryReadString(node, "Filter", out string filter))
-                conditions.Add($"Filter: {filter}.");
+                conditions.Add($"Szűrési feltétel (Filter): {filter}.");
 
             string conditionDetails = conditions.Count > 0
                 ? " " + string.Join(" ", conditions)
@@ -90,10 +90,10 @@ namespace SqlPlanVisualizer.Core.Analysis.PlanRules
             findings.Add(new PlanAnalysisFinding(node)
             {
                 RuleId = "HIGH_FILTER_REMOVAL",
-                Title = "Sok sort eldobó szűrés",
-                Description = $"A(z) {node.NodeType} művelet a jelentett átlagok alapján " +
-                $"összesen körülbelül {totalRemovedRows:N0} sort dobott el. " +
-                $"Az eldobott sorok aránya a kimeneti és kiszűrt sorok együttes számához képest {removalRatio:P1}." + conditionDetails,
+                Title = "A szűrés a feldolgozott sorok nagy részét eldobta",
+                Description = $"A(z) {node.NodeType} művelet a végrehajtásonkénti átlagok és az ismétlések száma alapján összesen körülbelül " +
+                    $"{totalRemovedRows:N0} sort szűrt ki. A kiszűrt és továbbadott sorok együttes számából {removalRatio:P1} volt a kiszűrt " +
+                    "rész." + conditionDetails,
                 Recommendation = recommendation
             });
             return findings;

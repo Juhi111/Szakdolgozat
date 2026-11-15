@@ -17,15 +17,20 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
                 if (distinctOccurrence.IsDistinctOn)
                     continue;
 
-                string recommendation = distinctOccurrence.HasJoin ? "Ellenőrizd, hogy a JOIN eredményében keletkező ismétlődések miatt használod-e a DISTINCT-et. Vizsgáld meg a kapcsolási feltételeket és a táblák közötti kapcsolatot. A DISTINCT-et csak az eredmény helyességének ellenőrzése után távolítsd el."
-                    : "Ellenőrizd, hogy szükséges-e a duplikált eredménysorok eltávolítása. A DISTINCT-et csak az eredmény helyességének ellenőrzése után távolítsd el.";
+                string recommendation = distinctOccurrence.HasJoin ? "Nézd meg, hogy a JOIN a vártnál több egyező sort kapcsol-e össze. Ha csak kapcsolódó sorok létezését vizsgálod, egy " +
+                    "EXISTS feltétel is szóba jöhet. A DISTINCT-et csak akkor hagyd el, ha az eredmény egyedisége továbbra is biztosított, " +
+                    "vagy az ismétlődések megengedettek."
+                    : "Ellenőrizd, szükséges-e az eredménysorok egyedisége. Ha igen, a DISTINCT indokolt lehet. Csak akkor hagyd el, ha az " +
+                        "ismétlődések megengedettek, vagy az eredmény már nélküle is biztosan egyedi. A feldolgozás költségét a tervben " +
+                        "ellenőrizd.";
 
                 findings.Add(new SqlAnalysisFinding
                 {
                     StatementIndex = statement.StatementIndex,
                     RuleId = "DISTINCT_USAGE",
-                    Title = "DISTINCT használatának felülvizsgálata",
-                    Description = $"Hely: {distinctOccurrence.Location}. A SELECT DISTINCT-et használ.",
+                    Title = "Ismétlődő eredménysorok eltávolítása",
+                    Description = "A SELECT DISTINCT minden azonos eredménysorból csak egyet tart meg. Az egyediség biztosítása további rendezést vagy " +
+                        $"hash alapú feldolgozást igényelhet. Hely: {distinctOccurrence.Location}.",
                     Recommendation = recommendation,
                     SourceOffset = distinctOccurrence.SourceOffset
                 });

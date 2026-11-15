@@ -4,6 +4,8 @@ public sealed class ConcatenationWithHighRemovalRule : PredicateWithHighRemovalR
 {
     public ConcatenationWithHighRemovalRule() : base(
         "CONCATENATION_IN_PREDICATE", "CONCATENATION_WITH_HIGH_REMOVAL",
-        "Összefűzéses szűrés sok eldobott sorral",
-        "Ellenőrizd, szükséges-e az összefűzött érték szerinti keresés. A külön oszlopokra bontás nem mindig azonos jelentésű; számít az elválasztó és a NULL-kezelés. Gyakori keresésnél vizsgáld meg a kifejezésindex lehetőségét.") { }
+        "Összefűzött értékre keresés mellett sok sor kiesett",
+        "Ellenőrizd, valóban az összefűzött értékre kell-e keresni. Külön oszlopok vizsgálata csak akkor megfelelő, ha az " +
+            "elválasztók, mezőhatárok és NULL-értékek kezelése ugyanazt az eredményt adja. Gyakori keresésnél vizsgáld meg a teljes " +
+            "összefűzésre készített kifejezésindex lehetőségét, majd mérd meg a teljes lekérdezést.") { }
 }

@@ -4,6 +4,8 @@ public sealed class FunctionFilterWithHighRemovalRule : PredicateWithHighRemoval
 {
     public FunctionFilterWithHighRemovalRule() : base(
         "FUNCTION_ON_COLUMN", "FUNCTION_FILTER_WITH_HIGH_REMOVAL",
-        "Függvényes szűrés sok eldobott sorral",
-        "Vizsgáld meg a teljes szűrés szelektivitását és futási idejét. Gyakori lekérdezésnél mérd meg a függvényes kifejezéshez illeszkedő kifejezésindex hatását.") { }
+        "Függvénnyel átalakított értékre keresés mellett sok sor kiesett",
+        "Nézd meg a teljes szűrés feltételeit és a művelet idejét. Gyakori keresésnél vizsgáld meg a függvényes kifejezéshez " +
+            "illeszkedő kifejezésindexet: ez az átalakított értékre épített index. A hatását a teljes lekérdezéssel mérd meg, mert " +
+            "több feltétel együtt határozza meg a tervet.") { }
 }

@@ -20,21 +20,13 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
                 {
                     StatementIndex = statement.StatementIndex,
                     RuleId = "COUNT_FOR_EXISTENCE",
-                    Title = "COUNT(*) használata létezésvizsgálatra",
-                    Description =
-                        $"Hely: {occurrence.Location}. " +
-                        "A skalár allekérdezés COUNT(*) eredményét 0-nál nagyobb értékre vizsgálod. " +
-                        "Ebben a szerkezetben a feltételnek csak az számít, hogy létezik-e legalább egy megfelelő sor, " +
-                        "a pontos darabszámra nincs szüksége.",
-                    Recommendation =
-                        "Mérlegeld az EXISTS használatát ugyanazzal a FROM résszel és szűrési feltételekkel. " +
-                        "Az EXISTS lehetővé teheti, hogy a végrehajtás az első megfelelő sor megtalálásakor befejeződjön. " +
-                        "Őrizd meg a külső lekérdezésre hivatkozó kapcsolási feltételeket is. " +
-                        "Ne pusztán EXISTS(SELECT COUNT(*) ...) alakra cseréld a kifejezést: " +
-                        "az aggregáló SELECT üres bemenetnél is visszaad egy sort. " +
-                        "Az átírás előtt ellenőrizd az illékony vagy mellékhatásos függvényeket, " +
-                        "mert megváltozhat, hányszor értékelődnek ki. " +
-                        "A tényleges teljesítményt EXPLAIN (ANALYZE, BUFFERS) segítségével hasonlítsd össze.",
+                    Title = "Sorokat számolunk, pedig csak a létezésük számít",
+                    Description = "Az allekérdezés COUNT(*) eredményéről csak azt vizsgáljuk, hogy nagyobb-e nullánál. A feltételhez elegendő tudni, van-e " +
+                        $"legalább egy megfelelő sor; a pontos darabszám nem szükséges. Hely: {occurrence.Location}.",
+                    Recommendation = "Mérlegeld az EXISTS használatát az eredeti táblák és szűrési feltételek megtartásával. Így a végrehajtás már az első " +
+                        "találat után megállhat. A külső lekérdezéshez kapcsoló feltételeket is őrizd meg. Ne EXISTS(SELECT COUNT(*) ...) alakot " +
+                        "használj: ez az aggregáló SELECT üres bemenetnél is visszaad egy sort. Változó eredményű vagy mellékhatásos " +
+                        "függvényeknél a kiértékelések száma is számíthat. Hasonlítsd össze az eredményt és a futási időt.",
                     SourceOffset = occurrence.SourceOffset
                 });
             }

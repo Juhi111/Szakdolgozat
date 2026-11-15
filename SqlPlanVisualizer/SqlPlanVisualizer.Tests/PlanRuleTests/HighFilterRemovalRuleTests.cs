@@ -44,9 +44,9 @@ namespace SqlPlanVisualizer.Tests.PlanRuleTests
 
             var indexFinding = Assert.Single(rule.Analyze(node));
 
-            Assert.Contains("Index Cond: (customer_id > 100)", indexFinding.Description);
-            Assert.Contains("Filter: (total_amount > 1000)", indexFinding.Description);
-            Assert.Contains("indexes hozzáférés után", indexFinding.Recommendation);
+            Assert.Contains("(Index Cond): (customer_id > 100)", indexFinding.Description);
+            Assert.Contains("(Filter): (total_amount > 1000)", indexFinding.Description);
+            Assert.Contains("Az index használata után", indexFinding.Recommendation);
         }
     }
 }

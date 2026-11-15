@@ -32,14 +32,12 @@ namespace SqlPlanVisualizer.Core.Analysis.CombinedRules
             findings.Add(new CombinedAnalysisFinding
             {
                 RuleId = "ORDERED_LIMIT_WITH_LARGE_SORT",
-                Title = "A sorlimit mellett is nagy a rendezési bemenet",
-                SqlObservation =
-                    "Az SQL felső szintű lekérdezése rendezést és sorlimitet tartalmaz.",
+                Title = "Kevés kért eredménysor mellett is sok adatot kapott a rendezés",
+                SqlObservation = "Az SQL fő lekérdezése meghatározott sorrendben, korlátozott számú sort kér vissza.",
                 PlanObservation = planFinding.Description,
-                Description =
-                    "A párosított terv felső szintű Limit műveletéhez nagy rendezési bemenet " +
-                    "tartozik a visszaadott sorok számához képest. Ebben a végrehajtásban " +
-                    "a kis eredményhalmaz előállításához sok bemeneti sort kellett feldolgozni.",
+                Description = "A párosított terv Limit művelete alatt a rendezés jóval több bemeneti sort kapott, mint amennyi végül az eredménybe " +
+                    "került. A sorlimit tehát ebben a futásban nem csökkentette ugyanilyen mértékben a feldolgozandó adatokat. A futási idő " +
+                    "és a hozzáférés módja alapján érdemes megvizsgálni az optimalizálást.",
                 Recommendation = planFinding.Recommendation,
                 RelatedPlanFinding = planFinding
             });

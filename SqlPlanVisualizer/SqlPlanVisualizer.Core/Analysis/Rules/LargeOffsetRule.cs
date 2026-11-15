@@ -33,21 +33,14 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
                 {
                     StatementIndex = statement.StatementIndex,
                     RuleId = "LARGE_OFFSET",
-                    Title = "Nagy OFFSET érték",
-                    Description =
-                        $"Hely: {occurrence.Location}. " +
-                        $"A lekérdezés {occurrence.RowOffset} sort hagy ki, " +
-                        $"ami eléri a beállított {threshold} soros figyelmeztetési küszöböt. " +
-                        "A kihagyott sorok előállítása és feldolgozása is munkát igényelhet, " +
-                        "ezért a lapozás költsége az eltolással növekedhet.",
-                    Recommendation =
-                        "Ellenőrizd a végrehajtási tervet és a válaszidőt nagyobb eltolásoknál is. " +
-                        "Ha egymást követő oldalakat kérsz le, mérlegeld a keyset lapozást: " +
-                        "a következő oldalt az előző oldal utolsó rendezési kulcsértékei alapján keresd. " +
-                        "Ehhez egyértelmű rendezés, szükség esetén egyedi holtversenykulcs, " +
-                        "valamint megfelelő NULL-kezelés szükséges. " +
-                        "A megoldás nem általános helyettesítő tetszőleges oldalszámra ugráshoz. " +
-                        "A küszöb alkalmazásbeállítás, nem PostgreSQL-korlát; önmagában nem bizonyít lassulást.",
+                    Title = "Sok sort kihagyó lapozás",
+                    Description = $"Az OFFSET {occurrence.RowOffset} sort hagy ki, ami eléri a beállított {threshold} soros jelzési küszöböt. A kihagyott " +
+                        "sorokat is elő kellhet állítani, ezért a későbbi oldalak lekérése egyre több munkát igényelhet. A küszöb " +
+                        $"alkalmazásbeállítás, nem PostgreSQL-korlát. Hely: {occurrence.Location}.",
+                    Recommendation = "Mérd meg a későbbi oldalak válaszidejét is. Egymás utáni lapozásnál megfontolható a kulcsalapú (keyset) lapozás: a " +
+                        "következő oldalt az előző oldal utolsó rendezési értékei alapján keresd. Ehhez egyértelmű sorrend kell, például dátum " +
+                        "és egyedi azonosító együtt, valamint megfelelő NULL-kezelés. Ez nem közvetlen helyettesítő, ha tetszőleges oldalszámra " +
+                        "kell ugrani.",
                     SourceOffset = occurrence.SourceOffset
                 });
             }

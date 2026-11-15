@@ -28,30 +28,15 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
                 {
                     StatementIndex = statement.StatementIndex,
                     RuleId = "TEXT_CAST_IN_PREDICATE",
-                    Title = "Oszlop szöveggé alakítása szűrésben",
+                    Title = "Szöveggé alakított értékre szűrünk",
 
-                    Description =
-                        $"Hely: {occurrence.Location}. "
-                        + $"A(z) {columnReference} oszlop text típusra "
-                        + "alakítása WHERE vagy JOIN ON környezetben "
-                        + "szerepel. Az elemző az eredeti oszloptípust "
-                        + "nem ismeri. A szöveges alak használata "
-                        + "befolyásolhatja az összehasonlítás jelentését "
-                        + "és az eredeti oszlop indexének "
-                        + "felhasználhatóságát.",
+                    Description = $"A szűrés a(z) {columnReference} oszlop text típusra alakított értékét használja. A szöveges összehasonlítás eltérhet az " +
+                        "eredeti típus összehasonlításától, és az indexhasználatot is befolyásolhatja. Az elemző az eredeti oszloptípust nem " +
+                        $"ismeri. Hely: {occurrence.Location}.",
 
-                    Recommendation =
-                        "Ha az oszlop eredeti értékére szeretnél szűrni, "
-                        + "vizsgáld meg, hogy használható-e az eredeti "
-                        + "típusnak megfelelő konstans vagy paraméter "
-                        + "az oszlop szöveggé alakítása helyett. "
-                        + "Ez nem automatikusan egyenértékű átírás: "
-                        + "a szöveges formátum, a rendezési szabályok "
-                        + "és a konverziós hibák is számítanak. "
-                        + "Ha kifejezetten a szöveges alak keresése "
-                        + "a cél, a konverzió indokolt lehet. "
-                        + "A tényleges hatást EXPLAIN (ANALYZE, BUFFERS) "
-                        + "segítségével ellenőrizd.",
+                    Recommendation = "Ha az eredeti értékre keresel, vizsgáld meg az oszlop típusának megfelelő paraméter használatát. A szöveges formátum, " +
+                        "az összehasonlítási szabályok és a konverziós hibák miatt az átírás nem mindig egyenértékű. Ha kifejezetten a szöveges " +
+                        "megjelenés a keresés célja, a konverzió indokolt lehet. A teljesítményhatást végrehajtási tervvel ellenőrizd.",
 
                     SourceOffset = occurrence.SourceOffset
                 });

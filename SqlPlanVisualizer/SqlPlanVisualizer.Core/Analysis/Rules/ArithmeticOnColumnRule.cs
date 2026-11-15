@@ -35,33 +35,15 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
 
                     RuleId = "ARITHMETIC_ON_COLUMN",
 
-                    Title = "Aritmetikai művelet oszlopon szűrési feltételben",
+                    Title = "Szűrés számított oszlopértékre",
 
-                    Description =
-                        $"Hely: {occurrence.Location}. "
-                        + $"A(z) {expression} kifejezés WHERE vagy "
-                        + "JOIN ON környezetben szerepel. "
-                        + "A feltétel az oszlopból számított értéket használja, "
-                        + "ami befolyásolhatja az eredeti oszlop indexének "
-                        + "felhasználhatóságát. "
-                        + "Ez önmagában nem bizonyít lassulást.",
+                    Description = $"A szűrés az oszlop eredeti értéke helyett a(z) {expression} kifejezést vizsgálja. Emiatt az oszlop hagyományos indexe " +
+                        $"nem feltétlenül tudja gyorsítani a keresést. Hely: {occurrence.Location}.",
 
-                    Recommendation =
-                        "Ellenőrizd a végrehajtási tervet "
-                        + "EXPLAIN (ANALYZE, BUFFERS) segítségével. "
-                        + "Vizsgáld meg, hogy a feltétel átírható-e úgy, "
-                        + "hogy az oszlop önmagában szerepeljen az "
-                        + "összehasonlítás egyik oldalán. "
-                        + "Az átrendezésnél figyelembe kell venni az "
-                        + "adattípusokat, a túlcsordulást, a kerekítést, "
-                        + "az egészosztást és a nullával osztást. "
-                        + "Negatív számmal történő szorzás vagy osztás "
-                        + "az egyenlőtlenség irányát is megfordíthatja. "
-                        + "Automatikus átírás helyett ellenőrizd "
-                        + "az eredmények és a hibaviselkedés megmaradását. "
-                        + "Ha a számított kifejezés szükséges és gyakori, "
-                        + "vizsgáld meg a teljes keresési kifejezéshez "
-                        + "illeszkedő kifejezésindex lehetőségét.",
+                    Recommendation = "Vizsgáld meg, átírható-e a feltétel úgy, hogy az oszlop önmagában szerepeljen az összehasonlításban. Az egészosztás, " +
+                        "kerekítés, túlcsordulás és nullával osztás miatt az átrendezés megváltoztathatja az eredményt vagy a hibaviselkedést; " +
+                        "negatív szorzó vagy osztó az egyenlőtlenség irányát is megfordíthatja. Ha a számítás szükséges, gyakori keresésnél " +
+                        "vizsgáld meg a teljes kifejezésre készített index lehetőségét. A változtatás hatását végrehajtási tervvel ellenőrizd.",
 
                     SourceOffset = occurrence.SourceOffset
                 });

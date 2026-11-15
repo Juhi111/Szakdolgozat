@@ -29,15 +29,12 @@ namespace SqlPlanVisualizer.Core.Analysis.PlanRules
             findings.Add(new PlanAnalysisFinding(node)
             {
                 RuleId = "PARALLEL_WORKER_SHORTAGE",
-                Title = "A tervezettnél kevesebb párhuzamos dolgozó",
-                Description = $"A(z) {node.NodeType} művelethez {planned:N0} dolgozót tervezett a PostgreSQL, " +
-                    $"de csak {launched:N0} indult el. " +
-                    "Ez csökkentheti a tervben feltételezett párhuzamosságot.",
-                Recommendation = "Ellenőrizd a lekérdezés futási idejét és a szerver egyidejű terhelését. " +
-                    "Vizsgáld meg a párhuzamos dolgozók rendelkezésre állását, valamint a max_worker_processes " +
-                    "és max_parallel_workers beállításokat. " +
-                    "A limitek emelését csak a rendelkezésre álló CPU- és memóriakapacitás alapján mérlegeld. " +
-                    "A dolgozók számának eltérése önmagában nem bizonyít teljesítményproblémát."
+                Title = "A tervezettnél kevesebb párhuzamos dolgozó indult",
+                Description = $"A(z) {node.NodeType} művelethez tervezett {planned:N0} párhuzamos dolgozóból {launched:N0} indult el. Így kevesebb " +
+                    "dolgozó osztozott a munkán, mint amennyivel a tervező számolt. A futási időre gyakorolt hatás a terheléstől is függ.",
+                Recommendation = "Ellenőrizd a futási időt és azt, milyen más lekérdezések futottak ugyanakkor. Nézd meg a rendelkezésre álló párhuzamos " +
+                    "dolgozókat, valamint a max_worker_processes és max_parallel_workers korlátokat. Csak akkor emelj a limiteken, ha a CPU- " +
+                    "és memóriakapacitás is elegendő. Egyetlen ilyen futás még nem bizonyít tartós teljesítményproblémát."
             });
             return findings;
         }

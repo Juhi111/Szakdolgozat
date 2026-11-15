@@ -28,31 +28,15 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
 
                     RuleId = "CAST_ON_COLUMN",
 
-                    Title = "Oszlop típuskonverziója szűrési feltételben",
+                    Title = "Szűrés más típusra alakított oszlopra",
 
-                    Description =
-                        $"Hely: {occurrence.Location}. "
-                        + $"A(z) {columnReference} oszlop explicit "
-                        + "típuskonverziója WHERE vagy JOIN ON "
-                        + "környezetben szerepel. "
-                        + $"A parser szerinti céltípus neve: "
-                        + $"{occurrence.TargetTypeName}. "
-                        + "A konverzió befolyásolhatja az eredeti "
-                        + "oszlop indexének felhasználhatóságát, "
-                        + "de önmagában nem bizonyít lassulást.",
+                    Description = $"A szűrés a(z) {columnReference} oszlop {occurrence.TargetTypeName} típusra alakított értékét használja. Ez " +
+                        $"befolyásolhatja, hogy az eredeti oszlop indexe segíti-e a keresést. Hely: {occurrence.Location}.",
 
-                    Recommendation =
-                        "Ellenőrizd a végrehajtási tervet "
-                        + "EXPLAIN (ANALYZE, BUFFERS) segítségével. "
-                        + "Vizsgáld meg, hogy a feltétel megfogalmazható-e "
-                        + "az oszlop eredeti típusával, szükség esetén "
-                        + "a konstans vagy paraméter megfelelő típusú "
-                        + "megadásával. Ez nem automatikus átírás: "
-                        + "az eredménynek és a konverziós hibák "
-                        + "viselkedésének is megfelelőnek kell maradnia. "
-                        + "Ha az oszlop konverziója szükséges és gyakori, "
-                        + "vizsgáld meg a teljes keresési kifejezéshez "
-                        + "illeszkedő kifejezésindex lehetőségét.",
+                    Recommendation = "Ellenőrizd, megadható-e a keresett érték az oszlop eredeti típusának megfelelő paraméterként vagy konstansként. Az " +
+                        "átíráskor az eredmény és a konverziós hibák kezelése is maradjon megfelelő. Ha az oszlop átalakítása szükséges és a " +
+                        "keresés gyakori, vizsgáld meg a teljes kifejezésre készített index lehetőségét. A tényleges előnyt végrehajtási tervvel " +
+                        "ellenőrizd.",
 
                     SourceOffset = occurrence.SourceOffset
                 });

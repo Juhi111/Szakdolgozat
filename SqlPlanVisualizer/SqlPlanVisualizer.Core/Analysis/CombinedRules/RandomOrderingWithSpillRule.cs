@@ -22,11 +22,15 @@ public class RandomOrderingWithSpillRule : ICombinedAnalysisRule
             new CombinedAnalysisFinding
             {
                 RuleId = "RANDOM_ORDERING_WITH_SPILL",
-                Title = "Véletlen rendezés lemezhasználattal",
-                SqlObservation = "A felső szintű ORDER BY random() rendezést tartalmaz.",
+                Title = "A véletlen rendezés lemezterületet is használt",
+                SqlObservation = "A fő lekérdezés ORDER BY random() kifejezéssel kér véletlen sorrendet.",
                 PlanObservation = finding.Description,
-                Description = "A terv felső szintű random() rendezése lemezterületet is használt. A sorlimit önmagában nem szünteti meg a rendezési bemenet feldolgozását.",
-                Recommendation = "Pontosítsd a mintavétel követelményeit. Más mintavételi eljárás eltérő eloszlást vagy elemszámot adhat, ezért nem automatikus helyettesítő. Ellenőrizd a futási időt és a bemenet méretét.",
+                Description = "A párosított terv felső szintű rendezési kulcsai között is szerepel a random(), és a rendezés lemezterületet használt. A " +
+                    "véletlen sorrend előállítása így lemezműveletekkel is járhatott. Egy sorlimit önmagában nem szünteti meg a rendezés " +
+                    "bemenetének feldolgozását.",
+                Recommendation = "Ellenőrizd a rendezés bemenetét és idejét. Ha csak véletlen mintára van szükség, vizsgáld meg más mintavételi eljárás " +
+                    "lehetőségét. Az elemszám, az eloszlás és a szűréshez való viszony eltérhet, ezért ezeket az elvárt eredményhez kell " +
+                    "igazítani. Ha a teljes eredmény véletlen sorrendje szükséges, a lemezes rendezés elfogadható is lehet.",
                 RelatedPlanFinding = finding
             }
         };

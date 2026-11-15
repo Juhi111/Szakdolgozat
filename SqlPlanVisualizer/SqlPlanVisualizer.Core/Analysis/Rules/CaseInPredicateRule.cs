@@ -20,22 +20,14 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
                 {
                     StatementIndex = statement.StatementIndex,
                     RuleId = "CASE_IN_PREDICATE",
-                    Title = "CASE által választott oszlop szűrésben",
-                    Description =
-                        $"Hely: {occurrence.Location}. " +
-                        $"A CASE a(z) ${occurrence.SelectorParameterNumber} paraméter alapján " +
-                        $"a(z) {occurrence.ThenColumn} vagy {occurrence.ElseColumn} oszlopot választja, " +
-                        $"majd a kiválasztott értéket a(z) ${occurrence.ComparisonParameterNumber} paraméterrel hasonlítja össze. " +
-                        "Az eltérő ágakhoz eltérő végrehajtási terv lehet kedvező.",
-                    Recommendation =
-                        "Vizsgáld meg a végrehajtási tervet mindkét ágat kiválasztó paraméterértékkel, " +
-                        "az alkalmazás tényleges paraméterezési módja mellett. " +
-                        "Ha mérhető teljesítményprobléma jelentkezik, mérlegeld a két keresési eset " +
-                        "külön, paraméterezett lekérdezéssel történő megvalósítását. " +
-                        "Őrizd meg a CASE ágkiválasztásának és a NULL-értékek kezelésének jelentését: " +
-                        "a WHEN feltétel hamis vagy ismeretlen eredménye esetén az ELSE ág érvényesül. " +
-                        "A paraméterértékeket ne fűzd az SQL szövegébe. " +
-                        "Ha a meglévő terv megfelelő, nem szükséges átírás.",
+                    Title = "Paramétertől függ, melyik oszlopra szűrünk",
+                    Description = $"A CASE a(z) ${occurrence.SelectorParameterNumber} paraméter alapján a(z) {occurrence.ThenColumn} vagy " +
+                        $"{occurrence.ElseColumn} oszlopot választja, majd annak értékét a(z) ${occurrence.ComparisonParameterNumber} " +
+                        $"paraméterrel hasonlítja össze. A két kereséshez eltérő végrehajtási terv lehet kedvező. Hely: {occurrence.Location}.",
+                    Recommendation = "Próbáld ki mindkét ágat jellemző paraméterértékekkel, az alkalmazás tényleges paraméterezési módja mellett. Ha lassú a " +
+                        "keresés, mérlegeld két külön, paraméterezett lekérdezés használatát. Őrizd meg a NULL-kezelést is: a WHEN feltétel " +
+                        "hamis vagy ismeretlen eredménye az ELSE ágat választja. A paramétereket továbbra is külön add át, ne fűzd az SQL " +
+                        "szövegébe.",
                     SourceOffset = occurrence.SourceOffset
                 });
             }

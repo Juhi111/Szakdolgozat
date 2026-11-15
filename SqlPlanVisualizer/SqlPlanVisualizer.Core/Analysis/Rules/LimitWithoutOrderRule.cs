@@ -21,9 +21,12 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
                 {
                     StatementIndex = statement.StatementIndex,
                     RuleId = "LIMIT_WITHOUT_ORDER",
-                    Title = "LIMIT rendezés nélkül",
-                    Description = $"Hely: {occurrence.Location}. A SELECT legfeljebb {occurrence.RowLimit} sort kér, de nem ad meg ORDER BY rendezést.",
-                    Recommendation ="Ha fontos, hogy kiszámíthatóan mely sorok kerüljenek az eredménybe, adj meg ORDER BY rendezést, és szükség esetén egyedi holtversenykulcsot. Ha tetszőleges sorok megfelelnek, nem szükséges módosítás.",
+                    Title = "A sorlimithez nincs meghatározott sorrend",
+                    Description = $"A lekérdezés legfeljebb {occurrence.RowLimit} sort kér, de nem ad meg ORDER BY rendezést. Emiatt nem garantált, hogy " +
+                        $"ismételt futtatáskor ugyanazok a sorok kerülnek az eredménybe. Hely: {occurrence.Location}.",
+                    Recommendation = "Ha számít, mely sorokat kapod vissza, adj meg ORDER BY rendezést. Az azonos rendezési értékű sorok sorrendjét szükség " +
+                        "esetén egyedi azonosítóval tedd egyértelművé. Ha bármelyik sor megfelel, nincs szükség módosításra; ez elsősorban az " +
+                        "eredmény kiszámíthatóságáról szól.",
                     SourceOffset = occurrence.SourceOffset
                 });
             }

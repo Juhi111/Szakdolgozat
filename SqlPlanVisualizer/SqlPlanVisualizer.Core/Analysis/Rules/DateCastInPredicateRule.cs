@@ -25,30 +25,15 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
                 {
                     StatementIndex = statement.StatementIndex,
                     RuleId = "DATE_CAST_IN_PREDICATE",
-                    Title = "Oszlop dátumra alakítása szűrésben",
+                    Title = "Dátummá alakított oszlopra szűrünk",
 
-                    Description =
-                        $"Hely: {occurrence.Location}. "
-                        + $"A(z) {columnReference} oszlop date típusra "
-                        + "alakítása WHERE vagy JOIN ON környezetben "
-                        + "szerepel. A konverzió befolyásolhatja "
-                        + "az eredeti oszlop indexének felhasználhatóságát. "
-                        + "Az elemző az oszlop eredeti típusát nem ismeri.",
+                    Description = $"A szűrés a(z) {columnReference} oszlop date típusra alakított értékét használja. Ez megnehezítheti az eredeti oszlop " +
+                        $"indexének használatát. Az SQL szövegéből az oszlop eredeti típusa nem állapítható meg. Hely: {occurrence.Location}.",
 
-                    Recommendation =
-                        "Ha időbélyeg egy adott naphoz tartozását "
-                        + "vizsgálod, mérlegeld az eredeti oszlopon "
-                        + "megadott, a nap kezdetétől a következő nap "
-                        + "kezdetéig tartó félig nyílt tartományt "
-                        + "(>= alsó határ és < felső határ). "
-                        + "A határok típusát és időzónáját az oszlophoz "
-                        + "és a kívánt naptári naphoz kell igazítani; "
-                        + "egy helyi nap nem feltétlenül 24 óra. "
-                        + "Ez nem általános, automatikus átírás: "
-                        + "más eredeti típus vagy más feltétel esetén "
-                        + "külön ellenőrizd az egyenértékűséget. "
-                        + "A tényleges hatást EXPLAIN (ANALYZE, BUFFERS) "
-                        + "segítségével vizsgáld meg.",
+                    Recommendation = "Ha időbélyegeket keresel egy adott napra, vizsgáld meg a tartományos feltételt: az érték legyen legalább a nap kezdete, " +
+                        "és kisebb a következő nap kezdeténél. A határokat az oszlop típusához és a kívánt időzónához igazítsd; egy helyi nap " +
+                        "nem mindig 24 óra. Más típusnál vagy összehasonlításnál külön ellenőrizd az átírás helyességét. A gyorsulást a " +
+                        "végrehajtási terv alapján értékeld.",
 
                     SourceOffset = occurrence.SourceOffset
                 });

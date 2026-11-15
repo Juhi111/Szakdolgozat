@@ -22,22 +22,13 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
                 {
                     StatementIndex = statement.StatementIndex,
                     RuleId = "POSSIBLE_CARTESIAN_PRODUCT",
-                    Title = "Lehetséges hiányzó kapcsolási feltétel",
-                    Description =
-                        $"Hely: {occurrence.Location}. " +
-                        $"A FROM-listában több, vesszővel elválasztott táblahivatkozás szerepel: {relations}. " +
-                        "A SELECT nem tartalmaz WHERE vagy HAVING feltételt. " +
-                        "A FROM eredménye a források Descartes-szorzata: " +
-                        "minden forrás minden sora kombinálódik a többi forrás soraival. " +
-                        "A későbbi aggregálás vagy eredménykorlátozás ettől eltérő végső sorszámot adhat.",
-                    Recommendation =
-                        "Ellenőrizd, hogy szándékosan van-e szükség minden sorkombinációra. " +
-                        "Ha kapcsolódó rekordokat szeretnél összerendelni, adj meg megfelelő " +
-                        "JOIN ... ON vagy JOIN ... USING kapcsolatot az üzleti jelentés alapján. " +
-                        "A kapcsolási kulcsot az elemző nem tudja meghatározni. " +
-                        "Ha a Descartes-szorzat szándékos, az explicit CROSS JOIN világosabban fejezi ki a célt, " +
-                        "de önmagában nem csökkenti a végrehajtás költségét. " +
-                        "A tényleges sorszámokat és költséget a végrehajtási terv alapján ellenőrizd.",
+                    Title = "Hiányozhat a táblák közötti kapcsolási feltétel",
+                    Description = $"A FROM részben több, vesszővel elválasztott forrás szerepel: {relations}. A lekérdezéshez nem tartozik WHERE vagy " +
+                        "HAVING feltétel, így a források minden sora kombinálódik a többi forrás soraival. Ez nagy köztes eredményt adhat akkor " +
+                        $"is, ha a végén kevés sor marad. Hely: {occurrence.Location}.",
+                    Recommendation = "Ha összetartozó rekordokat keresel, add meg a kapcsolatot JOIN ... ON vagy JOIN ... USING feltétellel. A megfelelő " +
+                        "kapcsolási kulcsot az adatok jelentése alapján válaszd ki. Ha valóban minden sorkombinációra szükség van, a CROSS JOIN " +
+                        "egyértelműbbé teszi ezt a szándékot, de nem csökkenti a feldolgozandó adatmennyiséget.",
                     SourceOffset = occurrence.SourceOffset
                 });
             }

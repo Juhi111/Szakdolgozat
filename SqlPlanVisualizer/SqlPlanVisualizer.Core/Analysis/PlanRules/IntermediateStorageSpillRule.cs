@@ -18,41 +18,40 @@ namespace SqlPlanVisualizer.Core.Analysis.PlanRules
 
             if (PlanNodePropertyReader.TryReadDouble(node, "Maximum Storage", out double maximumStorage) && maximumStorage >= 0)
             {
-                storageDetails = $" A jelentett maximális tárhelyhasználat {maximumStorage:N0} kB.";
+                storageDetails = $" A tervben jelzett legnagyobb tárhelyhasználat {maximumStorage:N0} kB.";
             }
 
             string recommendation = node.NodeType switch
             {
                 "Materialize" =>
-                    "Vizsgáld meg, csökkenthető-e a tárolt sorok száma vagy szélessége. " +
+                    "Nézd meg, kevesebb sor vagy kevesebb oszlop tárolásával is előállítható-e ugyanaz az eredmény. " +
                     "Ellenőrizd az ismételt felhasználás szerepét: a köztes eredmény tárolása hasznos is lehet.",
 
                 "CTE Scan" =>
-                    "Vizsgáld meg a CTE eredményének méretét és felhasználási helyeit. " +
+                    "Nézd meg, mennyi adatot ad a WITH részben megadott lekérdezés (CTE), és hol használja azt a teljes lekérdezés. " +
                     "Ellenőrizd, hogy a szűrés korábbra helyezhető-e az eredmény megváltoztatása nélkül. " +
                     "A CTE Scan jelenléte önmagában nem indokolja a materializálás megszüntetését.",
 
                 "WindowAgg" =>
-                    "Vizsgáld meg az ablakfüggvény bemenetének méretét, a partíciókat és az ablakkeretet. " +
+                    "Ellenőrizd, hány soron dolgozik az ablakfüggvény, és mekkora csoportokat, illetve ablakkeretet használ. " +
                     "A bemeneti sorok vagy oszlopok csökkentését csak az eredmény megőrzésével alkalmazd.",
 
                 _ =>
-                    "Vizsgáld meg, csökkenthető-e a köztes eredmény mérete az eredmény megváltoztatása nélkül."
+                    "Ellenőrizd, tárolható-e kevesebb köztes adat úgy, hogy a végső eredmény azonos maradjon."
             };
 
             recommendation +=
-                " Ellenőrizd a futási időt és az ideiglenes lemezműveleteket. " +
-                "A work_mem módosítását méréssel és a párhuzamos memóriaigény figyelembevételével mérlegeld. " +
+                " A futási idő és az ideiglenes fájlok olvasási, írási adatai mutatják meg ennek jelentőségét. " +
+                "A work_mem a műveletek memóriakeretét befolyásolja; emelését csak mérés alapján, az egyidejű terhelést is figyelembe véve próbáld ki. " +
                 "A jelentett lemezterület nem azonos a lemezhasználat elkerüléséhez szükséges memóriával.";
 
             findings.Add(new PlanAnalysisFinding(node)
             {
                 RuleId = "INTERMEDIATE_STORAGE_SPILL",
-                Title = "Köztes eredmény lemezes tárolása",
-                Description =
-                    $"A(z) {node.NodeType} művelet lemezes tárolást jelentett a köztes eredményhez." +
+                Title = "A köztes eredményt lemezen tárolta a művelet",
+                Description = $"A(z) {node.NodeType} művelet a további feldolgozáshoz szükséges köztes adatokat lemezen tárolta." +
                     storageDetails +
-                    " Ez önmagában nem bizonyít teljesítményproblémát.",
+                    " Ez többlet olvasással és írással járhat, de a tárolás az ismételt számítás elkerülését is segítheti.",
                 Recommendation = recommendation
             });
 

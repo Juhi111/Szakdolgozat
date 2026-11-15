@@ -27,33 +27,15 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
 
                     RuleId = "NOT_IN_SUBQUERY",
 
-                    Title = "NOT IN allekérdezés: ellenőrizendő NULL-kezelés",
+                    Title = "A NOT IN eredményét NULL is befolyásolhatja",
 
-                    Description =
-                        $"Hely: {occurrence.Location}. "
-                        + $"A(z) {columnReference} oszlop NOT IN "
-                        + "allekérdezésben szerepel. "
-                        + "Ha az allekérdezés eredménye NULL értéket "
-                        + "tartalmaz, a nem egyező külső értékekre "
-                        + "a feltétel nem igaz, hanem ismeretlen lesz. "
-                        + "Ezek a sorok ezért nem teljesítik "
-                        + "a WHERE vagy JOIN ON feltételt.",
+                    Description = $"A(z) {columnReference} értékét NOT IN feltétel hasonlítja az allekérdezés eredményéhez. Ha abban NULL is van, egy nem " +
+                        "egyező külső értékre a feltétel ismeretlen lesz az elvárt igaz helyett. Ez a sor nem teljesíti a szűrési vagy " +
+                        $"kapcsolási feltételt. Hely: {occurrence.Location}.",
 
-                    Recommendation =
-                        "Ellenőrizd, hogy az allekérdezés által "
-                        + "visszaadott érték lehet-e NULL. "
-                        + "Ha a NULL-mentességet megfelelő megszorítás "
-                        + "vagy szűrés már biztosítja, emiatt "
-                        + "nem szükséges módosítás. "
-                        + "Ha a cél a kapcsolódó sorok hiányának "
-                        + "vizsgálata, fontold meg a megfelelő "
-                        + "korrelált NOT EXISTS használatát. "
-                        + "Ez nem automatikusan egyenértékű átírás: "
-                        + "a külső NULL-értékek kívánt kezelését "
-                        + "is ellenőrizni kell. "
-                        + "Az elemző jelenleg nem ellenőrzi "
-                        + "a séma megszorításait, és nem bizonyítja "
-                        + "az allekérdezés NULL-mentességét.",
+                    Recommendation = "Ellenőrizd, visszaadhat-e NULL-t az allekérdezés; ezt az elemző sémaadatok nélkül nem tudja bizonyítani. Ha a cél a " +
+                        "kapcsolódó sor hiányának vizsgálata, mérlegeld a NOT EXISTS használatát. Az átírásnál a külső NULL-értékek kezelését is " +
+                        "ellenőrizd, mert a két megoldás nem mindig egyenértékű. Biztosított NULL-mentességnél emiatt nem szükséges módosítás.",
 
                     SourceOffset = occurrence.SourceOffset
                 });

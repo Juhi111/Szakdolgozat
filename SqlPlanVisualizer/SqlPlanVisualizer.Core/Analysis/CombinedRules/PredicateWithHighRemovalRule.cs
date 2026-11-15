@@ -38,10 +38,12 @@ public abstract class PredicateWithHighRemovalRule : ICombinedAnalysisRule
             {
                 RuleId = combinedRuleId,
                 Title = title,
-                SqlObservation = $"A(z) {query.Relations[0].RelationName} tábla felső szintű WHERE feltételében szereplő kifejezés a terv szűrésében is megtalálható.",
+                SqlObservation = $"A(z) {query.Relations[0].RelationName} tábla WHERE feltételében felismert kifejezés a párosított terv szűrésében is szerepel.",
                 PlanObservation = finding.Description,
-                Description = "Az SQL-ben felismert kifejezés szerkezetileg egyezik az ugyanazon táblát olvasó művelet Filter mezőjének egy részkifejezésével. " +
-                    "A művelet sok sort szűrt ki. Több feltételnél ez az összesített szűrés eredménye, nem az egyes feltételek külön mért hatása.",
+                Description = "Ugyanannak a táblának a beolvasásánál a terv Filter mezőjében megtaláltuk az SQL-ben jelzett kifejezéssel azonos " +
+                    "szerkezetű részfeltételt. A művelet sok sort szűrt ki, így érdemes együtt vizsgálni a keresési feltételt és a " +
+                    "hozzáférés módját. Több feltétel esetén az eldobott sorok száma a teljes szűrésre vonatkozik: ebből az egyes " +
+                    "kifejezések önálló költsége nem állapítható meg.",
                 Recommendation = recommendation,
                 RelatedPlanFinding = finding
             }

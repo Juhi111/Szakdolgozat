@@ -22,13 +22,13 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
                     : "LIKE";
 
                 string recommendation = occurrence.IsCaseInsensitive
-                    ? "Ellenőrizd, hogy teljes szövegegyezést szeretnél-e "
+                    ? "Az ILIKE itt teljes szövegegyezést keres. Ellenőrizd, hogy ezt szeretnéd-e "
                       + "vizsgálni kis- és nagybetűk megkülönböztetése nélkül. "
                       + "Az ILIKE nem cserélhető automatikusan = operátorra, "
                       + "mert az összehasonlítás jelentése megváltozhat."
-                    : "Ha pontos egyezés a cél, vizsgáld meg, hogy "
+                    : "Pontos egyezéshez olvashatóbb lehet az = feltétel. Előbb ellenőrizd, hogy "
                       + "használható-e = operátor. Az átírásnál vedd "
-                      + "figyelembe az adattípust, a kollációt és az "
+                      + "figyelembe az adattípust, a szövegek összehasonlítási szabályait (kolláció) és az "
                       + "escape-kezelést. Az escape-elt mintaszöveget "
                       + "ne másold át változtatás nélkül.";
 
@@ -36,14 +36,11 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
                 {
                     StatementIndex = statement.StatementIndex,
                     RuleId = "LIKE_WITHOUT_WILDCARD",
-                    Title = $"{operatorName} helyettesítő karakter nélkül",
+                    Title = $"Teljes szövegegyezés keresése {operatorName} használatával",
 
-                    Description =
-                        $"Hely: {occurrence.Location}. "
-                        + $"A {operatorName} mintája "
-                        + $"('{occurrence.Pattern}') nem tartalmaz "
-                        + "aktív % vagy _ helyettesítő karaktert. "
-                        + "Ez önmagában nem jelent hibát vagy lassulást.",
+                    Description = $"A {operatorName} mintája ('{occurrence.Pattern}') nem tartalmaz aktív % vagy _ helyettesítő karaktert, így nem " +
+                        "részszövegmintát keres. Érdemes ellenőrizni, hogy ez fejezi-e ki legjobban a kívánt egyezést. Hely: " +
+                        $"{occurrence.Location}.",
 
                     Recommendation = recommendation,
                     SourceOffset = occurrence.SourceOffset

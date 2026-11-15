@@ -1,4 +1,4 @@
-using PgSqlParser;
+﻿using PgSqlParser;
 using SqlPlanVisualizer.Core.Analysis;
 using SqlPlanVisualizer.Core.Analysis.PlanRules;
 using SqlPlanVisualizer.Core.Models;
@@ -52,7 +52,7 @@ namespace SqlPlanVisualizer.Tests.PlanRuleTests
             var contextRule = new RowEstimateMismatchRule(10, 1000);
             var limitedFinding = Assert.Single(contextRule.Analyze(limitedScan, scanContext));
 
-            Assert.Contains("korábban leállíthatta", limitedFinding.Description);
+            Assert.Contains("leállíthatta a sorok lekérését", limitedFinding.Description);
 
             var sort = new PlanNode
             {
@@ -68,7 +68,7 @@ namespace SqlPlanVisualizer.Tests.PlanRuleTests
 
             var sortedFinding = Assert.Single(contextRule.Analyze(limitedScan, scanBelowSortContext));
 
-            Assert.DoesNotContain("korábban leállíthatta", sortedFinding.Description);
+            Assert.DoesNotContain("leállíthatta a sorok lekérését", sortedFinding.Description);
         }
 
         [Theory]
@@ -93,7 +93,7 @@ namespace SqlPlanVisualizer.Tests.PlanRuleTests
             if (expected)
             {
                 Assert.Contains("arányt nem számítunk", findings[0].Description);
-                Assert.Contains("korábban leállíthatta", findings[0].Description);
+                Assert.Contains("leállíthatta a sorok lekérését", findings[0].Description);
             }
         }
     }

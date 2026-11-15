@@ -20,20 +20,13 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
                 {
                     StatementIndex = statement.StatementIndex,
                     RuleId = "RANDOM_ORDERING",
-                    Title = "Véletlen érték szerinti rendezés",
-                    Description =
-                        $"Hely: {occurrence.Location}. " +
-                        "A SELECT ORDER BY listájában közvetlen random() függvényhívás szerepel. " +
-                        "A véletlen rendezési értékek előállítása és a rendezés nagy bemenetnél költséges lehet. " +
-                        "A LIMIT önmagában nem garantálja, hogy csak a visszaadott sorokat kell feldolgozni.",
-                    Recommendation =
-                        "Ellenőrizd a feldolgozott sorszámokat és a rendezési műveletet " +
-                        "EXPLAIN (ANALYZE, BUFFERS) segítségével. " +
-                        "Ha csak véletlen mintára van szükség, mérlegeld a TABLESAMPLE vagy más " +
-                        "mintavételi stratégia alkalmazhatóságát. Ezek nem automatikusan egyenértékűek: " +
-                        "eltérhet a mintanagyság, az eloszlás és a szűréssel való kapcsolatuk. " +
-                        "Ha a teljes eredmény véletlen sorrendje szükséges, vagy a bemenet kicsi, " +
-                        "a jelenlegi megoldás indokolt lehet.",
+                    Title = "Véletlen sorrend előállítása random() használatával",
+                    Description = "Az ORDER BY random() véletlen rendezési értékeket állít elő. Sok sornál ezek kiszámítása és rendezése költséges lehet, " +
+                        $"és a LIMIT sem garantálja, hogy csak a visszaadott sorokat kell feldolgozni. Hely: {occurrence.Location}.",
+                    Recommendation = "Ellenőrizd a rendezés bemenetét és futási idejét. Ha csak mintát szeretnél, vizsgáld meg a TABLESAMPLE vagy más " +
+                        "mintavételi eljárás lehetőségét. Ezek eltérő elemszámot, eloszlást vagy szűrési viselkedést adhatnak, ezért nem " +
+                        "automatikus helyettesítők. Kis bemenetnél vagy a teljes eredmény véletlen sorrendjéhez a jelenlegi megoldás megfelelő " +
+                        "lehet.",
                     SourceOffset = occurrence.SourceOffset
                 });
             }

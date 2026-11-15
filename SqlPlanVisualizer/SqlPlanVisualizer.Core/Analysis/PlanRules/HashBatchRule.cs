@@ -23,13 +23,13 @@ namespace SqlPlanVisualizer.Core.Analysis.PlanRules
             findings.Add(new PlanAnalysisFinding(node)
             {
                 RuleId = "HASH_MULTIPLE_BATCHES",
-                Title = "Több kötegben végzett hash feldolgozás",
-                Description = $"A Hash művelet {batches:N0} köteget használt. " +
-                    "A több köteg lemezhasználattal is jár, ami növelheti a feldolgozási időt.",
-                Recommendation = "Ellenőrizd az érintett összekapcsolás futási idejét és ideiglenes lemezműveleteit. " +
-                    "Vizsgáld meg, csökkenthető-e a hash táblába kerülő sorok száma vagy szélessége. " +
-                    "Ha a becsült és tényleges sorszám jelentősen eltér, ellenőrizd a statisztikákat is. " +
-                    "A memóriabeállításokat csak mérés alapján, a párhuzamos terhelést figyelembe véve módosítsd."
+                Title = "A kapcsoláshoz készített hash tábla több kötegre oszlott",
+                Description = $"A Hash művelet {batches:N0} kötegben dolgozta fel az adatokat. A teljes hash tábla helyett részletekben végzett " +
+                    "feldolgozás lemezműveletekkel is jár, ami növelheti a kapcsolás idejét. Az értéket a teljes lekérdezés futási idejével " +
+                    "együtt érdemes értékelni.",
+                Recommendation = "Ellenőrizd a kapcsolás futási idejét és az ideiglenes fájlok olvasási, írási adatait. Vizsgáld meg, csökkenthető-e a " +
+                    "hash táblába kerülő sorok száma vagy a soronként tárolt adatok mennyisége. Jelentős becslési eltérésnél a " +
+                    "statisztikákat is ellenőrizd. A memóriakeretet csak a mért igény és az egyidejű terhelés alapján módosítsd."
             });
 
             return findings;

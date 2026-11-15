@@ -45,13 +45,15 @@ public class SetReductionWithSpillRule : ICombinedAnalysisRule
             new CombinedAnalysisFinding
             {
                 RuleId = operation.Replace(" ", "_") + "_WITH_SPILL",
-                Title = operation + " művelet lemezhasználattal",
-                SqlObservation = $"A felső szintű lekérdezés {operation} műveletet tartalmaz.",
+                Title = operation + ": a feldolgozáshoz lemezterület is kellett",
+                SqlObservation = $"Az SQL fő lekérdezése {operation} művelettel csoportosítja az adatokat vagy távolítja el az ismétlődő sorokat.",
                 PlanObservation = finding.Description,
-                Description = "A műveletet megvalósító felső szintű tervrész lemezhasználatot jelentett. Ez önmagában nem bizonyít lassulást.",
-                Recommendation = (operation == "UNION" ? "UNION ALL csak akkor használható, ha az ismétlődések megtartása megengedett. " :
-                    operation == "DISTINCT" ? "Ellenőrizd, szükséges-e az ismétlődések eltávolítása; a DISTINCT elhagyása megváltoztathatja az eredményt. " :
-                    "Vizsgáld meg, csökkenthető-e a csoportosítás bemenete az eredmény megváltoztatása nélkül. ") + finding.Recommendation,
+                Description = "A párosított tervben ezt a műveletet kiszolgáló összesítés vagy rendezés lemezterületet is használt. Az eredmény " +
+                    "előállításához így további olvasás és írás társulhat. A futási idő alapján döntsd el, hogy ez érdemi költség-e a " +
+                    "lekérdezésben.",
+                Recommendation = (operation == "UNION" ? "Ha az ismétlődések megengedettek, vagy a teljes eredmény biztosan egyedi, vizsgáld meg a UNION ALL használatát. Az egyes ágakon belüli ismétlődések is számítanak. " :
+                    operation == "DISTINCT" ? "Nézd meg, szükséges-e az eredménysorok egyedisége, és nem egy nem megfelelő JOIN miatt keletkeznek-e ismétlődések. A DISTINCT elhagyása megváltoztathatja az eredményt. " :
+                    "Nézd meg, korábbi szűréssel csökkenthető-e a csoportosítandó sorok száma, az eredmény megőrzésével. ") + finding.Recommendation,
                 RelatedPlanFinding = finding
             }
         };
