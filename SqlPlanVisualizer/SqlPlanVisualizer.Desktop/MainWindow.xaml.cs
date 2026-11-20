@@ -23,7 +23,7 @@ namespace SqlPlanVisualizer.Desktop
             try
             {
                 var settings = AppSettingsLoader.Load();
-                DataContext = new MainViewModel(settings);
+                DataContext = new MainViewModel(settings, _databaseSession, new PostgreSqlExplainService());
             }
             catch (Exception ex) when (
                 ex is IOException ||

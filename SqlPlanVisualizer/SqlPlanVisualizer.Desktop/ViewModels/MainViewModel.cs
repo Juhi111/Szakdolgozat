@@ -9,6 +9,7 @@ using System.IO;
 using System.Text.Json;
 using System.Windows.Input;
 using SqlPlanVisualizer.Desktop.Configuration;
+using SqlPlanVisualizer.Core.Interfaces;
 
 namespace SqlPlanVisualizer.Desktop.ViewModels
 {
@@ -21,6 +22,9 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
     {
         #region fields  
 
+        private readonly DatabaseSession _databaseSession;
+        private readonly IDatabaseExplainService _databaseExplainService;
+        private bool _isFetchingExplain;
         private readonly UserSettingsService _userSettingsService = new();
         private readonly AnalysisHistoryMapper _historyMapper = new();
         private readonly AnalysisHistoryService _historyService = new();
@@ -86,7 +90,9 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         public ICommand OpenSqlCommand { get; }
         public ICommand OpenJsonCommand { get; }
         public ICommand DeleteContent { get; }
-        public ICommand CreateSummaryCommand { get; }      
+        public ICommand CreateSummaryCommand { get; }
+        public ICommand FetchEstimatedPlanCommand { get; }
+        public ICommand FetchActualPlanCommand { get; }
 
         /// <summary>
         /// Az Üzenetek fülön megjelenített, időbélyeggel ellátott naplóbejegyzések.
@@ -184,20 +190,25 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         /// <summary>
         /// Létrehozza az elemző szolgáltatásokat és a főablak parancsait.
         /// </summary>
-        public MainViewModel(AppSettings settings)
+        public MainViewModel(AppSettings settings, DatabaseSession databaseSession, IDatabaseExplainService databaseExplainService)
         {
             ArgumentNullException.ThrowIfNull(settings);
+            ArgumentNullException.ThrowIfNull(databaseSession);
+            ArgumentNullException.ThrowIfNull(databaseExplainService);
+
+            _databaseSession = databaseSession;
+            _databaseExplainService = databaseExplainService;
 
             _analysisService = AnalysisServiceFactory.CreateSqlAnalysisService(settings);
             _planAnalysisService = AnalysisServiceFactory.CreatePlanAnalysisService(settings);
-            
 
             OpenSqlCommand = new AsyncRelayCommand(OpenSqlAsync);
             OpenJsonCommand = new AsyncRelayCommand(OpenJsonAsync);
             AnalyzeCommand = new AsyncRelayCommand(AnalyzeAsync);
             DeleteContent = new AsyncRelayCommand(DeleteWindow);
             CreateSummaryCommand = new AsyncRelayCommand(CreateSummaryAsync);
-
+            FetchEstimatedPlanCommand = new AsyncRelayCommand(() => FetchPlanAsync(false));
+            FetchActualPlanCommand = new AsyncRelayCommand(() => FetchPlanAsync(true));
         }
         #endregion
 
@@ -444,42 +455,27 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         }
 
         /// <summary>
-        /// Beolvassa és feldolgozza a kiválasztott EXPLAIN JSON-fájlt,
-        /// majd a terveket a felület modelljére alakítva frissíti a tervfát.
-        /// A fájlhozzáférési és JSON-feldolgozási hibákat az állapotsorban jelzi.
+        /// Beolvassa a kiválasztott EXPLAIN JSON-fájlt, és megjeleníti a terveket.
         /// </summary>
-        /// <returns>A tervbetöltés befejezését jelző feladat.</returns>
         private async Task OpenJsonAsync()
         {
             var path = _fileDialogService.SelectJsonFile();
-            if (path is null) return;
+
+            if (path is null)
+                return;
+
             try
             {
                 StatusMessage = "JSON-fájl betöltése…";
                 string content = await _textFileReader.ReadAsync(path);
+
                 if (string.IsNullOrWhiteSpace(content))
                 {
                     StatusMessage = "A kiválasztott JSON-fájl üres vagy csak üres karaktereket tartalmaz.";
+                    return;
                 }
-                else
-                {
-                    var plans = _planService.ParsePlans(content);
-                    _loadedExplainJson = content;
-                    _loadedPlans = plans;
-                    _planDocumentVersion++;
 
-                    SelectedSummaryPlan = null;
-                    ClearSummaryPair();
-                    PlansForSummary.Clear();
-
-                    PlanSuggestions.Clear();
-
-                    SelectedNode = null;
-                    PlanRoots = plans.Select(plan => plan.Root).ToList();
-
-                    ReportMessage($"Betöltve: {Path.GetFileName(path)} ({plans.Count} terv). A vizsgálathoz indítsd el az Elemzést.");
-                    
-                }
+                LoadExplainJson(content, Path.GetFileName(path));
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -522,6 +518,138 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or ArgumentException or NotSupportedException)
             {
                 ReportMessage($"Az összegzés elkészült, de az előzmény mentése nem sikerült: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Betölti az EXPLAIN JSON terveit, és törli a korábbi tervelemzés eredményeit.
+        /// Az elemzést nem indítja el.
+        /// </summary>
+        private void LoadExplainJson(string json, string sourceName)
+        {
+            var plans = _planService.ParsePlans(json);
+            var roots = plans.Select(plan => plan.Root).ToList();
+
+            _loadedExplainJson = json;
+            _loadedPlans = plans;
+            _planDocumentVersion++;
+
+            SelectedSummaryPlan = null;
+            ClearSummaryPair();
+            PlansForSummary.Clear();
+            PlanSuggestions.Clear();
+
+            SelectedNode = null;
+            PlanRoots = roots;
+
+            ReportMessage($"Betöltve: {sourceName} ({plans.Count} terv). A vizsgálathoz indítsd el az Elemzést.");
+        }
+
+        /// <summary>
+        /// Kiválasztja a tervlekéréshez használandó SQL-utasítást.
+        /// </summary>
+        private string GetSqlForExplain()
+        {
+            if (string.IsNullOrWhiteSpace(SqlText))
+                throw new InvalidOperationException("Először tölts be egy SQL-fájlt.");
+
+            var summary = _queryService.ParseSummary(SqlText);
+
+            if (!summary.IsSuccess)
+                throw new InvalidOperationException($"Az SQL nem dolgozható fel: {summary.ErrorMessage}");
+
+            if (summary.Statements.Count == 1)
+                return SqlText;
+
+            var selected = SelectedSummaryStatement;
+
+            if (_analyzedSqlText != SqlText || selected is null || !StatementsForSummary.Contains(selected))
+            {
+                throw new InvalidOperationException(
+                    "A fájl több utasítást tartalmaz. Indítsd el az Elemzést, majd az Összegzés fülön válaszd ki a lekérdezendő SQL-utasítást.");
+            }
+
+            if (selected.TextStart is not int start || start < 0 || start > SqlText.Length ||
+                selected.TextLength <= 0 || selected.TextLength > SqlText.Length - start)
+            {
+                throw new InvalidOperationException("A kiválasztott SQL-utasítás szöveghatárai érvénytelenek. Elemezd újra a fájlt.");
+            }
+
+            return SqlText.Substring(start, selected.TextLength);
+        }
+
+        /// <summary>
+        /// Lekéri az SQL becsült végrehajtási tervét, majd elemzés nélkül betölti.
+        /// </summary>
+        /// <summary>
+        /// Becsült vagy mért végrehajtási tervet kér le, majd elemzés nélkül betölti.
+        /// </summary>
+        private async Task FetchPlanAsync(bool analyze)
+        {
+            if (_isFetchingExplain)
+                return;
+
+            if (!_databaseSession.HasConfiguration)
+            {
+                ReportMessage("Először válassz adatbázis-kapcsolatot, és kattints a Kapcsolat használata gombra.");
+                return;
+            }
+
+            _isFetchingExplain = true;
+
+            int sqlVersion = _sqlDocumentVersion;
+            int planVersion = _planDocumentVersion;
+            string sqlSnapshot = SqlText;
+
+            try
+            {
+                string sql = GetSqlForExplain();
+                var connection = _databaseSession.GetConnectionDetails();
+
+                StatusMessage = analyze
+                    ? "SQL végrehajtása és mért terv lekérése…"
+                    : "Becsült végrehajtási terv lekérése…";
+
+                string json = analyze
+                    ? await _databaseExplainService.GetActualPlanAsync(connection.Options, connection.Password, sql)
+                    : await _databaseExplainService.GetEstimatedPlanAsync(connection.Options, connection.Password, sql);
+
+                if (sqlVersion != _sqlDocumentVersion || planVersion != _planDocumentVersion || sqlSnapshot != SqlText)
+                {
+                    ReportMessage("A tervlekérés közben megváltozott a betöltött SQL vagy terv. A visszakapott tervet nem töltöttük be.");
+                    return;
+                }
+
+                string planType = analyze ? "mért terv" : "becsült terv";
+                LoadExplainJson(json, $"adatbázis: {connection.Options.Database} – {planType}");
+            }
+            catch (ArgumentException ex)
+            {
+                ReportMessage(ex.Message);
+            }
+            catch (FormatException ex)
+            {
+                ReportMessage($"Az SQL formátuma hibás: {ex.Message}");
+            }
+            catch (InvalidOperationException ex)
+            {
+                ReportMessage(ex.Message);
+            }
+            catch (JsonException)
+            {
+                ReportMessage("Az adatbázis válaszát nem sikerült végrehajtási tervként feldolgozni.");
+            }
+            catch (OperationCanceledException)
+            {
+                ReportMessage("A tervlekérés megszakadt.");
+            }
+            catch (Exception)
+            {
+                ReportMessage("Nem sikerült lekérni a tervet. Ellenőrizd a kapcsolatot, az SQL-ben szereplő objektumokat és a jogosultságokat. Időtúllépés is történhetett.");
+            }
+            finally
+            {
+                _isFetchingExplain = false;
             }
         }
     }

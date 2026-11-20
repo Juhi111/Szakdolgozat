@@ -17,6 +17,12 @@
                 <MenuItem Header="SQL megnyitása..." Command="{Binding OpenSqlCommand}"/>
                 <MenuItem Header="EXPLAIN JSON megnyitása..." Command="{Binding OpenJsonCommand}"/>
                 <Separator/>
+                <MenuItem Header="Becsült terv lekérése" Command="{Binding FetchEstimatedPlanCommand}"/>
+                <Separator/>
+                <MenuItem Header="Becsült terv lekérése" Command="{Binding FetchEstimatedPlanCommand}"/>
+                <MenuItem Header="Mért terv lekérése – SELECT futtatása"
+          Command="{Binding FetchActualPlanCommand}"
+          ToolTip="Ténylegesen végrehajtja a kiválasztott SELECT-et, és betölti a mért tervet. Az elemzés külön indítható."/>
                 <MenuItem Header="Felület ürítése" Command="{Binding DeleteContent}"/>
                 <Separator/>
                 <MenuItem Header="_Kilépés" Click="ExitMenuItem_Click"/>
