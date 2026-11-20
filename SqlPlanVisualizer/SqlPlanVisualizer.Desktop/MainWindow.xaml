@@ -21,6 +21,12 @@
                 <Separator/>
                 <MenuItem Header="_Kilépés" Click="ExitMenuItem_Click"/>
             </MenuItem>
+            <MenuItem Header="Adatbázis">
+                <MenuItem Header="Kapcsolat beállítása…" Click="DatabaseConnectionMenuItem_Click"/>
+                <MenuItem Header="Kiválasztott kapcsolat…" Click="ShowDatabaseConnectionMenuItem_Click"/>
+                <Separator/>
+                <MenuItem Header="Kapcsolat elfelejtése" Click="ForgetDatabaseConnectionMenuItem_Click"/>
+            </MenuItem>
             <MenuItem Header="_Elemzés">
                 <MenuItem Header="Elemzés indítása" Command="{Binding AnalyzeCommand}"/>
             </MenuItem>
@@ -299,13 +305,7 @@
                     </Grid>
                 </TabItem>
 
-                <TabItem Header="Üzenetek">
-                    <Grid x:Name="MessagesPanel">
-                        <ListBox x:Name="MessagesListBox"
-                                 Margin="8"
-                                 ItemsSource="{Binding Messages}"/>
-                    </Grid>
-                </TabItem>
+                
                 <TabItem Header="Tervjavaslatok">
                     <ListView x:Name="PlanSuggestionsListView"
                   Margin="8"
@@ -412,6 +412,14 @@
 
                         </StackPanel>
                     </ScrollViewer>
+                </TabItem>
+
+                <TabItem Header="Üzenetek">
+                    <Grid x:Name="MessagesPanel">
+                        <ListBox x:Name="MessagesListBox"
+                 Margin="8"
+                 ItemsSource="{Binding Messages}"/>
+                    </Grid>
                 </TabItem>
             </TabControl>
 

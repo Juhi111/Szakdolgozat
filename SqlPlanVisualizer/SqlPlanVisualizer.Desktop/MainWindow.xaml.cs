@@ -1,14 +1,19 @@
 ﻿using SqlPlanVisualizer.Core.Models;
+using SqlPlanVisualizer.Desktop.Configuration;
+using SqlPlanVisualizer.Desktop.Services;
 using SqlPlanVisualizer.Desktop.ViewModels;
-using System.Windows;
+using SqlPlanVisualizer.Desktop.Views;
+using SqlPlanVisualizer.Infrastructure.PostgreSql;
 using System.IO;
 using System.Text.Json;
-using SqlPlanVisualizer.Desktop.Configuration;
+using System.Windows;
 
 namespace SqlPlanVisualizer.Desktop
 {    
     public partial class MainWindow : Window
     {
+        private readonly DatabaseSession _databaseSession = new();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -150,6 +155,65 @@ namespace SqlPlanVisualizer.Desktop
                 Owner = this
             };
             window.ShowDialog();
+        }
+
+        private void DatabaseConnectionMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var service = new PostgreSqlConnectionService();
+
+            var viewModel = new DatabaseConnectionViewModel(
+                service,
+                _databaseSession);
+
+            var window = new DatabaseConnectionWindow(viewModel)
+            {
+                Owner = this
+            };
+
+            if (window.ShowDialog() == true)
+            {
+                var details = _databaseSession.GetConnectionDetails();
+
+                MessageBox.Show(
+                    this,
+                    $"Kiválasztott adatbázis: {details.Options.Database}\n" +
+                    $"Szerver: {details.Options.Host}:{details.Options.Port}",
+                    "Adatbázis-kapcsolat",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+        }
+
+        private void ShowDatabaseConnectionMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (!_databaseSession.HasConfiguration)
+            {
+                MessageBox.Show(this, "Nincs kiválasztott adatbázis-kapcsolat.", "Adatbázis-kapcsolat", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var options = _databaseSession.GetConnectionDetails().Options;
+
+            string message = $"Szerver: {options.Host}:{options.Port}\n" +
+                             $"Adatbázis: {options.Database}\n" +
+                             $"Felhasználó: {options.Username}\n" +
+                             $"Séma: {options.Schema}\n\n" +
+                             "Ezek a kiválasztott beállítások; a szerver aktuális elérhetőségét most nem ellenőriztük.";
+
+            MessageBox.Show(this, message, "Kiválasztott kapcsolat", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void ForgetDatabaseConnectionMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (!_databaseSession.HasConfiguration)
+            {
+                MessageBox.Show(this, "Nincs elfelejthető adatbázis-kapcsolat.", "Adatbázis-kapcsolat", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            _databaseSession.Clear();
+
+            MessageBox.Show(this, "A kapcsolati beállításokat elfelejtettük.", "Adatbázis-kapcsolat", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }
