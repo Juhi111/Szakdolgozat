@@ -28,6 +28,8 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             $"{Result.Pair.Statement.StatementIndex}. SQL-utasítás – " +
             $"{Result.Pair.Plan.PlanIndex}. végrehajtási terv";
 
+        public string PlanOriginText => Result.Pair.Plan.Origin?.Description ?? "A terv eredete nem ismert.";
+
         public string PlanningTimeText => Result.PlanningTime is double time
             ? $"{time:N2} ms"
             : "Nincs adat";

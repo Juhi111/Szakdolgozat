@@ -59,6 +59,8 @@
                            Foreground="#526078"
                            Margin="0,6,0,16"/>
 
+                <TextBlock Text="{Binding PlanOriginText}" TextWrapping="Wrap" Margin="0,0,0,12" Foreground="#526078"/>
+
                 <WrapPanel>
                     <StackPanel Margin="0,0,40,0">
                         <TextBlock Text="Tervezési idő" Foreground="#526078"/>
@@ -81,6 +83,10 @@
                       VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
             <StackPanel Margin="0,0,8,0">
+                <Expander Header="A tervlekéréskor elküldött SQL" Margin="0,0,0,12">
+                    <TextBox Text="{Binding Result.Pair.Plan.Origin.SqlText, Mode=OneWay, TargetNullValue='Fájlból betöltött tervhez nincs igazolt SQL-forrás.'}"
+                             IsReadOnly="True" FontFamily="Consolas" TextWrapping="Wrap" MaxHeight="200" VerticalScrollBarVisibility="Auto"/>
+                </Expander>
                 <TextBlock Text="A kiválasztott SQL-utasítás és terv önálló elemzési találatai."
                            TextWrapping="Wrap"
                            Foreground="#526078"

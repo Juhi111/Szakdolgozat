@@ -1,7 +1,7 @@
-﻿namespace SqlPlanVisualizer.Core.Models
+namespace SqlPlanVisualizer.Core.Models
 {
     /// <summary>
-    /// A felhasználó által összetartozónak jelölt SQL-utasítást és végrehajtási tervet kapcsolja össze.
+    /// Egy automatikusan azonosított vagy kézzel megerősített SQL–terv párost tárol.
     /// </summary>
     public class StatementPlanPair
     {

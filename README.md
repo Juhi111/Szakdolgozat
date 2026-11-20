@@ -45,3 +45,23 @@ dotnet test SqlPlanVisualizer/SqlPlanVisualizer.Tests/SqlPlanVisualizer.Tests.cs
 ```
 
 Kézi ellenőrzés: válassz kapcsolatot, tölts be egy SELECT-et, és kérj becsült, majd mért tervet. A mért tervben legyen Actual Rows/Actual Loops, a javaslatok csak az Elemzés után jelenjenek meg. Hibás táblanévvel ellenőrizd, hogy a hiba megjelenik az Üzenetek fülön, és a korábbi terv megmarad.
+
+## Terv eredete és automatikus párosítás
+
+Az adatbázisból lekért terv változatlan forráspillanatképet kap: az elküldött SQL, az utasítás eredeti sorszáma, a teljes SQL-dokumentum SHA-256 lenyomata, szerver/port, adatbázis, séma, felhasználó, a lekérés kezdő időpontja, valamint becsült/mért mód. Jelszó és connection string nem kerül ebbe az objektumba. A kapcsolat későbbi átállítása nem módosítja a korábban rögzített eredetet.
+
+A lekérés továbbra is csak betölti a tervet. Az **Elemzés** után az Összegzés fül automatikusan kiválasztja és párosítja a terv eredeti utasítását. Az **Összegzés készítése** gomb nyitja meg a jelentést; adatbázisos tervnél ehhez nem szükséges kézi párosítás. Másik utasításra váltva nem lehet téves párral jelentést készíteni.
+
+Az ellenőrzés szándékosan szigorú: a dokumentum, az utasítás sorszáma és a kivágott SQL-szöveg is egyezzen. Azonos SQL-t tartalmazó két külön utasítás nem cserélhető fel. Bármilyen dokumentummódosítás után új terv szükséges, vagy az eredeti dokumentumot kell visszatölteni és újraelemezni. Újraelemzéskor az újonnan létrejött utasításobjektumokhoz is helyreáll a megfelelő párosítás.
+
+JSON-fájlból betöltött tervhez csak a fájlnév és a betöltési idő ismert; nem következtetünk az eredeti adatbázisra, SQL-re vagy készítési időre. Itt megmarad a kézi párosítás. A korábban mentett, eredetadat nélküli előzmények továbbra is betölthetők.
+
+Az eredetadat megjelenik az összegzésben, a PDF-ben és az előzmények **Terv eredete** fülén. A forrásfájlok mentésének kikapcsolásakor az eredetbe ágyazott SQL-t is elhagyjuk az előzményből; a metaadatok megmaradnak. A PDF továbbra sem exportálja automatikusan a teljes SQL-bemenetet.
+
+Kézi ellenőrzés Windows alatt:
+1. Egyetlen SELECT-re kérj mért tervet, majd indíts elemzést: az Összegzés fül automatikus párosítást jelezzen.
+2. Két utasításos fájlban válaszd a másodikat, kérj tervet, majd elemezd újra: a második legyen kiválasztva.
+3. Válassz másik utasítást: az összegzés létrehozását utasítsa el.
+4. Cseréld le az SQL-t és elemezd: a régi tervet ne párosítsa hozzá. Az eredeti dokumentum visszatöltése és elemzése helyreállíthatja a párost.
+5. Tölts be JSON-fájlt: az új terv eredete fájlos legyen, kézi párosítással.
+6. Készíts PDF-et és előzményt; ellenőrizd az eredetadatokat, valamint kikapcsolt forrásmentés mellett az SQL hiányát az előzmény JSON-jából.

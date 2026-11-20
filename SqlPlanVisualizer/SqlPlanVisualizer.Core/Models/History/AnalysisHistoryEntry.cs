@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace SqlPlanVisualizer.Core.Models.History
@@ -19,6 +19,8 @@ namespace SqlPlanVisualizer.Core.Models.History
         public double? PlanningTime { get; set; }
 
         public double? ExecutionTime { get; set; }
+
+        public PlanOrigin? PlanOrigin { get; set; }
 
         public string? SqlText { get; set; }
 

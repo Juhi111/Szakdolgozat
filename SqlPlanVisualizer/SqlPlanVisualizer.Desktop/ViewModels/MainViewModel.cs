@@ -163,8 +163,10 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 if (normalizedText == sqlText)
                     return;
 
+                _sqlDocumentVersion++;
                 sqlText = normalizedText;
                 OnPropertyChanged();
+                ClearSummaryPair();
             }
         }
 
@@ -245,6 +247,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 _selectedSummaryStatement = value;
                 OnPropertyChanged();
                 ClearSummaryPair();
+                TryAutoPair();
             }
         }
 
@@ -261,21 +264,52 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 
                 _selectedSummaryPlan = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(SelectedPlanOriginText));
                 ClearSummaryPair();
+                SelectOriginalStatement();
             }
         }
 
         /// <summary>
         /// A megerősített párosítás állapotát mutatja.
         /// </summary>
-        public string SummaryStatus => _summaryPair is null
-            ? "Válassz SQL-utasítást és tervet, majd erősítsd meg a párosítást."
-            : $"Párosítva: {_summaryPair.Statement.StatementIndex}. SQL-utasítás és {_summaryPair.Plan.PlanIndex}. terv.";
+        public string SelectedPlanOriginText => SelectedSummaryPlan?.Origin?.Description ?? "A terv eredete nem ismert.";
+        public string PairingInstruction => SelectedSummaryPlan?.Origin?.Source == PlanSourceKind.Database
+            ? "Az adatbázisból lekért tervet csak az eredeti SQL-utasításával lehet összesíteni. A párosítás automatikus."
+            : "Az összegzés készítésével megerősíted, hogy a kiválasztott terv a kiválasztott SQL-utasításhoz tartozik.";
+
+        public string SummaryStatus => _summaryPair is not null
+            ? $"{(_summaryPair.Plan.Origin?.Source == PlanSourceKind.Database ? "Automatikusan párosítva" : "Párosítva")}: {_summaryPair.Statement.StatementIndex}. SQL-utasítás és {_summaryPair.Plan.PlanIndex}. terv."
+            : SelectedSummaryPlan?.Origin?.Source == PlanSourceKind.Database
+                ? "A tervhez tartozó eredeti SQL nincs kiválasztva vagy megváltozott. Töltsd vissza és elemezd az eredeti dokumentumot, vagy kérj új tervet."
+                : "Válassz SQL-utasítást és tervet, majd erősítsd meg a párosítást.";
+
+        private bool MatchesCurrentSource(SqlStatementSummary statement, ExecutionPlan plan) =>
+            _analyzedSqlText == SqlText && StatementsForSummary.Contains(statement) && PlansForSummary.Contains(plan) &&
+            PlanOriginMatcher.Matches(plan.Origin, SqlText, statement);
+
+        private void SelectOriginalStatement()
+        {
+            if (SelectedSummaryPlan?.Origin?.Source == PlanSourceKind.Database)
+            {
+                SelectedSummaryStatement = StatementsForSummary.FirstOrDefault(statement => MatchesCurrentSource(statement, SelectedSummaryPlan));
+                TryAutoPair();
+            }
+        }
+
+        private void TryAutoPair()
+        {
+            if (SelectedSummaryStatement is { } statement && SelectedSummaryPlan is { } plan && MatchesCurrentSource(statement, plan))
+                _summaryPair = new StatementPlanPair(statement, plan);
+            OnPropertyChanged(nameof(SummaryStatus));
+            OnPropertyChanged(nameof(PairingInstruction));
+        }
 
         private void ClearSummaryPair()
         {
             _summaryPair = null;            
             OnPropertyChanged(nameof(SummaryStatus));
+            OnPropertyChanged(nameof(PairingInstruction));
         }
 
         /// <summary>
@@ -294,6 +328,13 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             {
                 ClearSummaryPair();
                 ReportMessage("A kiválasztott elemek már nem tartoznak az aktuális elemzéshez.");
+                return;
+            }
+
+            if (SelectedSummaryPlan.Origin?.Source == PlanSourceKind.Database && !MatchesCurrentSource(SelectedSummaryStatement, SelectedSummaryPlan))
+            {
+                ClearSummaryPair();
+                ReportMessage("A lekért terv nem ehhez az SQL-utasításhoz tartozik. Elemezd az eredeti SQL-t, vagy kérj új tervet.");
                 return;
             }
 
@@ -492,7 +533,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                     return;
                 }
 
-                LoadExplainJson(content, Path.GetFileName(path));
+                LoadExplainJson(content, Path.GetFileName(path), new PlanOrigin { Source = PlanSourceKind.JsonFile, FileName = Path.GetFileName(path), CapturedAt = DateTimeOffset.UtcNow });
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -542,9 +583,9 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         /// Betölti az EXPLAIN JSON terveit, és törli a korábbi tervelemzés eredményeit.
         /// Az elemzést nem indítja el.
         /// </summary>
-        private void LoadExplainJson(string json, string sourceName)
+        private void LoadExplainJson(string json, string sourceName, PlanOrigin? origin = null)
         {
-            var plans = _planService.ParsePlans(json);
+            var plans = _planService.ParsePlans(json, origin);
             var roots = plans.Select(plan => plan.Root).ToList();
 
             _loadedExplainJson = json;
@@ -565,7 +606,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         /// <summary>
         /// Kiválasztja a tervlekéréshez használandó SQL-utasítást.
         /// </summary>
-        private string GetSqlForExplain()
+        private (string Sql, int StatementIndex) GetSqlForExplain()
         {
             if (string.IsNullOrWhiteSpace(SqlText))
                 throw new InvalidOperationException("Először tölts be egy SQL-fájlt.");
@@ -575,12 +616,9 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             if (!summary.IsSuccess)
                 throw new InvalidOperationException($"Az SQL nem dolgozható fel: {summary.ErrorMessage}");
 
-            if (summary.Statements.Count == 1)
-                return SqlText;
+            var selected = summary.Statements.Count == 1 ? summary.Statements[0] : SelectedSummaryStatement;
 
-            var selected = SelectedSummaryStatement;
-
-            if (_analyzedSqlText != SqlText || selected is null || !StatementsForSummary.Contains(selected))
+            if (selected is null || (summary.Statements.Count != 1 && (_analyzedSqlText != SqlText || !StatementsForSummary.Contains(selected))))
             {
                 throw new InvalidOperationException(
                     "A fájl több utasítást tartalmaz. Indítsd el az Elemzést, majd az Összegzés fülön válaszd ki a lekérdezendő SQL-utasítást.");
@@ -592,7 +630,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 throw new InvalidOperationException("A kiválasztott SQL-utasítás szöveghatárai érvénytelenek. Elemezd újra a fájlt.");
             }
 
-            return SqlText.Substring(start, selected.TextLength);
+            return (SqlText.Substring(start, selected.TextLength), selected.StatementIndex);
         }
 
         /// <summary>
@@ -617,8 +655,23 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 
             try
             {
-                string sql = GetSqlForExplain();
+                var request = GetSqlForExplain();
+                string sql = request.Sql;
                 var connection = _databaseSession.GetConnectionDetails();
+                var origin = new PlanOrigin
+                {
+                    Source = PlanSourceKind.Database,
+                    Mode = analyze ? PlanCaptureMode.Actual : PlanCaptureMode.Estimated,
+                    CapturedAt = DateTimeOffset.UtcNow,
+                    SqlText = sql,
+                    DocumentHash = PlanOriginMatcher.HashDocument(sqlSnapshot),
+                    StatementIndex = request.StatementIndex,
+                    Host = connection.Options.Host,
+                    Port = connection.Options.Port,
+                    Database = connection.Options.Database,
+                    Schema = connection.Options.Schema,
+                    Username = connection.Options.Username
+                };
 
                 ReportMessage(analyze
                     ? "SQL végrehajtása és mért terv lekérése…"
@@ -635,7 +688,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 }
 
                 string planType = analyze ? "mért terv" : "becsült terv";
-                LoadExplainJson(json, $"adatbázis: {connection.Options.Database} – {planType}");
+                LoadExplainJson(json, $"adatbázis: {connection.Options.Database} – {planType}", origin);
             }
             catch (PostgresException ex)
             {

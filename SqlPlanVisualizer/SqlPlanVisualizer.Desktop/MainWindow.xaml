@@ -404,7 +404,7 @@
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
 
-                            <TextBlock Text="A gomb megnyomásával megerősíted, hogy a kiválasztott terv a kiválasztott SQL-utasításhoz tartozik."
+                            <TextBlock Text="{Binding PairingInstruction}"
                                 TextWrapping="Wrap"
                                 Margin="0,0,0,12"/>
 
@@ -415,6 +415,7 @@
                                 Margin="0,0,0,12"/>
 
                             <TextBlock Text="{Binding SummaryStatus}" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding SelectedPlanOriginText}" TextWrapping="Wrap" Margin="0,8,0,0" Foreground="Gray"/>
 
                         </StackPanel>
                     </ScrollViewer>

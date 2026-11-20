@@ -1,4 +1,4 @@
-﻿using SqlPlanVisualizer.Core.Models;
+using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Parsers;
 
 namespace SqlPlanVisualizer.Infrastructure.PostgreSql
@@ -14,7 +14,7 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
         /// <summary>
         /// Ellenőrzi a JSON-t, majd előállítja a terveket az időadataikkal együtt.
         /// </summary>
-        public List<ExecutionPlan> ParsePlans(string json)
+        public List<ExecutionPlan> ParsePlans(string json, PlanOrigin? origin = null)
         {
             var parsedPlans = _parser.Parse(json);
             var plans = new List<ExecutionPlan>();
@@ -25,6 +25,7 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
 
                 plans.Add(new ExecutionPlan(plans.Count + 1, root)
                 {
+                    Origin = origin,
                     PlanningTime = dto.PlanningTime,
                     ExecutionTime = dto.ExecutionTime
                 });

@@ -1,4 +1,4 @@
-﻿namespace SqlPlanVisualizer.Core.Models
+namespace SqlPlanVisualizer.Core.Models
 {
     /// <summary>
     /// Egy végrehajtási tervet és annak teljes tervezési, illetve végrehajtási idejét tárolja.
@@ -18,6 +18,7 @@
 
         public int PlanIndex { get; }
         public PlanNode Root { get; }
+        public PlanOrigin? Origin { get; init; }
 
         // A tervhez tartozó időadatok ezredmásodpercben, ha szerepelnek a JSON-ban.
         public double? PlanningTime { get; init; }

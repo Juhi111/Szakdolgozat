@@ -106,6 +106,9 @@
         </ListBox>
 
         <TabControl Grid.Column="1">
+            <TabItem Header="Terv eredete">
+                <TextBlock Text="{Binding SelectedEntry.Entry.PlanOrigin.Description, TargetNullValue='A terv eredete nem ismert.', FallbackValue='A terv eredete nem ismert.'}" TextWrapping="Wrap" Margin="12"/>
+            </TabItem>
             <TabItem Header="Összekapcsolt találatok">
                 <ListView ItemsSource="{Binding SelectedEntry.Entry.CombinedFindings}"
                           Style="{StaticResource FindingListStyle}"/>

@@ -28,7 +28,7 @@ public sealed class ExplainCommandTests
         Assert.True(vm.IsFetchingExplain);
         Assert.False(vm.CanFetchExplain);
         Assert.Equal(actual, service.Actual);
-        Assert.Equal("SELECT 1;", service.Sql);
+        Assert.Equal("SELECT 1", service.Sql!.Trim().TrimEnd(';'));
         // The other command must not start a second request.
         (actual ? vm.FetchEstimatedPlanCommand : vm.FetchActualPlanCommand).Execute(null);
         Assert.Equal(1, service.Calls);
@@ -82,6 +82,61 @@ public sealed class ExplainCommandTests
         await ExecuteAsync(vm.FetchActualPlanCommand);
         Assert.Equal(0, service.Calls);
         Assert.Contains("válassz adatbázis-kapcsolatot", vm.StatusMessage);
+    }
+
+    [Fact]
+    public async Task DatabasePlan_AutoPairsAfterAnalysis_AndRejectsAnotherStatement()
+    {
+        var service = new FakeExplainService();
+        var vm = Create(service);
+        vm.SqlText = "SELECT 1; SELECT 2;";
+        await ExecuteAsync(vm.AnalyzeCommand);
+        vm.SelectedSummaryStatement = vm.StatementsForSummary[1];
+        Task request = ExecuteAsync(vm.FetchActualPlanCommand);
+        service.Response.SetResult(PlanJson);
+        await request;
+        Assert.Empty(vm.PlansForSummary); // Retrieval alone must not analyze or pair.
+        Assert.Single(vm.PlanRoots);
+        await ExecuteAsync(vm.AnalyzeCommand);
+        Assert.Equal(2, vm.SelectedSummaryStatement!.StatementIndex);
+        Assert.Equal(2, vm.SelectedSummaryPlan!.Origin!.StatementIndex);
+        Assert.Contains("SELECT 2", vm.SelectedSummaryPlan.Origin.SqlText);
+        Assert.Contains("Automatikusan párosítva", vm.SummaryStatus);
+
+        vm.SelectedSummaryStatement = vm.StatementsForSummary[0];
+        await ExecuteAsync(vm.CreateSummaryCommand); // Must reject before opening a WPF window.
+        Assert.Contains("nem ehhez az SQL-utasításhoz", vm.StatusMessage);
+        Assert.DoesNotContain("Automatikusan párosítva", vm.SummaryStatus);
+
+        await ExecuteAsync(vm.AnalyzeCommand);
+        Assert.Equal(2, vm.SelectedSummaryStatement!.StatementIndex);
+        Assert.Contains("Automatikusan párosítva", vm.SummaryStatus);
+        vm.SqlText = "SELECT 3;";
+        Assert.DoesNotContain("Automatikusan párosítva", vm.SummaryStatus);
+        await ExecuteAsync(vm.AnalyzeCommand);
+        Assert.Null(vm.SelectedSummaryStatement);
+        Assert.DoesNotContain("Automatikusan párosítva", vm.SummaryStatus);
+    }
+
+    [Fact]
+    public async Task Capture_KeepsConnectionSnapshotWhenSessionChanges()
+    {
+        var service = new FakeExplainService();
+        var session = new DatabaseSession();
+        var options = new DatabaseConnectionOptions { Database = "original", Username = "tester", Schema = "lab" };
+        session.Set(options, "secret");
+        var vm = new MainViewModel(AppSettingsLoader.Load(), session, service) { SqlText = "SELECT 1;" };
+        Task request = ExecuteAsync(vm.FetchEstimatedPlanCommand);
+        options.Database = "other";
+        session.Set(options, "other-secret");
+        service.Response.SetResult(PlanJson);
+        await request;
+        await ExecuteAsync(vm.AnalyzeCommand);
+        var source = vm.SelectedSummaryPlan!.Origin!;
+        Assert.Equal("original", source.Database);
+        Assert.Equal("lab", source.Schema);
+        Assert.Equal(SqlPlanVisualizer.Core.Models.PlanCaptureMode.Estimated, source.Mode);
+        Assert.Contains("Automatikusan párosítva", vm.SummaryStatus);
     }
 
     private static MainViewModel Create(FakeExplainService service)

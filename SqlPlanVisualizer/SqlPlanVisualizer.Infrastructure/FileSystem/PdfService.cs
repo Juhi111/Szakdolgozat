@@ -79,6 +79,8 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
                         info.Spacing(5);
                         info.Item()
     .Text($"{result.StatementIndex}. SQL-utasítás - {result.PlanIndex}. végrehajtási terv").SemiBold();
+                        if (result.PlanOrigin is { } origin)
+                            info.Item().Text(origin.Description);
                         info.Item().Text($"Tervezési idő: {FormatTime(result.PlanningTime)}");
                         info.Item().Text($"Végrehajtási idő: {FormatTime(result.ExecutionTime)}");
                     });
