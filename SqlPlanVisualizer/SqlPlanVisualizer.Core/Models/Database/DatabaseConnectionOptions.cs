@@ -1,4 +1,3 @@
-﻿
 using SqlPlanVisualizer.Core.Enums;
 
 namespace SqlPlanVisualizer.Core.Models.Database
@@ -11,5 +10,18 @@ namespace SqlPlanVisualizer.Core.Models.Database
         public string Username { get; set; } = string.Empty;
         public string Schema { get; set; } = "public";
         public DatabaseTlsMode TlsMode { get; set; } = DatabaseTlsMode.VerifyFull;
+
+        public DatabaseConnectionOptions Copy()
+        {
+            return new DatabaseConnectionOptions
+            {
+                Host = Host,
+                Port = Port,
+                Database = Database,
+                Username = Username,
+                Schema = Schema,
+                TlsMode = TlsMode
+            };
+        }
     }
 }

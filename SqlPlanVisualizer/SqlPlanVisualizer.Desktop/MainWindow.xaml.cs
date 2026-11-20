@@ -1,4 +1,5 @@
-﻿using SqlPlanVisualizer.Core.Models;
+using SqlPlanVisualizer.Infrastructure.FileSystem;
+using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Desktop.Configuration;
 using SqlPlanVisualizer.Desktop.Services;
 using SqlPlanVisualizer.Desktop.ViewModels;
@@ -13,6 +14,7 @@ namespace SqlPlanVisualizer.Desktop
     public partial class MainWindow : Window
     {
         private readonly DatabaseSession _databaseSession = new();
+        private readonly DatabaseConnectionProfileService _connectionProfiles = new();
 
         public MainWindow()
         {
@@ -161,9 +163,7 @@ namespace SqlPlanVisualizer.Desktop
         {
             var service = new PostgreSqlConnectionService();
 
-            var viewModel = new DatabaseConnectionViewModel(
-                service,
-                _databaseSession);
+            var viewModel = new DatabaseConnectionViewModel(service, _databaseSession, _connectionProfiles);
 
             var window = new DatabaseConnectionWindow(viewModel)
             {
