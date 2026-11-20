@@ -22,3 +22,26 @@ A fájl verziózott JSON, jelszót nem tartalmaz. A jelszó csak a futó alkalma
 A mentés ideiglenes fájlon keresztül történik. Hibás vagy nem támogatott profilfájlt az alkalmazás nem ír felül; javítás után a **Lista újratöltése** gombbal lehet újra próbálkozni.
 
 Kézi ellenőrzés Windows alatt: ments egy profilt, indítsd újra az alkalmazást, töltsd vissza, és ellenőrizd a mezőket és az üres jelszómezőt. Próbálj átnevezést, azonos névvel másik profil mentését, profilváltást beírt jelszó után, majd törlést. A profilváltásnak törölnie kell a jelszómezőt; a Mentés önmagában nem változtatja meg az aktív sessiont.
+
+## Adatbázisos tervlekérés és tesztek
+
+Az **Adatbázis** menüben külön művelet a becsült terv lekérése és a SELECT-et végrehajtó mért terv lekérése. Futás közben mindkét menüpont letiltott, az állapotsor folyamatjelzőt mutat. Az Üzenetek fül rögzíti az indulást és az eredményt; szerverhiba esetén a PostgreSQL hibakódját és üzenetét is. A terv betöltése nem indít automatikus elemzést.
+
+A tesztek két projektben vannak, linkelt Desktop-források nélkül:
+
+- `SqlPlanVisualizer.Tests`: Core/Infrastructure tesztek, Linuxon és Windowson futtathatók.
+- `SqlPlanVisualizer.Desktop.Tests`: a tényleges Desktop projektre hivatkozó ViewModel- és parancstesztek, Windows és .NET 8 Desktop runtime szükséges a futtatásukhoz.
+
+Windows alatt a teljes készlet:
+
+```sh
+dotnet test SqlPlanVisualizer/SqlPlanVisualizer.sln
+```
+
+Linux alatt:
+
+```sh
+dotnet test SqlPlanVisualizer/SqlPlanVisualizer.Tests/SqlPlanVisualizer.Tests.csproj
+```
+
+Kézi ellenőrzés: válassz kapcsolatot, tölts be egy SELECT-et, és kérj becsült, majd mért tervet. A mért tervben legyen Actual Rows/Actual Loops, a javaslatok csak az Elemzés után jelenjenek meg. Hibás táblanévvel ellenőrizd, hogy a hiba megjelenik az Üzenetek fülön, és a korábbi terv megmarad.

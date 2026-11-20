@@ -17,12 +17,6 @@
                 <MenuItem Header="SQL megnyitása..." Command="{Binding OpenSqlCommand}"/>
                 <MenuItem Header="EXPLAIN JSON megnyitása..." Command="{Binding OpenJsonCommand}"/>
                 <Separator/>
-                <MenuItem Header="Becsült terv lekérése" Command="{Binding FetchEstimatedPlanCommand}"/>
-                <Separator/>
-                <MenuItem Header="Becsült terv lekérése" Command="{Binding FetchEstimatedPlanCommand}"/>
-                <MenuItem Header="Mért terv lekérése – SELECT futtatása"
-          Command="{Binding FetchActualPlanCommand}"
-          ToolTip="Ténylegesen végrehajtja a kiválasztott SELECT-et, és betölti a mért tervet. Az elemzés külön indítható."/>
                 <MenuItem Header="Felület ürítése" Command="{Binding DeleteContent}"/>
                 <Separator/>
                 <MenuItem Header="_Kilépés" Click="ExitMenuItem_Click"/>
@@ -32,6 +26,12 @@
                 <MenuItem Header="Kiválasztott kapcsolat…" Click="ShowDatabaseConnectionMenuItem_Click"/>
                 <Separator/>
                 <MenuItem Header="Kapcsolat elfelejtése" Click="ForgetDatabaseConnectionMenuItem_Click"/>
+                <Separator/>
+                <MenuItem Header="Becsült terv lekérése" Command="{Binding FetchEstimatedPlanCommand}" IsEnabled="{Binding CanFetchExplain}"/>
+                <MenuItem Header="Mért terv lekérése – SELECT futtatása" Command="{Binding FetchActualPlanCommand}"
+                          IsEnabled="{Binding CanFetchExplain}"
+                          ToolTip="Végrehajtja a SELECT-et, majd betölti a mért tervet. Az elemzés külön indítható."/>
+
             </MenuItem>
             <MenuItem Header="_Elemzés">
                 <MenuItem Header="Elemzés indítása" Command="{Binding AnalyzeCommand}"/>
@@ -430,6 +430,20 @@
             </TabControl>
 
             <StatusBar Grid.Row="3" Grid.ColumnSpan="2">
+                <StatusBarItem>
+                    <ProgressBar Width="100" Height="12" IsIndeterminate="True">
+                        <ProgressBar.Style>
+                            <Style TargetType="ProgressBar">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsFetchingExplain}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ProgressBar.Style>
+                    </ProgressBar>
+                </StatusBarItem>
                 <StatusBarItem>
                     <TextBlock Text="{Binding StatusMessage}"/>
                 </StatusBarItem>

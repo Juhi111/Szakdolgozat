@@ -1,3 +1,4 @@
+using Npgsql;
 using SqlPlanVisualizer.Core.Analysis;
 using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Desktop.Commands;
@@ -93,6 +94,22 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         public ICommand CreateSummaryCommand { get; }
         public ICommand FetchEstimatedPlanCommand { get; }
         public ICommand FetchActualPlanCommand { get; }
+
+        public bool IsFetchingExplain
+        {
+            get => _isFetchingExplain;
+            private set
+            {
+                if (_isFetchingExplain == value)
+                    return;
+                _isFetchingExplain = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(CanFetchExplain));
+            }
+        }
+
+        public bool CanFetchExplain => !IsFetchingExplain;
+
 
         /// <summary>
         /// Az Üzenetek fülön megjelenített, időbélyeggel ellátott naplóbejegyzések.
@@ -579,9 +596,6 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         }
 
         /// <summary>
-        /// Lekéri az SQL becsült végrehajtási tervét, majd elemzés nélkül betölti.
-        /// </summary>
-        /// <summary>
         /// Becsült vagy mért végrehajtási tervet kér le, majd elemzés nélkül betölti.
         /// </summary>
         private async Task FetchPlanAsync(bool analyze)
@@ -595,7 +609,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 return;
             }
 
-            _isFetchingExplain = true;
+            IsFetchingExplain = true;
 
             int sqlVersion = _sqlDocumentVersion;
             int planVersion = _planDocumentVersion;
@@ -606,9 +620,9 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 string sql = GetSqlForExplain();
                 var connection = _databaseSession.GetConnectionDetails();
 
-                StatusMessage = analyze
+                ReportMessage(analyze
                     ? "SQL végrehajtása és mért terv lekérése…"
-                    : "Becsült végrehajtási terv lekérése…";
+                    : "Becsült végrehajtási terv lekérése…");
 
                 string json = analyze
                     ? await _databaseExplainService.GetActualPlanAsync(connection.Options, connection.Password, sql)
@@ -622,6 +636,18 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 
                 string planType = analyze ? "mért terv" : "becsült terv";
                 LoadExplainJson(json, $"adatbázis: {connection.Options.Database} – {planType}");
+            }
+            catch (PostgresException ex)
+            {
+                ReportMessage($"PostgreSQL-hiba ({ex.SqlState}): {ex.MessageText}");
+            }
+            catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
+            {
+                ReportMessage("A tervlekérés túllépte az időkorlátot. A korábban betöltött terv megmaradt.");
+            }
+            catch (NpgsqlException)
+            {
+                ReportMessage("Adatbázis-kapcsolati hiba. Ellenőrizd a szerver elérhetőségét és a kapcsolat beállításait.");
             }
             catch (ArgumentException ex)
             {
@@ -649,7 +675,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             }
             finally
             {
-                _isFetchingExplain = false;
+                IsFetchingExplain = false;
             }
         }
     }

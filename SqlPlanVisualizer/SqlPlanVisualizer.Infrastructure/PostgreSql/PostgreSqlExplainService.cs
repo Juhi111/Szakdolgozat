@@ -1,4 +1,4 @@
-﻿using Npgsql;
+using Npgsql;
 using SqlPlanVisualizer.Core.Interfaces;
 using SqlPlanVisualizer.Core.Models.Database;
 
@@ -87,7 +87,7 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql
 
             string explainPrefix = analyze ? "EXPLAIN (ANALYZE, BUFFERS, VERBOSE, SETTINGS, FORMAT JSON)" : "EXPLAIN (VERBOSE, FORMAT JSON)";
 
-            string explainSql = explainPrefix + sql;
+            string explainSql = explainPrefix + "\n" + sql;
 
             await using var explainCommand = new NpgsqlCommand(explainSql, connection, transaction);
             var result = await explainCommand.ExecuteScalarAsync(cancellationToken);

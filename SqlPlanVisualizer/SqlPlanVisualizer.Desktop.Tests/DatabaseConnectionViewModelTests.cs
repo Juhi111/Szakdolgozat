@@ -1,3 +1,4 @@
+using System.IO;
 using SqlPlanVisualizer.Core.Interfaces;
 using SqlPlanVisualizer.Core.Models.Database;
 using SqlPlanVisualizer.Desktop.Services;
@@ -5,7 +6,7 @@ using SqlPlanVisualizer.Desktop.ViewModels;
 using SqlPlanVisualizer.Infrastructure.FileSystem;
 using Xunit;
 
-namespace SqlPlanVisualizer.Tests
+namespace SqlPlanVisualizer.Desktop.Tests
 {
     public sealed class DatabaseConnectionViewModelTests : IDisposable
     {

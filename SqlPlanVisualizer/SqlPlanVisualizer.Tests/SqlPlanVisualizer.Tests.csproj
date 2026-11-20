@@ -19,9 +19,4 @@
   <ItemGroup>
     <ProjectReference Include="..\\SqlPlanVisualizer.Infrastructure\\SqlPlanVisualizer.Infrastructure.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="../SqlPlanVisualizer.Desktop/ViewModels/ViewModelBase.cs" Link="Desktop/ViewModelBase.cs" />
-    <Compile Include="../SqlPlanVisualizer.Desktop/ViewModels/DatabaseConnectionViewModel.cs" Link="Desktop/DatabaseConnectionViewModel.cs" />
-    <Compile Include="../SqlPlanVisualizer.Desktop/Services/DatabaseSession.cs" Link="Desktop/DatabaseSession.cs" />
-  </ItemGroup>
 </Project>
