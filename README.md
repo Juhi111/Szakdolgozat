@@ -68,11 +68,11 @@ Kézi ellenőrzés Windows alatt:
 
 ## SQL-javítási javaslatok – első változat
 
-Az összegző ablak **SQL-javítási javaslatok** részében az eredeti utasítás mellett külön, kijelölhető/másolható SQL-változat jelenik meg. Az alkalmazás nem módosítja a betöltött szöveget és nem futtatja a javaslatot.
+Az összegző ablak **SQL-javítási javaslatok** részében az eredeti utasítás mellett külön, kijelölhető/másolható SQL-változat jelenik meg. A javaslat előállítása nem módosítja a betöltött szöveget és nem futtat SQL-t. Külön gombokkal tervet kérhetsz vagy mérést indíthatsz (lásd alább).
 
 Az első szabály az egy táblát közvetlenül olvasó SELECT felső szintű WHERE feltételében felismeri az `oszlop + egész = egész` és `oszlop - egész = egész` alakot, önállóan vagy AND alatt. Az átírás AST-klónon történik, a parser deparserével állítjuk elő és újraparszoljuk az SQL-t. Egy javaslat egy feltételt változtat meg; több találat esetén külön alternatívák keletkeznek. A megjegyzések kimaradnak, a formázás változhat. A konstansok és az eredmény az int32 tartományban maradnak.
 
-Ezek **feltételes javaslatok**, nem bizonyítottan egyenértékű javítások. Ellenőrizni kell a beépített egész oszloptípust, a szokásos PostgreSQL-operátorokat és azt, hogy az eredeti művelet nem csordulhat túl. Az alkalmazás ebben a fázisban nem ellenőrzi az adatbázis oszloptípusait vagy értéktartományait. A gyorsulást és az eredményazonosságot még nem méri. Szorzás/osztás, OR/NOT alatti feltétel, paraméter, cast, JOIN és CTE jelenleg nem támogatott átírási eset.
+Ezek **feltételes javaslatok**, nem bizonyítottan egyenértékű javítások. Ellenőrizni kell a beépített egész oszloptípust, a szokásos PostgreSQL-operátorokat és azt, hogy az eredeti művelet nem csordulhat túl. Az alkalmazás ebben a fázisban nem ellenőrzi az adatbázis oszloptípusait vagy értéktartományait. Az eredményazonosságot nem ellenőrzi; a külön indított mérések időadatait összehasonlítja. Szorzás/osztás, OR/NOT alatti feltétel, paraméter, cast, JOIN és CTE jelenleg nem támogatott átírási eset.
 
 Kipróbálás:
 1. Töltsd be az `examples/sql-rewrites/arithmetic-equality.sql` fájlt.
@@ -80,4 +80,16 @@ Kipróbálás:
 3. Nyisd meg az összegző ablakot: a javasolt SQL-ben `customer_id = 100` szerepel.
 4. Az eredeti SQL maradjon változatlan. Több utasítás esetén csak az összegzéshez kiválasztott utasításból készül javaslat. Fájlból betöltött, kézzel párosított terv mellett is működik, mert az elemzett SQL-pillanatképből dolgozik.
 
-Új átíráshoz implementáld az `ISqlRewriteRule` interfészt, majd add hozzá az összegző ViewModelben létrehozott `SqlRewriteService` szabálylistájához. A javaslatnak mindig tartalmaznia kell az eredeti és javasolt SQL-t, magyarázatot és alkalmazási feltételeket. A javaslatok futtatása, előtte–utána összehasonlítása és PDF/előzmény mentése későbbi lépés; ebben a változatban a meglévő elemzési jelentés mentése változatlan.
+Új átíráshoz implementáld az `ISqlRewriteRule` interfészt, majd add hozzá az összegző ViewModelben létrehozott `SqlRewriteService` szabálylistájához. A javaslatnak mindig tartalmaznia kell az eredeti és javasolt SQL-t, magyarázatot és alkalmazási feltételeket. A javaslatok és összehasonlításuk PDF-/előzménymentése későbbi lépés; a meglévő elemzési jelentés mentése változatlan.
+
+### Javaslat tervlekérése és összehasonlítása
+
+Az összegző ablakban a **Javaslat tervlekérése és összehasonlítása** részben válassz SQL-változatot, majd kérj becsült tervet vagy indíts mérést. A **Futtatás és mérés** megerősítést kér; a becsült lekérés nem kapcsolja be az ANALYZE módot. A futó lekérés megszakítható, az ablak bezárása is megszakítást kér. Egy ablakban egyszerre egy lekérés indítható.
+
+Az eredeti tervnek az alkalmazásból, az eredeti SQL-hez lekért tervnek kell lennie. A kiválasztott szerver, port, adatbázis, séma és felhasználó egyezését ellenőrizzük. Fájlból betöltött vagy eltérő kapcsolathoz tartozó terv esetén előbb kérj új eredeti tervet. Ez a kapcsolatbeállítások egyezését igazolja, nem az adatbázis változatlanságát vagy fizikai szerverazonosságát.
+
+A javasolt tervet külön tároljuk az ablakban, és a meglévő SQL-/tervelemző szolgáltatásokkal elemezzük. Egymás mellett látható a két tervfa, a tervezési és futási idő, a gyökér költsége és sorszáma, valamint a találatszámok; a javaslat részletes találatai lenyithatók. A főablak SQL-je, terve és eredeti elemzése nem változik. Új lekérés vagy másik javaslat választása lecseréli az ablak előző összehasonlítását.
+
+Futásiidő-arány csak két mért terv pozitív, véges időadataiból készül. Külön időpontban végzett mérésekről van szó: az adatok, indexek, terhelés, cache és beállítások változhattak. Az **eredményazonosság továbbra sincs ellenőrizve**; a sorszámok vagy a találatszámok egyezése nem bizonyítja azt. A két változat ismételt, kontrollált mérése, eredményellenőrzése és az összehasonlítás PDF-/előzménymentése még külön fejlesztés.
+
+Felületi ellenőrzés Windows alatt: eredeti mért terv → Elemzés → Összegzés → javaslat kiválasztása → becsült lekérés (nincs időarány), majd megerősített mérés (időarány, ha mindkét idő pozitív). Ellenőrizd a megszakítást és azt is, hogy másik kapcsolat kiválasztása nem indít lekérést.

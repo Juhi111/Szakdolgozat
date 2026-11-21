@@ -11,6 +11,7 @@ namespace SqlPlanVisualizer.Desktop.Views
 
             InitializeComponent();
             DataContext = viewModel;
+            Closed += (_, _) => viewModel.RewriteComparison?.Cancel();
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)

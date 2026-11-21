@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using SqlPlanVisualizer.Infrastructure.PostgreSql;
 using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Desktop.ViewModels;
 using SqlPlanVisualizer.Desktop.Views;
@@ -10,11 +11,11 @@ namespace SqlPlanVisualizer.Desktop.Services
     /// </summary>
     public class AnalysisSummaryWindowService
     {
-        public void Show(CombinedAnalysisResult result, string? analyzedSql = null)
+        public void Show(CombinedAnalysisResult result, string? analyzedSql = null, DatabaseSession? session = null, SqlRewriteComparisonService? comparisonService = null)
         {
             ArgumentNullException.ThrowIfNull(result);
 
-            var viewModel = new AnalysisSummaryViewModel(result, analyzedSql);
+            var viewModel = new AnalysisSummaryViewModel(result, analyzedSql, session, comparisonService);
             var window = new AnalysisSummaryWindow(viewModel)
             {
                 Owner = Application.Current.MainWindow

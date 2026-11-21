@@ -2,6 +2,7 @@ using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Core.Analysis;
 using SqlPlanVisualizer.Core.Interfaces;
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Rewriting;
+using SqlPlanVisualizer.Infrastructure.PostgreSql;
 using SqlPlanVisualizer.Desktop.Commands;
 using SqlPlanVisualizer.Desktop.Services;
 using System.Windows.Input;
@@ -18,7 +19,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 
         public ICommand SaveResultToPdf { get; }
 
-        public AnalysisSummaryViewModel(CombinedAnalysisResult result, string? analyzedSql = null)
+        public AnalysisSummaryViewModel(CombinedAnalysisResult result, string? analyzedSql = null, DatabaseSession? session = null, SqlRewriteComparisonService? comparisonService = null)
         {
             ArgumentNullException.ThrowIfNull(result);
             Result = result;
@@ -34,9 +35,12 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                     RewriteStatus = "Az SQL átírási javaslatai nem készültek el: a forrás nem dolgozható fel.";
                 }
             }
+            if (session is not null && comparisonService is not null)
+                RewriteComparison = new RewriteComparisonViewModel(result, RewriteSuggestions, session, comparisonService);
             SaveResultToPdf = new AsyncRelayCommand(SaveToPdf);
         }
 
+        public RewriteComparisonViewModel? RewriteComparison { get; }
         public CombinedAnalysisResult Result { get; }
         public IReadOnlyList<SqlRewriteSuggestion> RewriteSuggestions { get; } = Array.Empty<SqlRewriteSuggestion>();
         public string RewriteStatus { get; } = "Ehhez az utasításhoz jelenleg nincs támogatott átírási javaslat.";
