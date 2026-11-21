@@ -65,3 +65,19 @@ Kézi ellenőrzés Windows alatt:
 4. Cseréld le az SQL-t és elemezd: a régi tervet ne párosítsa hozzá. Az eredeti dokumentum visszatöltése és elemzése helyreállíthatja a párost.
 5. Tölts be JSON-fájlt: az új terv eredete fájlos legyen, kézi párosítással.
 6. Készíts PDF-et és előzményt; ellenőrizd az eredetadatokat, valamint kikapcsolt forrásmentés mellett az SQL hiányát az előzmény JSON-jából.
+
+## SQL-javítási javaslatok – első változat
+
+Az összegző ablak **SQL-javítási javaslatok** részében az eredeti utasítás mellett külön, kijelölhető/másolható SQL-változat jelenik meg. Az alkalmazás nem módosítja a betöltött szöveget és nem futtatja a javaslatot.
+
+Az első szabály az egy táblát közvetlenül olvasó SELECT felső szintű WHERE feltételében felismeri az `oszlop + egész = egész` és `oszlop - egész = egész` alakot, önállóan vagy AND alatt. Az átírás AST-klónon történik, a parser deparserével állítjuk elő és újraparszoljuk az SQL-t. Egy javaslat egy feltételt változtat meg; több találat esetén külön alternatívák keletkeznek. A megjegyzések kimaradnak, a formázás változhat. A konstansok és az eredmény az int32 tartományban maradnak.
+
+Ezek **feltételes javaslatok**, nem bizonyítottan egyenértékű javítások. Ellenőrizni kell a beépített egész oszloptípust, a szokásos PostgreSQL-operátorokat és azt, hogy az eredeti művelet nem csordulhat túl. Az alkalmazás ebben a fázisban nem ellenőrzi az adatbázis oszloptípusait vagy értéktartományait. A gyorsulást és az eredményazonosságot még nem méri. Szorzás/osztás, OR/NOT alatti feltétel, paraméter, cast, JOIN és CTE jelenleg nem támogatott átírási eset.
+
+Kipróbálás:
+1. Töltsd be az `examples/sql-rewrites/arithmetic-equality.sql` fájlt.
+2. Válaszd ki a tesztadatbázis kapcsolatát és kérd le a tervet, majd nyomd meg az **Elemzés** menüpontot.
+3. Nyisd meg az összegző ablakot: a javasolt SQL-ben `customer_id = 100` szerepel.
+4. Az eredeti SQL maradjon változatlan. Több utasítás esetén csak az összegzéshez kiválasztott utasításból készül javaslat. Fájlból betöltött, kézzel párosított terv mellett is működik, mert az elemzett SQL-pillanatképből dolgozik.
+
+Új átíráshoz implementáld az `ISqlRewriteRule` interfészt, majd add hozzá az összegző ViewModelben létrehozott `SqlRewriteService` szabálylistájához. A javaslatnak mindig tartalmaznia kell az eredeti és javasolt SQL-t, magyarázatot és alkalmazási feltételeket. A javaslatok futtatása, előtte–utána összehasonlítása és PDF/előzmény mentése későbbi lépés; ebben a változatban a meglévő elemzési jelentés mentése változatlan.

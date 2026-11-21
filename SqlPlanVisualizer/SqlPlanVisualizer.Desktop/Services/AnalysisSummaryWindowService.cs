@@ -10,11 +10,11 @@ namespace SqlPlanVisualizer.Desktop.Services
     /// </summary>
     public class AnalysisSummaryWindowService
     {
-        public void Show(CombinedAnalysisResult result)
+        public void Show(CombinedAnalysisResult result, string? analyzedSql = null)
         {
             ArgumentNullException.ThrowIfNull(result);
 
-            var viewModel = new AnalysisSummaryViewModel(result);
+            var viewModel = new AnalysisSummaryViewModel(result, analyzedSql);
             var window = new AnalysisSummaryWindow(viewModel)
             {
                 Owner = Application.Current.MainWindow

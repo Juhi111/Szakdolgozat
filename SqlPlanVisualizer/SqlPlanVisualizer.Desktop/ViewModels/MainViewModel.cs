@@ -349,7 +349,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 
             OnPropertyChanged(nameof(SummaryStatus));
 
-            _summaryWindowService.Show(result);
+            _summaryWindowService.Show(result, sqlSnapshot);
 
             await SaveHistoryAsync(result, sqlSnapshot, jsonSnapshot);
         }
