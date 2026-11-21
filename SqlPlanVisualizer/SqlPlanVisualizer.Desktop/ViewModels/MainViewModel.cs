@@ -11,6 +11,7 @@ using System.Text.Json;
 using System.Windows.Input;
 using SqlPlanVisualizer.Desktop.Configuration;
 using SqlPlanVisualizer.Core.Interfaces;
+using System.Windows;
 
 namespace SqlPlanVisualizer.Desktop.ViewModels
 {
@@ -638,6 +639,12 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         /// </summary>
         private async Task FetchPlanAsync(bool analyze)
         {
+            if (!_databaseSession.HasConfiguration) 
+            {
+                MessageBox.Show("Először válassz adatbázis-kapcsolatot az Adatbázis-kapcsolat menüben.", "Nincs kiválasztott kapcsolat", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
             if (_isFetchingExplain)
                 return;
 
