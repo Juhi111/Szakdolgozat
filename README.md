@@ -102,3 +102,10 @@ Az elemzési összegzés az eredeti találatokra összpontosít. A **SQL-javasla
 A javaslatablak **Teljes összehasonlítás mentése PDF-be** gombja sikeres lekérés után használható. A PDF tartalmazza az eredeti elemzés megállapításait, az eredeti és a javasolt SQL teljes szövegét, az átírás feltételeit, a tervforrásokat, az idő-/költség-/találatszám-táblázatot, mindkét terv műveleteit és a javaslat részletes találatait. Az eredményazonosság ellenőrizetlen állapota és a mérés korlátai is szerepelnek. Nem a SELECT eredménysorait exportáljuk, hanem az EXPLAIN és az elemzés eredményeit.
 
 Az összegző ablak meglévő PDF-gombja is hozzáfűzi a hozzá tartozó, jelenleg elkészült összehasonlítást, ha van ilyen. Mindig a kiválasztott javaslat utolsó sikeres eredményét exportáljuk; másik javaslat választása vagy új lekérés indítása törli az előző összehasonlítást. A mentés kezdetén rögzítjük az exportálandó eredmény referenciáját. A hagyományos és előzményből végzett PDF-export összehasonlítás nélkül továbbra is működik. A PDF tartalmazhatja az SQL-ben szereplő üzleti adatokat/literálokat; jelszót vagy connection stringet nem adunk hozzá.
+
+## Bővített SQL-szabályok és átírások
+
+Kilenc átíró szabálycsalád, három új SQL-felismerés és bővített COUNT-létezésvizsgálat áll rendelkezésre. A javaslatok a meglévő SQL-alternatíva ablakból próbálhatók ki.
+
+- [Szabálylista, támogatott alakok és korlátok](docs/sql-rewrites.md)
+- [Tíz SQL-példa a szakdoga_lab sémához](examples/sql-rewrites/expanded-rules.sql)

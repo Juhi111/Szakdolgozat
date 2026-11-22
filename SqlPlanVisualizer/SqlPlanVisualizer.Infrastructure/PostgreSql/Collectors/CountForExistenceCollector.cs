@@ -1,94 +1,25 @@
-﻿using PgSqlParser;
+using PgSqlParser;
 using SqlPlanVisualizer.Core.Enums;
 using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Core.Models.Occurrences;
 using SqlPlanVisualizer.Infrastructure.PostgreSql.Ast;
+using SqlPlanVisualizer.Infrastructure.PostgreSql.Rewriting;
 
-namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Collectors
+namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Collectors;
+
+public class CountForExistenceCollector : CollectorBase<A_Expr>
 {
-    public class CountForExistenceCollector : CollectorBase<A_Expr>
+    private readonly AstPathFormatter _pathFormatter = new();
+    private readonly AstContextResolver _contextResolver = new();
+    protected override void CollectNode(A_Expr expression, AstVisitContext context, SqlStatementSummary summary)
     {
-        private readonly AstPathFormatter pathFormatter = new();
-        private readonly AstContextResolver contextResolver = new();
-
-        protected override void CollectNode(A_Expr expression, AstVisitContext context, SqlStatementSummary summary)
+        if (_contextResolver.GetClause(context) is not (AstClause.Where or AstClause.JoinOn) ||
+            !CountExistencePattern.TryRead(expression, out var select, out _, forRewrite: false)) return;
+        int location = select.TargetList[0].ResTarget.Val.FuncCall.Location;
+        summary.CountForExistenceOccurrences.Add(new CountForExistenceOccurrence
         {
-            
-            if (expression.Kind != A_Expr_Kind.AexprOp || expression.Name.Count != 1 || expression.Name[0].String?.Sval != ">")
-            {
-                return;
-            }
-            
-            var constant = expression.Rexpr?.AConst;
-
-            if (constant is null || constant.Isnull || constant.Ival is null || constant.Ival.Ival != 0)
-                return;
-
-            AstClause clause = contextResolver.GetClause(context);
-
-            if (clause != AstClause.Where && clause != AstClause.JoinOn)
-                return;
-
-            var subLink = expression.Lexpr?.SubLink;
-
-            if (subLink is null || subLink.SubLinkType != SubLinkType.ExprSublink)
-                return;
-
-            var select = subLink.Subselect?.SelectStmt;
-
-            if (select is null || !IsSupportedSelect(select))
-                return;
-
-            var function = select.TargetList[0].ResTarget?.Val?.FuncCall;
-
-            if (function is null || !IsPlainCountStar(function))
-                return;
-
-            summary.CountForExistenceOccurrences.Add(new CountForExistenceOccurrence
-            {
-                Location = pathFormatter.Format(context),
-                SourceOffset = function.Location >= 0
-                    ? function.Location
-                    : expression.Location >= 0 ? expression.Location : null
-            });
-        }
-
-        private static bool IsSupportedSelect(SelectStmt select)
-        {
-            return select.TargetList.Count == 1 &&
-                   select.FromClause.Count > 0 &&
-                   select.Op == SetOperation.SetopNone &&
-                   select.GroupClause.Count == 0 &&
-                   select.HavingClause is null &&
-                   select.LimitCount is null &&
-                   select.LimitOffset is null &&
-                   select.DistinctClause.Count == 0 &&
-                   select.WindowClause.Count == 0 &&
-                   select.SortClause.Count == 0 &&
-                   select.WithClause is null &&
-                   select.LockingClause.Count == 0 &&
-                   select.IntoClause is null;
-        }
-
-        private static bool IsPlainCountStar(FuncCall function)
-        {
-            bool supportedName =
-                (function.Funcname.Count == 1 &&
-                 function.Funcname[0].String?.Sval == "count") ||
-                (function.Funcname.Count == 2 &&
-                 function.Funcname[0].String?.Sval == "pg_catalog" &&
-                 function.Funcname[1].String?.Sval == "count");
-
-            if (!supportedName)
-                return false;
-
-            return function.AggStar &&
-                   function.Args.Count == 0 &&
-                   !function.AggDistinct &&
-                   !function.AggWithinGroup &&
-                   function.AggOrder.Count == 0 &&
-                   function.AggFilter is null &&
-                   function.Over is null;
-        }
+            Location = _pathFormatter.Format(context),
+            SourceOffset = location >= 0 ? location : expression.Location >= 0 ? expression.Location : null
+        });
     }
 }

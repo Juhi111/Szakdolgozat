@@ -21,9 +21,9 @@ namespace SqlPlanVisualizer.Core.Analysis.Rules
                     StatementIndex = statement.StatementIndex,
                     RuleId = "COUNT_FOR_EXISTENCE",
                     Title = "Sorokat számolunk, pedig csak a létezésük számít",
-                    Description = "Az allekérdezés COUNT(*) eredményéről csak azt vizsgáljuk, hogy nagyobb-e nullánál. A feltételhez elegendő tudni, van-e " +
+                    Description = "Az allekérdezés COUNT(*) eredményéről csak azt vizsgáljuk, hogy van-e legalább egy sor, vagy nincs egyetlen sor sem. A feltételhez elegendő tudni, van-e " +
                         $"legalább egy megfelelő sor; a pontos darabszám nem szükséges. Hely: {occurrence.Location}.",
-                    Recommendation = "Mérlegeld az EXISTS használatát az eredeti táblák és szűrési feltételek megtartásával. Így a végrehajtás már az első " +
+                    Recommendation = "Mérlegeld az EXISTS vagy NOT EXISTS használatát az eredeti táblák és szűrési feltételek megtartásával. Így a végrehajtás már az első " +
                         "találat után megállhat. A külső lekérdezéshez kapcsoló feltételeket is őrizd meg. Ne EXISTS(SELECT COUNT(*) ...) alakot " +
                         "használj: ez az aggregáló SELECT üres bemenetnél is visszaad egy sort. Változó eredményű vagy mellékhatásos " +
                         "függvényeknél a kiértékelések száma is számíthat. Hasonlítsd össze az eredményt és a futási időt.",

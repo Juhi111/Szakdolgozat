@@ -27,7 +27,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             {
                 try
                 {
-                    var rewrites = new SqlRewriteService(new ISqlRewriteRule[] { new ArithmeticEqualityRewriteRule() });
+                    var rewrites = new SqlRewriteService(SqlRewriteRuleFactory.CreateDefault());
                     RewriteSuggestions = rewrites.SuggestStatement(analyzedSql, result.Pair.Statement);
                 }
                 catch (FormatException)

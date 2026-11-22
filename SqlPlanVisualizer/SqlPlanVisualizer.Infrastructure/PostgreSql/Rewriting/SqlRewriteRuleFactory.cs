@@ -1,0 +1,20 @@
+using SqlPlanVisualizer.Core.Interfaces;
+
+namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Rewriting;
+
+/// <summary>Az SQL-átírások egyetlen központi regisztrációs helye.</summary>
+public static class SqlRewriteRuleFactory
+{
+    public static IReadOnlyList<ISqlRewriteRule> CreateDefault() => new ISqlRewriteRule[]
+    {
+        new ArithmeticEqualityRewriteRule(),
+        new CountExistenceRewriteRule(),
+        new LikeLiteralRewriteRule(),
+        new DateCastRangeRewriteRule(),
+        new YearRangeRewriteRule(),
+        new HavingGroupKeyRewriteRule(),
+        new OrToInRewriteRule(),
+        new SingletonInRewriteRule(),
+        new DuplicateInRewriteRule()
+    };
+}

@@ -44,7 +44,10 @@ namespace SqlPlanVisualizer.Desktop.Services
                 new LargeOffsetRule(threshold: settings.SqlAnalysis.LargeOffsetThreshold),
                 new UnionDeduplicationRule(),
                 new NaturalJoinUsageRule(),
-                new RandomOrderingRule()
+                new RandomOrderingRule(),
+                new OrEqualityChainRule(),
+                new SingletonInRule(),
+                new DuplicateInValuesRule()
             });
         }
 

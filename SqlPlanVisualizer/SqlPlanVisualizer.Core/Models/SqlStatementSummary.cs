@@ -9,6 +9,7 @@ namespace SqlPlanVisualizer.Core.Models
     /// </summary>
     public class SqlStatementSummary
     {
+        public List<PredicateSimplificationOccurrence> PredicateSimplifications { get; } = new();
         public int StatementIndex { get; set; }
         public string StatementType { get; set; } = string.Empty;
         public bool HasWildcardProjection => WildcardProjections.Count > 0;

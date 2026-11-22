@@ -31,6 +31,7 @@ namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Collectors
                 new UnionDeduplicationCollector(),
                 new NaturalJoinCollector(),
                 new RandomOrderingCollector(),
+                new PredicateSimplificationCollector(),
                 new PredicateCorrelationCollector()
             };
         }
