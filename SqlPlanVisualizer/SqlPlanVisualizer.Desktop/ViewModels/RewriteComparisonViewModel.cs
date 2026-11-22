@@ -36,18 +36,26 @@ public sealed class RewriteComparisonViewModel : ViewModelBase
         _selectedSuggestion = suggestions.FirstOrDefault();
         EstimatedCommand = new AsyncRelayCommand(() => FetchAsync(false));
         ActualCommand = new AsyncRelayCommand(() => FetchAsync(true));
+        ExportCommand = new AsyncRelayCommand(ExportAsync);
         CancelCommand = new AsyncRelayCommand(() => { Cancel(); return Task.CompletedTask; });
     }
 
     public IReadOnlyList<SqlRewriteSuggestion> Suggestions { get; }
     public ICommand EstimatedCommand { get; }
     public ICommand ActualCommand { get; }
+    public ICommand ExportCommand { get; }
+    public bool CanExport => Comparison is not null && !IsBusy;
+    private Task ExportAsync()
+    {
+        var snapshot = Comparison;
+        return CanExport && snapshot is not null ? new PdfExportService().ExportComparisonToPdfAsync(snapshot) : Task.CompletedTask;
+    }
     public ICommand CancelCommand { get; }
     public ObservableCollection<ComparisonMetric> Metrics { get; } = new();
-    public SqlRewriteComparison? Comparison { get => _comparison; private set { _comparison = value; OnPropertyChanged(); OnPropertyChanged(nameof(OriginalRoots)); OnPropertyChanged(nameof(SuggestedRoots)); } }
+    public SqlRewriteComparison? Comparison { get => _comparison; private set { _comparison = value; OnPropertyChanged(); OnPropertyChanged(nameof(OriginalRoots)); OnPropertyChanged(nameof(SuggestedRoots)); OnPropertyChanged(nameof(CanExport)); } }
     public IEnumerable<PlanNode> OriginalRoots => Comparison is null ? Array.Empty<PlanNode>() : new[] { Comparison.Original.Pair.Plan.Root };
     public IEnumerable<PlanNode> SuggestedRoots => Comparison is null ? Array.Empty<PlanNode>() : new[] { Comparison.SuggestedPlan.Root };
-    public bool IsBusy { get => _isBusy; private set { _isBusy = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanStart)); OnPropertyChanged(nameof(CanSelect)); } }
+    public bool IsBusy { get => _isBusy; private set { _isBusy = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanStart)); OnPropertyChanged(nameof(CanSelect)); OnPropertyChanged(nameof(CanExport)); } }
     public bool CanSelect => !IsBusy;
     public bool CanStart => !IsBusy && SelectedSuggestion is not null;
     public string Status { get => _status; private set { _status = value; OnPropertyChanged(); } }

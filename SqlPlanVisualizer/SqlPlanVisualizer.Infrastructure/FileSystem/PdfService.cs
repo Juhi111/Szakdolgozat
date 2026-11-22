@@ -9,7 +9,7 @@ using SqlPlanVisualizer.Core.Models.History;
 namespace SqlPlanVisualizer.Infrastructure.FileSystem
 {
     /// <summary>A párosított elemzés teljes, többoldalas PDF-összegzését készíti el.</summary>
-    public class PdfService
+    public partial class PdfService
     {
         private static readonly CultureInfo HungarianCulture = CultureInfo.GetCultureInfo("hu-HU");
 
@@ -27,6 +27,12 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
             ArgumentNullException.ThrowIfNull(result);
             ArgumentException.ThrowIfNullOrWhiteSpace(path);
 
+            SaveDocument(CreateDocument(result), path);
+        }
+
+        private static void SaveDocument(IDocument document, string path)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(path);
             string destination = Path.GetFullPath(path);
             string temporaryPath = Path.Combine(Path.GetDirectoryName(destination)!, $".sqlplan-{Guid.NewGuid():N}.tmp");
 
@@ -34,7 +40,7 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
             {
                 using (var stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 {
-                    CreateDocument(result).GeneratePdf(stream);
+                    document.GeneratePdf(stream);
                 }
 
                 File.Move(temporaryPath, destination, overwrite: true);
@@ -49,7 +55,7 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
         }
 
         /// <summary>A friss elemzés eredményét PDF-be menti.</summary>
-        public void SaveResultToPdf(CombinedAnalysisResult result, string path)
+        public void SaveResultToPdf(CombinedAnalysisResult result, string path, SqlRewriteComparison? comparison = null)
         {
             ArgumentNullException.ThrowIfNull(result);
 
@@ -59,10 +65,12 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
                 sqlText: null,
                 explainJson: null);
 
-            SaveHistoryToPdf(entry, path);
+            if (comparison is not null && !ReferenceEquals(comparison.Original, result))
+                throw new ArgumentException("Az összehasonlítás másik eredeti elemzéshez tartozik.", nameof(comparison));
+            SaveDocument(CreateDocument(entry, comparison), path);
         }
 
-        private static IDocument CreateDocument(AnalysisHistoryEntry result)
+        private static IDocument CreateDocument(AnalysisHistoryEntry result, SqlRewriteComparison? comparison = null)
         {
             return Document.Create(document => document.Page(page =>
             {
@@ -123,6 +131,11 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
                             Field(body, "Értékelés", finding.Description);
                             Field(body, "Javaslat", finding.Recommendation);
                         });
+                    }
+                    if (comparison is not null)
+                    {
+                        column.Item().PageBreak();
+                        ComposeComparison(column, comparison);
                     }
                 });
                 page.Footer().PaddingTop(12).AlignRight().Text(text =>

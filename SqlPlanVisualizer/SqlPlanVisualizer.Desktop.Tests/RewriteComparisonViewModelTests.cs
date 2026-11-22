@@ -43,6 +43,7 @@ public class RewriteComparisonViewModelTests
         var selected = vm.SelectedSuggestion;
         var running = vm.FetchAsync(false);
         Assert.True(vm.IsBusy);
+        Assert.False(vm.CanExport);
         vm.SelectedSuggestion = null;
         Assert.Same(selected, vm.SelectedSuggestion);
         await vm.FetchAsync(true);
@@ -64,6 +65,7 @@ public class RewriteComparisonViewModelTests
         fake.Response.SetResult("[{\"Plan\":{\"Node Type\":\"Result\"}}]");
         await running;
         Assert.NotNull(vm.Comparison);
+        Assert.True(vm.CanExport);
         Assert.NotEmpty(vm.Metrics);
         Assert.Single(vm.SuggestedRoots);
         Assert.False(vm.IsBusy);

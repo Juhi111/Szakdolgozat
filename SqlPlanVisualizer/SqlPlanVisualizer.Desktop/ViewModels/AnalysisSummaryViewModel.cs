@@ -68,7 +68,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 
         private Task SaveToPdf()
         {
-            return pdfExportService.ExportAnalysisSummaryToPdfAsync(Result);
+            return pdfExportService.ExportAnalysisSummaryToPdfAsync(Result, RewriteComparison?.Comparison);
         }
     }
 }

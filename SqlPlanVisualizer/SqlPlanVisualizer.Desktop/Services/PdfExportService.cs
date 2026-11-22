@@ -12,11 +12,17 @@ namespace SqlPlanVisualizer.Desktop.Services
     {
         private readonly PdfService pdfService = new();
 
-        public Task ExportAnalysisSummaryToPdfAsync(CombinedAnalysisResult result)
+        public Task ExportAnalysisSummaryToPdfAsync(CombinedAnalysisResult result, SqlRewriteComparison? comparison = null)
         {
             ArgumentNullException.ThrowIfNull(result);
 
-            return ExportAsync(path => pdfService.SaveResultToPdf(result, path));
+            return ExportAsync(path => pdfService.SaveResultToPdf(result, path, comparison));
+        }
+
+        public Task ExportComparisonToPdfAsync(SqlRewriteComparison comparison)
+        {
+            ArgumentNullException.ThrowIfNull(comparison);
+            return ExportAnalysisSummaryToPdfAsync(comparison.Original, comparison);
         }
 
         public Task ExportHistoryToPdfAsync(AnalysisHistoryEntry entry)

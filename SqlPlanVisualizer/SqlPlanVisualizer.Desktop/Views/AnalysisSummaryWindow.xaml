@@ -10,12 +10,6 @@
         Background="#F3F4F6">
 
     <Window.Resources>
-        <HierarchicalDataTemplate x:Key="ComparisonPlanTemplate" ItemsSource="{Binding Children}">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="{Binding NodeType}"/>
-                <TextBlock Text="{Binding RelationName}" Foreground="Gray" Margin="8,0,0,0"/>
-            </StackPanel>
-        </HierarchicalDataTemplate>
         <DataTemplate x:Key="FindingTemplate">
             <Border Background="White"
                     BorderBrush="#D8DEE8"
@@ -157,98 +151,6 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <Expander Header="{Binding RewriteHeader}" IsExpanded="True" Margin="0,0,0,16">
-                    <StackPanel Margin="0,10,0,0">
-                        <TextBlock Text="{Binding RewriteStatus}" TextWrapping="Wrap" Margin="0,0,0,10">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding RewriteSuggestions.Count}" Value="0">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                        <ItemsControl ItemsSource="{Binding RewriteSuggestions}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Background="White" BorderBrush="#D8DEE8" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,0,10">
-                                        <StackPanel>
-                                            <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap"/>
-                                            <TextBlock Text="{Binding VerificationStatus}" Foreground="#92400E" TextWrapping="Wrap" Margin="0,8,0,8"/>
-                                            <TextBlock Text="Eredeti SQL" FontWeight="SemiBold" Margin="0,8,0,4"/>
-                                            <TextBox Text="{Binding OriginalSql, Mode=OneWay}" IsReadOnly="True" FontFamily="Consolas" TextWrapping="Wrap" MaxHeight="180" VerticalScrollBarVisibility="Auto" Padding="8"/>
-                                            <TextBlock Text="Javasolt SQL – kijelölhető és másolható" FontWeight="SemiBold" Margin="0,12,0,4"/>
-                                            <TextBox Text="{Binding SuggestedSql, Mode=OneWay}" IsReadOnly="True" FontFamily="Consolas" TextWrapping="Wrap" MaxHeight="180" VerticalScrollBarVisibility="Auto" Padding="8"/>
-                                            <TextBlock Text="{Binding Explanation}" TextWrapping="Wrap" Margin="0,12,0,8"/>
-                                            <TextBlock Text="Alkalmazási feltételek" FontWeight="SemiBold"/>
-                                            <TextBlock Text="{Binding Preconditions}" TextWrapping="Wrap" Margin="0,4,0,0"/>
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </Expander>
-
-                <Expander Header="Javaslat tervlekérése és összehasonlítása" IsExpanded="True" Margin="0,0,0,16">
-                    <StackPanel DataContext="{Binding RewriteComparison}" Margin="0,10,0,0">
-                        <StackPanel IsEnabled="{Binding CanSelect}">
-                            <ComboBox ItemsSource="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}" Margin="0,0,0,8">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate><TextBlock Text="{Binding SuggestedSql}" TextTrimming="CharacterEllipsis" MaxWidth="700"/></DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                            <WrapPanel>
-                                <Button Content="Becsült terv lekérése" Command="{Binding EstimatedCommand}" IsEnabled="{Binding CanStart}" Padding="12,8" Margin="0,0,8,8"/>
-                                <Button Content="Futtatás és mérés" Command="{Binding ActualCommand}" IsEnabled="{Binding CanStart}" Padding="12,8" Margin="0,0,8,8"/>
-                            </WrapPanel>
-                        </StackPanel>
-                        <Button Content="Lekérés megszakítása" Command="{Binding CancelCommand}" IsEnabled="{Binding IsBusy}" HorizontalAlignment="Left" Padding="12,6"/>
-                        <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Margin="0,8,0,12"/>
-                        <StackPanel DataContext="{Binding Comparison}">
-                            <StackPanel.Style>
-                                <Style TargetType="StackPanel">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                    <Style.Triggers><DataTrigger Binding="{Binding}" Value="{x:Null}"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers>
-                                </Style>
-                            </StackPanel.Style>
-                            <TextBlock Text="{Binding EquivalenceStatus}" FontWeight="SemiBold" Foreground="#92400E" TextWrapping="Wrap"/>
-                            <TextBlock Text="{Binding TimingAssessment}" TextWrapping="Wrap" Margin="0,8,0,12"/>
-                            <TextBlock Text="Eredeti terv eredete" FontWeight="SemiBold"/>
-                            <TextBlock Text="{Binding Original.Pair.Plan.Origin.Description}" TextWrapping="Wrap" Margin="0,4,0,8"/>
-                            <TextBlock Text="Javasolt terv eredete" FontWeight="SemiBold"/>
-                            <TextBlock Text="{Binding SuggestedPlan.Origin.Description}" TextWrapping="Wrap" Margin="0,4,0,8"/>
-                        </StackPanel>
-                        <DataGrid ItemsSource="{Binding Metrics}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" Margin="0,0,0,12">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Adat" Binding="{Binding Name}" Width="2*"/>
-                                <DataGridTextColumn Header="Eredeti" Binding="{Binding Original}" Width="*"/>
-                                <DataGridTextColumn Header="Javasolt" Binding="{Binding Suggested}" Width="*"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                        <Grid>
-                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
-                            <StackPanel Margin="0,0,6,0">
-                                <TextBlock Text="Eredeti terv" FontWeight="SemiBold"/>
-                                <TreeView ItemsSource="{Binding OriginalRoots}" ItemTemplate="{StaticResource ComparisonPlanTemplate}" MaxHeight="240"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Margin="6,0,0,0">
-                                <TextBlock Text="Javasolt terv" FontWeight="SemiBold"/>
-                                <TreeView ItemsSource="{Binding SuggestedRoots}" ItemTemplate="{StaticResource ComparisonPlanTemplate}" MaxHeight="240"/>
-                            </StackPanel>
-                        </Grid>
-                        <Expander Header="A javaslat SQL-találatai" Margin="0,12,0,8">
-                            <ItemsControl ItemsSource="{Binding Comparison.SqlFindings}" ItemTemplate="{StaticResource FindingTemplate}"/>
-                        </Expander>
-                        <Expander Header="A javaslat tervtalálatai">
-                            <ItemsControl ItemsSource="{Binding Comparison.PlanFindings}" ItemTemplate="{StaticResource FindingTemplate}"/>
-                        </Expander>
-                    </StackPanel>
-                </Expander>
-
                 <Expander Header="{Binding SqlFindingsHeader}"
                           IsExpanded="True"
                           Margin="0,0,0,16">
@@ -302,6 +204,7 @@
                     Orientation="Horizontal"
                     HorizontalAlignment="Right"
                     Margin="0,16,0,0">
+            <Button Content="SQL-javaslatok és összehasonlítás…" Click="OpenRewrites_Click" Padding="12,8" Margin="0,0,12,0"/>
             <Button Content="Mentés PDF-be"
                     MinWidth="130"
                     Padding="12,8"

@@ -68,7 +68,7 @@ Kézi ellenőrzés Windows alatt:
 
 ## SQL-javítási javaslatok – első változat
 
-Az összegző ablak **SQL-javítási javaslatok** részében az eredeti utasítás mellett külön, kijelölhető/másolható SQL-változat jelenik meg. A javaslat előállítása nem módosítja a betöltött szöveget és nem futtat SQL-t. Külön gombokkal tervet kérhetsz vagy mérést indíthatsz (lásd alább).
+Az összegző ablak **SQL-javaslatok és összehasonlítás…** gombjával nyitható külön ablakban az eredeti utasítás mellett külön, kijelölhető/másolható SQL-változat jelenik meg. A javaslat előállítása nem módosítja a betöltött szöveget és nem futtat SQL-t. Külön gombokkal tervet kérhetsz vagy mérést indíthatsz (lásd alább).
 
 Az első szabály az egy táblát közvetlenül olvasó SELECT felső szintű WHERE feltételében felismeri az `oszlop + egész = egész` és `oszlop - egész = egész` alakot, önállóan vagy AND alatt. Az átírás AST-klónon történik, a parser deparserével állítjuk elő és újraparszoljuk az SQL-t. Egy javaslat egy feltételt változtat meg; több találat esetén külön alternatívák keletkeznek. A megjegyzések kimaradnak, a formázás változhat. A konstansok és az eredmény az int32 tartományban maradnak.
 
@@ -80,16 +80,25 @@ Kipróbálás:
 3. Nyisd meg az összegző ablakot: a javasolt SQL-ben `customer_id = 100` szerepel.
 4. Az eredeti SQL maradjon változatlan. Több utasítás esetén csak az összegzéshez kiválasztott utasításból készül javaslat. Fájlból betöltött, kézzel párosított terv mellett is működik, mert az elemzett SQL-pillanatképből dolgozik.
 
-Új átíráshoz implementáld az `ISqlRewriteRule` interfészt, majd add hozzá az összegző ViewModelben létrehozott `SqlRewriteService` szabálylistájához. A javaslatnak mindig tartalmaznia kell az eredeti és javasolt SQL-t, magyarázatot és alkalmazási feltételeket. A javaslatok és összehasonlításuk PDF-/előzménymentése későbbi lépés; a meglévő elemzési jelentés mentése változatlan.
+Új átíráshoz implementáld az `ISqlRewriteRule` interfészt, majd add hozzá az összegző ViewModelben létrehozott `SqlRewriteService` szabálylistájához. A javaslatnak mindig tartalmaznia kell az eredeti és javasolt SQL-t, magyarázatot és alkalmazási feltételeket. Az elkészült összehasonlítás PDF-be menthető; az előzményfájlok továbbra is az eredeti elemzést tárolják.
 
 ### Javaslat tervlekérése és összehasonlítása
 
-Az összegző ablakban a **Javaslat tervlekérése és összehasonlítása** részben válassz SQL-változatot, majd kérj becsült tervet vagy indíts mérést. A **Futtatás és mérés** megerősítést kér; a becsült lekérés nem kapcsolja be az ANALYZE módot. A futó lekérés megszakítható, az ablak bezárása is megszakítást kér. Egy ablakban egyszerre egy lekérés indítható.
+A külön javaslatablak **Futtatás és összehasonlítás** fülén válassz SQL-változatot, majd kérj becsült tervet vagy indíts mérést. A **Futtatás és mérés** megerősítést kér; a becsült lekérés nem kapcsolja be az ANALYZE módot. A futó lekérés megszakítható, az ablak bezárása is megszakítást kér. Egy ablakban egyszerre egy lekérés indítható.
 
 Az eredeti tervnek az alkalmazásból, az eredeti SQL-hez lekért tervnek kell lennie. A kiválasztott szerver, port, adatbázis, séma és felhasználó egyezését ellenőrizzük. Fájlból betöltött vagy eltérő kapcsolathoz tartozó terv esetén előbb kérj új eredeti tervet. Ez a kapcsolatbeállítások egyezését igazolja, nem az adatbázis változatlanságát vagy fizikai szerverazonosságát.
 
 A javasolt tervet külön tároljuk az ablakban, és a meglévő SQL-/tervelemző szolgáltatásokkal elemezzük. Egymás mellett látható a két tervfa, a tervezési és futási idő, a gyökér költsége és sorszáma, valamint a találatszámok; a javaslat részletes találatai lenyithatók. A főablak SQL-je, terve és eredeti elemzése nem változik. Új lekérés vagy másik javaslat választása lecseréli az ablak előző összehasonlítását.
 
-Futásiidő-arány csak két mért terv pozitív, véges időadataiból készül. Külön időpontban végzett mérésekről van szó: az adatok, indexek, terhelés, cache és beállítások változhattak. Az **eredményazonosság továbbra sincs ellenőrizve**; a sorszámok vagy a találatszámok egyezése nem bizonyítja azt. A két változat ismételt, kontrollált mérése, eredményellenőrzése és az összehasonlítás PDF-/előzménymentése még külön fejlesztés.
+Futásiidő-arány csak két mért terv pozitív, véges időadataiból készül. Külön időpontban végzett mérésekről van szó: az adatok, indexek, terhelés, cache és beállítások változhattak. Az **eredményazonosság továbbra sincs ellenőrizve**; a sorszámok vagy a találatszámok egyezése nem bizonyítja azt. A két változat ismételt, kontrollált mérése, eredményellenőrzése és az összehasonlítás előzménymentése még külön fejlesztés.
 
 Felületi ellenőrzés Windows alatt: eredeti mért terv → Elemzés → Összegzés → javaslat kiválasztása → becsült lekérés (nincs időarány), majd megerősített mérés (időarány, ha mindkét idő pozitív). Ellenőrizd a megszakítást és azt is, hogy másik kapcsolat kiválasztása nem indít lekérést.
+
+
+### Külön javaslatablak és teljes PDF
+
+Az elemzési összegzés az eredeti találatokra összpontosít. A **SQL-javaslatok és összehasonlítás…** gomb külön ablakot nyit két füllel: **SQL-javaslatok**, illetve **Futtatás és összehasonlítás**. Egy összegzéshez egyszerre egy javaslatablak nyílik; újbóli kattintás aktiválja. Az ablak bezárása megszakítást kér a futó lekéréshez; az elkészült eredmény megmarad a hozzá tartozó összegzés élettartamáig.
+
+A javaslatablak **Teljes összehasonlítás mentése PDF-be** gombja sikeres lekérés után használható. A PDF tartalmazza az eredeti elemzés megállapításait, az eredeti és a javasolt SQL teljes szövegét, az átírás feltételeit, a tervforrásokat, az idő-/költség-/találatszám-táblázatot, mindkét terv műveleteit és a javaslat részletes találatait. Az eredményazonosság ellenőrizetlen állapota és a mérés korlátai is szerepelnek. Nem a SELECT eredménysorait exportáljuk, hanem az EXPLAIN és az elemzés eredményeit.
+
+Az összegző ablak meglévő PDF-gombja is hozzáfűzi a hozzá tartozó, jelenleg elkészült összehasonlítást, ha van ilyen. Mindig a kiválasztott javaslat utolsó sikeres eredményét exportáljuk; másik javaslat választása vagy új lekérés indítása törli az előző összehasonlítást. A mentés kezdetén rögzítjük az exportálandó eredmény referenciáját. A hagyományos és előzményből végzett PDF-export összehasonlítás nélkül továbbra is működik. A PDF tartalmazhatja az SQL-ben szereplő üzleti adatokat/literálokat; jelszót vagy connection stringet nem adunk hozzá.
