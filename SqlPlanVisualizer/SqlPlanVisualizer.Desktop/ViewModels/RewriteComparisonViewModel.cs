@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
 using Npgsql;
+using SqlPlanVisualizer.Core.Models.Database;
 using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Desktop.Commands;
 using SqlPlanVisualizer.Desktop.Services;
@@ -34,10 +35,40 @@ public sealed class RewriteComparisonViewModel : ViewModelBase
             "Ellenőrizted az átírás alkalmazási feltételeit, és elindítod a mérést?", "Javaslat futtatása",
             MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes);
         _selectedSuggestion = suggestions.FirstOrDefault();
+        CheckMetadataCommand = new AsyncRelayCommand(CheckMetadataAsync);
         EstimatedCommand = new AsyncRelayCommand(() => FetchAsync(false));
         ActualCommand = new AsyncRelayCommand(() => FetchAsync(true));
         ExportCommand = new AsyncRelayCommand(ExportAsync);
         CancelCommand = new AsyncRelayCommand(() => { Cancel(); return Task.CompletedTask; });
+    }
+
+    private RewriteMetadataCheck _metadataCheck = RewriteMetadataCheck.NotChecked();
+    public RewriteMetadataCheck MetadataCheck
+    {
+        get => _metadataCheck;
+        private set { _metadataCheck = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanStart)); }
+    }
+    public ICommand CheckMetadataCommand { get; }
+    public async Task CheckMetadataAsync()
+    {
+        if (IsBusy || SelectedSuggestion is null) return;
+        MetadataCheck = RewriteMetadataCheck.NotChecked();
+        if (!_session.HasConfiguration) { Status = "Metaadat-ellenőrzéshez válassz adatbázis-kapcsolatot."; return; }
+        IsBusy = true;
+        using var cancellation = new CancellationTokenSource();
+        _cancellation = cancellation;
+        try
+        {
+            var connection = _session.GetConnectionDetails();
+            Status = "Az oszlop metaadatainak lekérése…";
+            var check = await _service.CheckMetadataAsync(_original, SelectedSuggestion, connection.Options, connection.Password, cancellation.Token);
+            cancellation.Token.ThrowIfCancellationRequested();
+            MetadataCheck = check;
+            Status = "A metaadat-ellenőrzés befejeződött. Az eredményazonosságot ez nem bizonyítja.";
+        }
+        catch (OperationCanceledException) { Status = "A metaadat-ellenőrzést megszakítottuk."; }
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) { Status = ex.Message; }
+        finally { _cancellation = null; IsBusy = false; }
     }
 
     public IReadOnlyList<SqlRewriteSuggestion> Suggestions { get; }
@@ -57,7 +88,7 @@ public sealed class RewriteComparisonViewModel : ViewModelBase
     public IEnumerable<PlanNode> SuggestedRoots => Comparison is null ? Array.Empty<PlanNode>() : new[] { Comparison.SuggestedPlan.Root };
     public bool IsBusy { get => _isBusy; private set { _isBusy = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanStart)); OnPropertyChanged(nameof(CanSelect)); OnPropertyChanged(nameof(CanExport)); } }
     public bool CanSelect => !IsBusy;
-    public bool CanStart => !IsBusy && SelectedSuggestion is not null;
+    public bool CanStart => !IsBusy && SelectedSuggestion is not null && !MetadataCheck.BlocksExecution;
     public string Status { get => _status; private set { _status = value; OnPropertyChanged(); } }
     public SqlRewriteSuggestion? SelectedSuggestion
     {
@@ -66,6 +97,7 @@ public sealed class RewriteComparisonViewModel : ViewModelBase
         {
             if (IsBusy || ReferenceEquals(value, _selectedSuggestion)) return;
             _selectedSuggestion = value;
+            MetadataCheck = RewriteMetadataCheck.NotChecked();
             Comparison = null;
             Metrics.Clear();
             OnPropertyChanged();
@@ -92,11 +124,13 @@ public sealed class RewriteComparisonViewModel : ViewModelBase
             Status = analyze ? "A javaslat futtatása és mérése…" : "A javaslat becsült tervének lekérése…";
             var result = await _service.CompareAsync(_original, suggestion, connection.Options, connection.Password, analyze, cancellation.Token);
             cancellation.Token.ThrowIfCancellationRequested();
+            MetadataCheck = result.MetadataCheck;
             Comparison = result;
             AddMetrics(result);
             Status = "A javaslat tervét lekértük és külön elemeztük. Az eredeti elemzés változatlan.";
         }
         catch (OperationCanceledException) { Status = "A tervlekérést megszakítottuk."; }
+        catch (RewriteMetadataException ex) { MetadataCheck = ex.Check; Status = ex.Message; }
         catch (InvalidOperationException ex) { Status = ex.Message; }
         catch (Exception ex) when (ex is NpgsqlException or TimeoutException or JsonException or ArgumentException)
         {

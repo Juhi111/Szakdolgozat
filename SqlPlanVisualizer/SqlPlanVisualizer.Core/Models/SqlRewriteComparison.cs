@@ -4,6 +4,7 @@ namespace SqlPlanVisualizer.Core.Models;
 public sealed record SqlRewriteComparison(CombinedAnalysisResult Original, SqlRewriteSuggestion Suggestion,
     ExecutionPlan SuggestedPlan, IReadOnlyList<SqlAnalysisFinding> SqlFindings, IReadOnlyList<PlanAnalysisFinding> PlanFindings)
 {
+    public SqlPlanVisualizer.Core.Models.Database.RewriteMetadataCheck MetadataCheck { get; init; } = SqlPlanVisualizer.Core.Models.Database.RewriteMetadataCheck.NotChecked();
     public string TimingAssessment
     {
         get

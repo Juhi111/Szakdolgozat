@@ -1,4 +1,5 @@
 using System.Text;
+using SqlPlanVisualizer.Core.Models.Database;
 using SqlPlanVisualizer.Core.Models;
 using SqlPlanVisualizer.Infrastructure.FileSystem;
 using Xunit;
@@ -64,6 +65,11 @@ public class PdfComparisonTests
             SuggestedSql = "SELECT order_id, customer_id FROM szakdoga_lab.orders WHERE customer_id = 100;",
             Explanation = "Az oszlopon végzett összeadást a konstans oldalra helyeztük.", Preconditions = "Ellenőrizd az adattípust és a túlcsordulás lehetőségét." };
         var finding = new PlanAnalysisFinding(root) { Title = "Teszt megállapítás", Description = string.Join(" ", Enumerable.Repeat("Hosszú magyar leírás több oldalon. Árvíztűrő tükörfúrógép.", 80)), Recommendation = "Ellenőrizd az eredményeket." };
-        return new(original, suggestion, plan, Array.Empty<SqlAnalysisFinding>(), new[] { finding });
+        return new(original, suggestion, plan, Array.Empty<SqlAnalysisFinding>(), new[] { finding })
+        {
+            MetadataCheck = new(MetadataCheckStatus.Passed, "A típusfeltétel teljesül. A túlcsordulás nincs ellenőrizve.",
+                new("szakdoga_lab", "orders", "customer_id", "pg_catalog", "int8", "bigint", false, false),
+                origin.CapturedAt, "localhost:5432/szakdoga_teszt; felhasználó: reader")
+        };
     }
 }

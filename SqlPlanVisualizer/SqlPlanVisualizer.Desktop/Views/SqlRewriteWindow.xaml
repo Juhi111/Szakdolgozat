@@ -102,6 +102,8 @@
                             </WrapPanel>
                         </StackPanel>
                         <Button Content="Lekérés megszakítása" Command="{Binding CancelCommand}" IsEnabled="{Binding IsBusy}" HorizontalAlignment="Left" Padding="12,6"/>
+                        <Button Content="Típusfeltétel ellenőrzése / frissítése" Command="{Binding CheckMetadataCommand}" IsEnabled="{Binding CanSelect}" HorizontalAlignment="Left" Padding="12,8" Margin="0,8,0,8"/>
+                        <TextBlock Text="{Binding MetadataCheck.Description}" TextWrapping="Wrap" Margin="0,0,0,8"/>
                         <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Margin="0,8,0,12"/>
                         <StackPanel DataContext="{Binding Comparison}">
                             <StackPanel.Style>

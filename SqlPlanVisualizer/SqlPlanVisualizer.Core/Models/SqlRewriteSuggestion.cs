@@ -3,6 +3,7 @@ namespace SqlPlanVisualizer.Core.Models
     /// <summary>Egy külön ellenőrizendő SQL-változat; nem igazolja az eredmények azonosságát.</summary>
     public sealed record SqlRewriteSuggestion
     {
+        public SqlPlanVisualizer.Core.Models.Database.RewriteMetadataRequirement? MetadataRequirement { get; init; }
         public required string RuleId { get; init; }
         public required string Title { get; init; }
         public required string OriginalSql { get; init; }

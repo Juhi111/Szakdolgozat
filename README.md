@@ -109,3 +109,7 @@ Kilenc átíró szabálycsalád, három új SQL-felismerés és bővített COUNT
 
 - [Szabálylista, támogatott alakok és korlátok](docs/sql-rewrites.md)
 - [Tíz SQL-példa a szakdoga_lab sémához](examples/sql-rewrites/expanded-rules.sql)
+
+## Átírások típusfeltételeinek ellenőrzése
+
+Adatbázisból lekért terv mellett az SQL-javaslatok ablakában ellenőrizhetők a dátumos, aritmetikai és LIKE-átírások oszloptípusai. Ismerten nem megfelelő típusnál a futtatás tiltott; az ellenőrzés pillanatképe az összehasonlító PDF-be is bekerül. [Működés és kipróbálás](docs/rewrite-metadata.md).

@@ -6,7 +6,7 @@ using SqlPlanVisualizer.Core.Models.Database;
 namespace SqlPlanVisualizer.Infrastructure.PostgreSql;
 
 /// <summary>A javaslatot az eredeti tervhez tartozó kapcsolaton kéri le; az eredeti elemzést nem módosítja.</summary>
-public sealed class SqlRewriteComparisonService(IDatabaseExplainService explainService, SqlAnalysisService sqlAnalysis, PlanAnalysisService planAnalysis)
+public sealed class SqlRewriteComparisonService(IDatabaseExplainService explainService, SqlAnalysisService sqlAnalysis, PlanAnalysisService planAnalysis, IDatabaseMetadataService? metadataService = null)
 {
     public static void ValidateSource(CombinedAnalysisResult original, SqlRewriteSuggestion suggestion, DatabaseConnectionOptions options)
     {
@@ -22,6 +22,32 @@ public sealed class SqlRewriteComparisonService(IDatabaseExplainService explainS
             throw new InvalidOperationException("A kiválasztott kapcsolat eltér az eredeti terv kapcsolatától. Válaszd vissza az eredeti kapcsolatot.");
     }
 
+    public async Task<RewriteMetadataCheck> CheckMetadataAsync(CombinedAnalysisResult original, SqlRewriteSuggestion suggestion,
+        DatabaseConnectionOptions options, string password, CancellationToken cancellationToken = default)
+    {
+        ValidateSource(original, suggestion, options);
+        cancellationToken.ThrowIfCancellationRequested();
+        var requirement = suggestion.MetadataRequirement;
+        if (requirement is null) return RewriteMetadataCheck.NotChecked("Ehhez a javaslathoz nincs feloldható, támogatott típusfeltétel.");
+        if (metadataService is null) return RewriteMetadataCheck.NotChecked("A metaadat-szolgáltatás nem érhető el.");
+        var snapshot = options.Copy();
+        try
+        {
+            var column = await metadataService.GetColumnAsync(snapshot, password, requirement.Column, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            return RewriteMetadataEvaluator.Evaluate(requirement.Type, column) with
+            {
+                CheckedAt = DateTimeOffset.UtcNow,
+                Source = $"{snapshot.Host}:{snapshot.Port}/{snapshot.Database}; séma: {snapshot.Schema}; felhasználó: {snapshot.Username}"
+            };
+        }
+        catch (Exception ex) when (ex is Npgsql.NpgsqlException or TimeoutException)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return RewriteMetadataCheck.NotChecked("A metaadat-lekérés nem sikerült. Ellenőrizd a kapcsolatot és a jogosultságokat; a típusfeltétel ismeretlen maradt.");
+        }
+    }
+
     public async Task<SqlRewriteComparison> CompareAsync(CombinedAnalysisResult original, SqlRewriteSuggestion suggestion,
         DatabaseConnectionOptions options, string password, bool analyze, CancellationToken cancellationToken = default)
     {
@@ -30,6 +56,8 @@ public sealed class SqlRewriteComparisonService(IDatabaseExplainService explainS
         var snapshot = options.Copy();
         ValidateSource(original, suggestion, snapshot);
         cancellationToken.ThrowIfCancellationRequested();
+        var metadataCheck = await CheckMetadataAsync(original, suggestion, snapshot, password, cancellationToken);
+        if (metadataCheck.BlocksExecution) throw new RewriteMetadataException(metadataCheck);
         var summary = new PostgreSqlQueryService().ParseSummary(suggestion.SuggestedSql);
         if (!summary.IsSuccess || summary.Statements.Count != 1 || summary.Statements[0].StatementType != "SELECT")
             throw new InvalidOperationException("A javaslatnak egyetlen érvényes SELECT utasítást kell tartalmaznia.");
@@ -49,6 +77,11 @@ public sealed class SqlRewriteComparisonService(IDatabaseExplainService explainS
             throw new InvalidOperationException("A javaslat lekérése nem pontosan egy tervet adott vissza.");
         var sqlFindings = sqlAnalysis.Analyze(summary.Statements);
         var planFindings = planAnalysis.Analyze(new[] { plans[0].Root });
-        return new SqlRewriteComparison(original, suggestion, plans[0], sqlFindings, planFindings);
+        return new SqlRewriteComparison(original, suggestion, plans[0], sqlFindings, planFindings) { MetadataCheck = metadataCheck };
     }
+}
+
+public sealed class RewriteMetadataException(RewriteMetadataCheck check) : InvalidOperationException(check.Description)
+{
+    public RewriteMetadataCheck Check { get; } = check;
 }

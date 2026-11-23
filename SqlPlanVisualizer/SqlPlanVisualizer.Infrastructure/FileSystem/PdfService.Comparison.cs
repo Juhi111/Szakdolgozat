@@ -14,6 +14,7 @@ public partial class PdfService
         Field(column, "Értékelés", result.TimingAssessment);
         Field(column, "Átírás magyarázata", result.Suggestion.Explanation);
         Field(column, "Alkalmazási feltételek", result.Suggestion.Preconditions);
+        Field(column, "Metaadat-ellenőrzés a tervlekéréskor", result.MetadataCheck.Description);
         SectionTitle(column, "Eredeti SQL");
         column.Item().Background(Colors.Grey.Lighten4).Padding(10).Text(result.Suggestion.OriginalSql).FontSize(9);
         SectionTitle(column, "Javasolt SQL");

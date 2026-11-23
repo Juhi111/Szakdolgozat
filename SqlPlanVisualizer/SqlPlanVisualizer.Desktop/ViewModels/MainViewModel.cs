@@ -349,7 +349,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 
             OnPropertyChanged(nameof(SummaryStatus));
 
-            _summaryWindowService.Show(result, sqlSnapshot, _databaseSession, new SqlRewriteComparisonService(_databaseExplainService, _analysisService, _planAnalysisService));
+            _summaryWindowService.Show(result, sqlSnapshot, _databaseSession, new SqlRewriteComparisonService(_databaseExplainService, _analysisService, _planAnalysisService, new PostgreSqlMetadataService()));
 
             await SaveHistoryAsync(result, sqlSnapshot, jsonSnapshot);
         }

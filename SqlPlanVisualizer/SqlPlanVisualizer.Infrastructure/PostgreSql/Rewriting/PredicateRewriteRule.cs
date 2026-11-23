@@ -25,6 +25,7 @@ public abstract class PredicateRewriteRule : ISqlRewriteRule
         {
             var candidate = parsed.Clone();
             var slot = RewriteAst.Slots(candidate.Stmts[0].Stmt.SelectStmt)[i];
+            var requirement = RewriteColumnResolver.Resolve(RuleId, candidate.Stmts[0].Stmt.SelectStmt, slot.Node);
             var replacement = Rewrite(slot.Node);
             if (replacement is null) continue;
             slot.Replace(replacement);
@@ -33,7 +34,7 @@ public abstract class PredicateRewriteRule : ISqlRewriteRule
             RewriteAst.Parse(deparsed.Value);
             suggestions.Add(new SqlRewriteSuggestion
             {
-                RuleId = RuleId, Title = Title, OriginalSql = sql, SuggestedSql = deparsed.Value,
+                MetadataRequirement = requirement, RuleId = RuleId, Title = Title, OriginalSql = sql, SuggestedSql = deparsed.Value,
                 Explanation = Explanation + " Egy változat egy feltételt módosít. Az AST-ből generált SQL formázása változhat, megjegyzései kimaradnak.",
                 Preconditions = Preconditions + " A beépített típusokat és operátorokat feltételezzük; a metaadatokat nem ellenőriztük. " +
                     "Az eredményazonosság és a gyorsulás nincs igazolva. Teszteld az eredményt és a tervet."
