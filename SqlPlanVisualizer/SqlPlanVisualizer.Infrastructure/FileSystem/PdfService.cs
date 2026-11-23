@@ -93,6 +93,8 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
                         info.Item().Text($"Végrehajtási idő: {FormatTime(result.ExecutionTime)}");
                     });
 
+                    ComposeIndexAssessment(column, result.IndexAssessment);
+
                     SectionTitle(column, $"Összekapcsolt megállapítások ({result.CombinedFindings.Count})");
                     if (result.CombinedFindings.Count == 0)
                         column.Item().Text("Nem találtunk közvetlenül összekapcsolható megállapítást.");

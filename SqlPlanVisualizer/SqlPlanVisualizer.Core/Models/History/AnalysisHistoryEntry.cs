@@ -22,6 +22,8 @@ namespace SqlPlanVisualizer.Core.Models.History
 
         public PlanOrigin? PlanOrigin { get; set; }
 
+        public SqlPlanVisualizer.Core.Models.Database.IndexAssessmentSnapshot? IndexAssessment { get; set; }
+
         public string? SqlText { get; set; }
 
         public string? ExplainJson { get; set; }

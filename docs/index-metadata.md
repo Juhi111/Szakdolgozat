@@ -28,10 +28,22 @@ A lehetséges jelölt **nem bizonyítottan alkalmazható index**. Kolláció, op
 - A lower/upper illesztés támogatja az index kifejezésében a text/varchar castot, de csak lehetséges egyezésként.
 - Idegen kulcsokat ez a kör nem olvas. Az egyedi index és az UNIQUE megszorítás külön fogalom; részleges egyedi indexből nem következtetünk globális egyediségre.
 - Sikertelen vagy jogosultság miatt elérhetetlen metaadat-lekérés nem jelenik meg „nincs index” állításként.
-- A meglévő SQL-/tervtalálatok és PDF-ek változatlanok; a metaadatból származó kiegészítések ebben a külön ablakban láthatók.
+- A meglévő SQL-/tervtalálatokat megőrizzük. Az összegzés lenyitható „Adatbázis alapján pontosított indexjavaslatok” része a lekérés után kiegészíti az általános javaslatokat; ugyanaz az értékelés a PDF-ben is szerepel.
 
 ## Ellenőrzés
 
 A `examples/index-metadata/queries.sql` lekérdezéseit külön-külön töltsd be a szakdoga_lab sémához. Meglévő indexeid alapján az elsőnél az `idx_customers_lower_email`, a másodiknál az `idx_orders_date_desc` lehet jelölt. A tervező tényleges indexválasztása adatfüggő. Az INCLUDE mezőknek külön kell szerepelniük. PRIMARY KEY megszorítások a leltár alján láthatók.
 
 Automatizált tesztek: kifejezés és idézett név illesztése, típuskonverzió, részleges/érvénytelen index, INCLUDE kizárása, rendezési irány és NULL-sorrend, bitmap szülőkontextus, sémaütközés, kapcsolateltérés, hiányzó metaadat és megszakítás.
+
+## Az összegzéshez tartozó pillanatkép
+
+Sikeres lekérés után az értékelés, a forrás, a lekérési idő és a felhasznált index-/kulcsdefiníciók változatlan másolata a CombinedAnalysisResult része. A metaadatfrissítés új pillanatképet ad; a korábban készített export nem változik. Sikertelen vagy megszakított frissítés megtartja az előző pillanatképet, annak eredeti dátumával. Részleges lekérés esetén az elérhetetlen táblákról szóló közlések is szerepelnek.
+
+Az összegzés és a PDF egyaránt jelzi, ha a metaadatot még nem kértük le. Ha egy felismert jelöltet a terv is megnevez, a javaslat a meglévő index vizsgálatát kéri új index helyett. Ha nincs felismerhető jelölt, az nem bizonyítja egy index hiányát vagy szükségességét.
+
+A PDF összehasonlításban ez a fejezet az **eredeti tervhez** tartozik; nem állítjuk, hogy a javasolt SQL terve ugyanazt az indexet használja. A fájlból elemzés továbbra is működik metaadat nélkül.
+
+Az előzménymodell opcionálisan képes tárolni és PDF-be exportálni a pillanatképet. A régi bejegyzések olvashatók maradnak. A már elmentett automatikus előzményeket nem írjuk át utólag: az összegzés megnyitásakor mentett bejegyzésben még nincs benne a később lekért metaadat. A későbbi pillanatképet az összegzés PDF-exportjával lehet tartósan megőrizni.
+
+Felületi próba: nyisd meg az összegzést lekérés előtt (ellenőrizetlen állapot), majd kérd le az indexeket a külön ablakban. Az összegzés lenyitható része frissüljön. Exportálj PDF-et, és ellenőrizd az egyező forrást, időpontot, megállapításokat és definíciókat. Megszakított frissítés után a korábbi időpontnak kell megmaradnia.

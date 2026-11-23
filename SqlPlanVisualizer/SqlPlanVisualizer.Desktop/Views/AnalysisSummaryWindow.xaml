@@ -91,6 +91,21 @@
                            TextWrapping="Wrap"
                            Foreground="#526078"
                            Margin="0,0,0,16"/>
+                <Expander Header="Adatbázis alapján pontosított indexjavaslatok" IsExpanded="False" Margin="0,0,0,16">
+                    <StackPanel Margin="10">
+                        <TextBlock Text="{Binding IndexAssessmentStatus}" TextWrapping="Wrap" Margin="0,6"/>
+                        <TextBlock Text="{Binding IndexAssessment.SourceText}" TextWrapping="Wrap" Foreground="Gray" Margin="0,6"/>
+                        <ItemsControl ItemsSource="{Binding IndexAssessment.Notices}"><ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,4"/></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                        <ItemsControl ItemsSource="{Binding IndexAssessment.Items}"><ItemsControl.ItemTemplate><DataTemplate>
+                            <Border BorderBrush="LightGray" BorderThickness="1" Padding="10" Margin="0,5"><StackPanel>
+                                <TextBlock Text="{Binding Table}" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,4"/>
+                                <TextBlock Text="{Binding Description}" TextWrapping="Wrap"/>
+                            </StackPanel></Border>
+                        </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                    </StackPanel>
+                </Expander>
+
                 <TextBlock Text="Összekapcsolt megállapítások"
            FontSize="18"
            FontWeight="SemiBold"

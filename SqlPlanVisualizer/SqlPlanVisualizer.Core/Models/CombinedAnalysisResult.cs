@@ -24,6 +24,14 @@
             PlanFindings = planFindings.ToList().AsReadOnly();
         }
 
+        public SqlPlanVisualizer.Core.Models.Database.IndexAssessmentSnapshot? IndexAssessment { get; private set; }
+
+        public void SetIndexAssessment(SqlPlanVisualizer.Core.Models.Database.IndexAssessmentSnapshot snapshot)
+        {
+            ArgumentNullException.ThrowIfNull(snapshot);
+            IndexAssessment = snapshot;
+        }
+
         public StatementPlanPair Pair { get; }
         public IReadOnlyList<SqlAnalysisFinding> SqlFindings { get; }
         public IReadOnlyList<PlanAnalysisFinding> PlanFindings { get; }

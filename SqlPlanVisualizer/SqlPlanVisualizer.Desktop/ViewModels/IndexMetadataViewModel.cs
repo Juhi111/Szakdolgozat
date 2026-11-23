@@ -25,7 +25,7 @@ public sealed class IndexMetadataViewModel : ViewModelBase
     public void Cancel() => _cancellation?.Cancel();
     private async Task LoadAsync()
     {
-        Report = null;
+        // A legutóbbi sikeres pillanatkép megmarad sikertelen frissítés esetén.
         if (_session?.HasConfiguration != true) { StatusMessage = "Válassz adatbázis-kapcsolatot, majd kérd le a tervet."; return; }
         using var cancellation = new CancellationTokenSource();
         _cancellation = cancellation;
@@ -33,7 +33,10 @@ public sealed class IndexMetadataViewModel : ViewModelBase
         try
         {
             var details = _session.GetConnectionDetails();
-            Report = await new IndexMetadataAnalysisService(new PostgreSqlIndexMetadataService()).LoadAsync(_result, details.Options, details.Password, cancellation.Token);
+            var report = await new IndexMetadataAnalysisService(new PostgreSqlIndexMetadataService()).LoadAsync(_result, details.Options, details.Password, cancellation.Token);
+            cancellation.Token.ThrowIfCancellationRequested();
+            _result.SetIndexAssessment(IndexAssessmentSnapshot.Capture(report));
+            Report = report;
             StatusMessage = "A lekérés befejeződött. A szerkezeti egyezés nem bizonyítja az index alkalmazhatóságát.";
         }
         catch (OperationCanceledException) { StatusMessage = "A lekérést megszakítottuk."; }

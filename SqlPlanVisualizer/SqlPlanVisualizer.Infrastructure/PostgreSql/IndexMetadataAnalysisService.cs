@@ -82,7 +82,7 @@ public sealed class IndexMetadataAnalysisService(IDatabaseIndexMetadataService s
         foreach (var function in functions)
         {
             var matches = table.Indexes.Where(i => i.IsUsable && i.Elements.Where(e => !e.Included).OrderBy(e => e.Position).FirstOrDefault() is { Column: null } key && FunctionMatches(key.Definition, function.Function, function.Column)).ToList();
-            observations.Add(new($"Függvényes szűrés: {function.Function}({function.Column})", CandidateText(matches)));
+            observations.Add(new($"Függvényes szűrés: {function.Function}({function.Column})", CandidateText(matches, named)));
         }
         if (select.SortClause.Count > 0)
         {
@@ -102,17 +102,24 @@ public sealed class IndexMetadataAnalysisService(IDatabaseIndexMetadataService s
                     }
                     return true;
                 })).ToList();
-                observations.Add(new("Rendezéshez lehetséges index", CandidateText(candidates)));
+                observations.Add(new("Rendezéshez lehetséges index", CandidateText(candidates, named)));
             }
             else observations.Add(new("Rendezés", "A rendezési kifejezés automatikus indexillesztése jelenleg nem támogatott."));
         }
         return observations;
     }
 
-    private static string CandidateText(List<DatabaseIndexMetadata> indexes) => indexes.Count == 0
+    private static string CandidateText(List<DatabaseIndexMetadata> indexes, HashSet<string> named)
+    {
+        var used = indexes.Where(i => named.Contains(i.Name)).Select(i => i.Name).ToArray();
+        string context = used.Length > 0
+            ? "A terv már megnevez lehetséges jelöltet: " + string.Join(", ", used) + ". Új index javaslata előtt a meglévő művelet futását vizsgáld meg; a megnevezés nem bizonyítja, hogy ezzel oldotta meg a szűrést vagy rendezést. "
+            : indexes.Count > 0 ? "Van meglévő lehetséges index, de a tervben nem azonosítottuk ennek használatát. Vizsgáld meg az alkalmazhatóságát és a tervező választását; a hiányzó azonosítás nem bizonyítja a használat teljes hiányát. " : "";
+        return context + (indexes.Count == 0
         ? "Nem találtunk támogatott szerkezeti illeszkedést. Ez nem bizonyítja, hogy új index szükséges: összetett kifejezések és más indexelési lehetőségek kívül eshetnek a vizsgálaton."
         : "Meglévő, szerkezetileg lehetséges jelölt: " + string.Join(", ", indexes.Select(i => i.Name + (i.Predicate is null ? "" : " (részleges index; a feltétel teljesülését külön ellenőrizni kell)"))) +
-          ". Új index előtt ezt vizsgáld meg. A típuskonverzió, kolláció, operátorosztály, szelektivitás és a teljes lekérdezés hatását nem igazoltuk; a jelölt nem garantál indexhasználatot vagy rendezésmentes tervet.";
+          ". Új index előtt ezt vizsgáld meg. A típuskonverzió, kolláció, operátorosztály, szelektivitás és a teljes lekérdezés hatását nem igazoltuk; a jelölt nem garantál indexhasználatot vagy rendezésmentes tervet.");
+    }
 
     private static bool FunctionMatches(string expression, string function, string column)
     {

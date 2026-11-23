@@ -12,7 +12,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
     /// <summary>
     /// Egy elkészült összegzés adatait biztosítja az eredményablaknak.
     /// </summary>
-    public class AnalysisSummaryViewModel
+    public class AnalysisSummaryViewModel : ViewModelBase
     {
 
         private readonly PdfExportService pdfExportService = new();
@@ -24,6 +24,10 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             ArgumentNullException.ThrowIfNull(result);
             Result = result;
             IndexMetadata = new IndexMetadataViewModel(result, session);
+            IndexMetadata.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(IndexMetadata.Report)) { OnPropertyChanged(nameof(IndexAssessment)); OnPropertyChanged(nameof(IndexAssessmentStatus)); }
+            };
             if (analyzedSql is not null)
             {
                 try
@@ -41,6 +45,8 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             SaveResultToPdf = new AsyncRelayCommand(SaveToPdf);
         }
 
+        public SqlPlanVisualizer.Core.Models.Database.IndexAssessmentSnapshot? IndexAssessment => Result.IndexAssessment;
+        public string IndexAssessmentStatus => IndexAssessment is null ? SqlPlanVisualizer.Core.Models.Database.IndexAssessmentSnapshot.NotChecked : IndexAssessment.Guidance;
         public IndexMetadataViewModel IndexMetadata { get; }
         public RewriteComparisonViewModel? RewriteComparison { get; }
         public CombinedAnalysisResult Result { get; }

@@ -21,6 +21,7 @@ namespace SqlPlanVisualizer.Core.Analysis
                 PlanOrigin = analysis.Pair.Plan.Origin is { } origin
                     ? origin with { SqlText = includeSourceFiles ? origin.SqlText : null }
                     : null,
+                IndexAssessment = analysis.IndexAssessment,
                 StatementIndex = analysis.Pair.Statement.StatementIndex,
                 PlanIndex = analysis.Pair.Plan.PlanIndex,
                 PlanningTime = analysis.PlanningTime,
