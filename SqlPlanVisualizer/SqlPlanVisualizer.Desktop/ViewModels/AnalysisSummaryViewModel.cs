@@ -23,6 +23,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         {
             ArgumentNullException.ThrowIfNull(result);
             Result = result;
+            IndexMetadata = new IndexMetadataViewModel(result, session);
             if (analyzedSql is not null)
             {
                 try
@@ -40,6 +41,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             SaveResultToPdf = new AsyncRelayCommand(SaveToPdf);
         }
 
+        public IndexMetadataViewModel IndexMetadata { get; }
         public RewriteComparisonViewModel? RewriteComparison { get; }
         public CombinedAnalysisResult Result { get; }
         public IReadOnlyList<SqlRewriteSuggestion> RewriteSuggestions { get; } = Array.Empty<SqlRewriteSuggestion>();

@@ -113,3 +113,7 @@ Kilenc átíró szabálycsalád, három új SQL-felismerés és bővített COUNT
 ## Átírások típusfeltételeinek ellenőrzése
 
 Adatbázisból lekért terv mellett az SQL-javaslatok ablakában ellenőrizhetők a dátumos, aritmetikai és LIKE-átírások oszloptípusai. Ismerten nem megfelelő típusnál a futtatás tiltott; az ellenőrzés pillanatképe az összehasonlító PDF-be is bekerül. [Működés és kipróbálás](docs/rewrite-metadata.md).
+
+## Indexek és kulcsok lekérése
+
+Az összegzésből nyitható külön ablakban megtekinthetők a terv tábláinak aktuális indexei, PK/UNIQUE kulcsai és a függvényes szűréshez vagy rendezéshez lehetséges meglévő indexek. [Működés, korlátok és felületi ellenőrzés](docs/index-metadata.md).

@@ -200,10 +200,11 @@
             </StackPanel>
         </ScrollViewer>
 
-        <StackPanel Grid.Row="2"
+        <WrapPanel Grid.Row="2"
                     Orientation="Horizontal"
                     HorizontalAlignment="Right"
                     Margin="0,16,0,0">
+            <Button Content="Indexek és kulcsok…" Click="OpenIndexes_Click" Padding="12,8" Margin="0,0,12,0"/>
             <Button Content="SQL-javaslatok és összehasonlítás…" Click="OpenRewrites_Click" Padding="12,8" Margin="0,0,12,0"/>
             <Button Content="Mentés PDF-be"
                     MinWidth="130"
@@ -214,6 +215,6 @@
                     Width="110"
                     Padding="12,8"
                     Click="CloseButton_Click"/>
-        </StackPanel>
+        </WrapPanel>
     </Grid>
 </Window>
