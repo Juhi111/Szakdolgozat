@@ -1,9 +1,9 @@
-<Window x:Class="SqlPlanVisualizer.Desktop.Views.IndexMetadataWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Indexek és kulcsok" Width="1000" Height="720" MinWidth="650" MinHeight="450" WindowStartupLocation="CenterOwner">
+<Window x:Class="SqlPlanVisualizer.Desktop.Views.IndexMetadataWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Az elemzéshez felhasznált adatbázisadatok" Width="1000" Height="720" MinWidth="650" MinHeight="450" WindowStartupLocation="CenterOwner">
     <Window.Resources><Style TargetType="TextBlock"><Setter Property="TextWrapping" Value="Wrap"/><Setter Property="Margin" Value="0,3"/></Style></Window.Resources>
     <DockPanel Margin="20">
         <StackPanel DockPanel.Dock="Top">
-            <TextBlock Text="Indexek és kulcsok" FontSize="24" FontWeight="SemiBold"/>
-            <WrapPanel><Button Content="Lekérés / frissítés" Command="{Binding LoadCommand}" Padding="14,8" Margin="0,8,8,8"/><Button Content="Megszakítás" Click="Cancel_Click" Padding="14,8" Margin="0,8"/></WrapPanel>
+            <TextBlock Text="Az elemzéshez felhasznált adatbázisadatok" FontSize="24" FontWeight="SemiBold"/>
+            <WrapPanel><Button Content="Adatok frissítése" Command="{Binding LoadCommand}" Padding="14,8" Margin="0,8,8,8"/><Button Content="Megszakítás" Click="Cancel_Click" Padding="14,8" Margin="0,8"/></WrapPanel>
             <TextBlock Text="{Binding StatusMessage}"/><TextBlock Text="{Binding Report.SourceText}" Foreground="Gray"/>
             <ItemsControl ItemsSource="{Binding Report.Notices}"><ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" Foreground="DarkOrange"/></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
         </StackPanel>
@@ -21,8 +21,21 @@
                     <TextBlock Text="{Binding Predicate, StringFormat='Feltétel: {0}'}"/>
                     <TextBox Text="{Binding Definition, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" FontFamily="Consolas" BorderThickness="0"/>
                 </StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
-                <TextBlock Text="PRIMARY KEY / UNIQUE megszorítások" FontWeight="Bold"/>
+                <TextBlock Text="Kulcsok és megszorítások" FontWeight="Bold"/>
                 <ItemsControl ItemsSource="{Binding Metadata.Keys}"><ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding Details}"/></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+            </StackPanel></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></ScrollViewer></TabItem>
+            <TabItem Header="Oszlopok és statisztikák"><ScrollViewer VerticalScrollBarVisibility="Auto"><ItemsControl ItemsSource="{Binding Report.Tables}"><ItemsControl.ItemTemplate><DataTemplate><StackPanel Margin="12">
+                <TextBlock Text="{Binding Metadata.DisplayName}" FontSize="18" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding Metadata.Statistics.Description}"/>
+                <TextBlock Text="Oszlopok" FontWeight="Bold"/>
+                <ItemsControl ItemsSource="{Binding Metadata.Columns}"><ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding Description}"/></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                <TextBlock Text="Oszlopstatisztikák (becslések; a negatív n_distinct arányt jelent)" FontWeight="Bold"/>
+                <ItemsControl ItemsSource="{Binding Metadata.ColumnStatistics}"><ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding}"/></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                <TextBlock Text="Kiterjesztett statisztikák" FontWeight="Bold"/>
+                <ItemsControl ItemsSource="{Binding Metadata.ExtendedStatistics}"/>
+                <TextBlock Text="A metaadat-kapcsolat beállításai (nem feltétlenül a terv készítésekor érvényes értékek)" FontWeight="Bold"/>
+                <ItemsControl ItemsSource="{Binding Metadata.Settings}"><ItemsControl.ItemTemplate><DataTemplate><WrapPanel><TextBlock Text="{Binding Key}" Margin="0,0,12,0"/><TextBlock Text="{Binding Value}"/></WrapPanel></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                <TextBlock Text="Telepített bővítmények" FontWeight="Bold"/><ItemsControl ItemsSource="{Binding Metadata.Extensions}"/>
             </StackPanel></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></ScrollViewer></TabItem>
         </TabControl>
     </DockPanel>

@@ -35,6 +35,7 @@ public sealed class RewriteComparisonViewModel : ViewModelBase
             "Ellenőrizted az átírás alkalmazási feltételeit, és elindítod a mérést?", "Javaslat futtatása",
             MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes);
         _selectedSuggestion = suggestions.FirstOrDefault();
+        MetadataCheck = ReadSnapshotCheck(_selectedSuggestion);
         CheckMetadataCommand = new AsyncRelayCommand(CheckMetadataAsync);
         EstimatedCommand = new AsyncRelayCommand(() => FetchAsync(false));
         ActualCommand = new AsyncRelayCommand(() => FetchAsync(true));
@@ -97,13 +98,26 @@ public sealed class RewriteComparisonViewModel : ViewModelBase
         {
             if (IsBusy || ReferenceEquals(value, _selectedSuggestion)) return;
             _selectedSuggestion = value;
-            MetadataCheck = RewriteMetadataCheck.NotChecked();
+            MetadataCheck = ReadSnapshotCheck(value);
             Comparison = null;
             Metrics.Clear();
             OnPropertyChanged();
             OnPropertyChanged(nameof(CanStart));
         }
     }
+    private RewriteMetadataCheck ReadSnapshotCheck(SqlRewriteSuggestion? suggestion)
+    {
+        if (suggestion?.MetadataRequirement is not { } requirement || _original.DatabaseMetadata is not { } report)
+            return RewriteMetadataCheck.NotChecked("A szükséges feltételt a terv lekérése előtt automatikusan ellenőrizzük.");
+        var sourceSchema = _original.Pair.Plan.Origin?.Schema;
+        var candidates = report.Tables.Select(t => t.Metadata).Where(t => t.Table == requirement.Column.Table);
+        var table = requirement.Column.Schema is string schema ? candidates.FirstOrDefault(t => t.Schema == schema)
+            : candidates.FirstOrDefault(t => t.Schema == "pg_catalog") ?? candidates.FirstOrDefault(t => t.Schema == sourceSchema);
+        var item = table?.Columns.FirstOrDefault(c => c.Name == requirement.Column.Column);
+        var column = item is null || table is null ? null : new DatabaseColumnMetadata(table.Schema, table.Table, item.Name, item.TypeSchema, item.TypeName, item.DisplayType, item.IsDomain, item.IsNullable);
+        return SqlPlanVisualizer.Core.Analysis.RewriteMetadataEvaluator.Evaluate(requirement.Type, column) with { CheckedAt = report.CapturedAt, Source = report.Source };
+    }
+
     public void Cancel() => _cancellation?.Cancel();
 
     public async Task FetchAsync(bool analyze)

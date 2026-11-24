@@ -117,3 +117,7 @@ Adatbázisból lekért terv mellett az SQL-javaslatok ablakában ellenőrizhető
 ## Indexek és kulcsok lekérése
 
 Az összegzésből nyitható külön ablakban megtekinthetők a terv tábláinak aktuális indexei, PK/UNIQUE kulcsai és a függvényes szűréshez vagy rendezéshez lehetséges meglévő indexek. [Működés, korlátok és felületi ellenőrzés](docs/index-metadata.md).
+
+## Automatikus elemzési folyamat
+
+A főablakban választható fájlos, becsült adatbázisos vagy mért adatbázisos elemzés. Az **Elemzés indítása** automatikusan összefogja a tervlekérést, a metaadatokat és az összegzést. [Működés, metaadatok és tesztelés](docs/automatic-analysis.md).

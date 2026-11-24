@@ -139,6 +139,38 @@ public sealed class ExplainCommandTests
         Assert.Contains("Automatikusan párosítva", vm.SummaryStatus);
     }
 
+
+    [Theory]
+    [InlineData(1, false)]
+    [InlineData(2, true)]
+    public async Task OneClickAnalysis_RoutesModeAndStopsOnFailedPlan(int mode, bool actual)
+    {
+        var service = new FakeExplainService(); var vm = Create(service); vm.AnalysisMode = mode;
+        var completion = ExecuteAsync(vm.AnalyzeCommand);
+        Assert.True(vm.IsAnalyzing); Assert.Equal(actual, service.Actual); Assert.False(vm.CanChooseAnalysisMode);
+        service.Response.SetException(new PostgresException("test failure", "ERROR", "ERROR", "42P01"));
+        await completion;
+        Assert.Empty(vm.PlanRoots); Assert.Empty(vm.PlansForSummary); Assert.False(vm.IsAnalyzing);
+    }
+
+    [Fact]
+    public async Task FileAnalysis_DoesNotExecuteSqlEvenWithConnection()
+    {
+        var service = new FakeExplainService(); var vm = Create(service);
+        await ExecuteAsync(vm.AnalyzeCommand);
+        Assert.Equal(0, service.Calls); Assert.Single(vm.StatementsForSummary);
+    }
+
+    [Fact]
+    public async Task OneClickAnalysis_DiscardsPlanAfterSqlChanges()
+    {
+        var service = new FakeExplainService(); var vm = Create(service); vm.AnalysisMode = 1;
+        var completion = ExecuteAsync(vm.AnalyzeCommand);
+        vm.SqlText = "SELECT 2"; service.Response.SetResult(PlanJson);
+        await completion;
+        Assert.Empty(vm.PlanRoots); Assert.Empty(vm.PlansForSummary); Assert.False(vm.IsAnalyzing);
+    }
+
     private static MainViewModel Create(FakeExplainService service)
     {
         var session = new DatabaseSession();

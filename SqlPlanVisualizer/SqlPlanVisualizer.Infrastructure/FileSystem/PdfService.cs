@@ -93,6 +93,10 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
                         info.Item().Text($"Végrehajtási idő: {FormatTime(result.ExecutionTime)}");
                     });
 
+                    SectionTitle(column, "Mit érdemes átnézned?");
+                    column.Item().Text(AnalysisOverview.Describe(result));
+                    foreach (var item in AnalysisOverview.Create(result))
+                        Card(column, item.Title, body => { Field(body, "Röviden", item.Brief); Field(body, "Következő lépés", item.NextStep); });
                     ComposeIndexAssessment(column, result.IndexAssessment);
 
                     SectionTitle(column, $"Összekapcsolt megállapítások ({result.CombinedFindings.Count})");
@@ -104,8 +108,10 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
                         {
                             Field(body, "SQL-megfigyelés", finding.SqlObservation);
                             Field(body, "Tervmegfigyelés", finding.PlanObservation);
-                            Field(body, "Értékelés", finding.Description);
-                            Field(body, "Javaslat", finding.Recommendation);
+                            Field(body, "Röviden", finding.Brief);
+                            Field(body, "Következő lépés", finding.NextStep);
+                            Field(body, "Részletek", finding.Description);
+                            Field(body, "Alkalmazási feltételek", finding.Recommendation);
                         });
                     }
 
@@ -116,8 +122,10 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
                     {
                         Card(column, finding.Title, body =>
                         {
-                            Field(body, "Értékelés", finding.Description);
-                            Field(body, "Javaslat", finding.Recommendation);
+                            Field(body, "Röviden", finding.Brief);
+                            Field(body, "Következő lépés", finding.NextStep);
+                            Field(body, "Részletek", finding.Description);
+                            Field(body, "Alkalmazási feltételek", finding.Recommendation);
                         });
                     }
 
@@ -130,10 +138,13 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
                         {
                             string relation = string.IsNullOrWhiteSpace(finding.RelationName) ? string.Empty : $" ({finding.RelationName})";
                             Field(body, "Művelet", finding.NodeType + relation);
-                            Field(body, "Értékelés", finding.Description);
-                            Field(body, "Javaslat", finding.Recommendation);
+                            Field(body, "Röviden", finding.Brief);
+                            Field(body, "Következő lépés", finding.NextStep);
+                            Field(body, "Részletek", finding.Description);
+                            Field(body, "Alkalmazási feltételek", finding.Recommendation);
                         });
                     }
+                    ComposeMetadataEvidence(column, result.IndexAssessment);
                     if (comparison is not null)
                     {
                         column.Item().PageBreak();

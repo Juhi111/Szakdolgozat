@@ -13,10 +13,10 @@ public sealed class IndexMetadataViewModel : ViewModelBase
     private readonly DatabaseSession? _session;
     private CancellationTokenSource? _cancellation;
     private IndexMetadataReport? _report;
-    private string _status = "A lekérés az eredeti tervhez tartozó adatbázis aktuális indexeit és PRIMARY KEY / UNIQUE kulcsait mutatja. Nem módosítja az adatbázist.";
+    private string _status = "Itt láthatók az elemzéshez felhasznált adatbázisadatok. Frissítésre csak akkor van szükség, ha közben megváltoztak.";
     public IndexMetadataViewModel(CombinedAnalysisResult result, DatabaseSession? session)
     {
-        _result = result; _session = session;
+        _result = result; _session = session; _report = result.DatabaseMetadata;
         LoadCommand = new AsyncRelayCommand(LoadAsync);
     }
     public ICommand LoadCommand { get; }
@@ -29,13 +29,13 @@ public sealed class IndexMetadataViewModel : ViewModelBase
         if (_session?.HasConfiguration != true) { StatusMessage = "Válassz adatbázis-kapcsolatot, majd kérd le a tervet."; return; }
         using var cancellation = new CancellationTokenSource();
         _cancellation = cancellation;
-        StatusMessage = "Indexek és kulcsok lekérése…";
+        StatusMessage = "Az adatbázisadatok frissítése…";
         try
         {
             var details = _session.GetConnectionDetails();
             var report = await new IndexMetadataAnalysisService(new PostgreSqlIndexMetadataService()).LoadAsync(_result, details.Options, details.Password, cancellation.Token);
             cancellation.Token.ThrowIfCancellationRequested();
-            _result.SetIndexAssessment(IndexAssessmentSnapshot.Capture(report));
+            _result.SetDatabaseMetadata(report);
             Report = report;
             StatusMessage = "A lekérés befejeződött. A szerkezeti egyezés nem bizonyítja az index alkalmazhatóságát.";
         }

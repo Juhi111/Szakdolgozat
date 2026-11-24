@@ -54,6 +54,9 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         public string RewriteStatus { get; } = "Ehhez az utasításhoz jelenleg nincs támogatott átírási javaslat.";
         public string RewriteHeader => $"SQL-javítási javaslatok ({RewriteSuggestions.Count})";
 
+        public IReadOnlyList<OverviewItem> Overview => AnalysisOverview.Create(new AnalysisHistoryMapper().Map(Result, false, null, null));
+        public string OverviewText => AnalysisOverview.Describe(new AnalysisHistoryMapper().Map(Result, false, null, null));
+
         public string PairDescription =>
             $"{Result.Pair.Statement.StatementIndex}. SQL-utasítás – " +
             $"{Result.Pair.Plan.PlanIndex}. végrehajtási terv";

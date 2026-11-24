@@ -12,7 +12,8 @@ public partial class PdfService
         column.Item().Text(result.Suggestion.Title).FontSize(14).SemiBold();
         column.Item().Background(Colors.Amber.Lighten4).Padding(10).Text(result.EquivalenceStatus);
         Field(column, "Értékelés", result.TimingAssessment);
-        Field(column, "Átírás magyarázata", result.Suggestion.Explanation);
+        Field(column, "Mi változott?", result.Suggestion.BriefExplanation);
+        Field(column, "Az átírás részletes magyarázata", result.Suggestion.Explanation);
         Field(column, "Alkalmazási feltételek", result.Suggestion.Preconditions);
         Field(column, "Metaadat-ellenőrzés a tervlekéréskor", result.MetadataCheck.Description);
         SectionTitle(column, "Eredeti SQL");
@@ -54,7 +55,7 @@ public partial class PdfService
             column.Item().Text("A javasolt SQL-re nem keletkezett találat.");
         }
         foreach (var finding in result.SqlFindings)
-            Card(column, $"Javasolt SQL találata: {finding.Title}", body => { Field(body, "Értékelés", finding.Description); Field(body, "Javaslat", finding.Recommendation); });
+            Card(column, $"Javasolt SQL találata: {finding.Title}", body => { Field(body, "Röviden", finding.Brief); Field(body, "Következő lépés", finding.NextStep); Field(body, "Részletek", finding.Description); Field(body, "Javaslat", finding.Recommendation); });
         if (result.PlanFindings.Count == 0)
         {
             SectionTitle(column, "Javasolt terv találatai (0)");
@@ -64,7 +65,7 @@ public partial class PdfService
             Card(column, $"Javasolt terv találata: {finding.Title}", body =>
             {
                 Field(body, "Művelet", finding.Node.NodeType + " " + finding.Node.RelationName);
-                Field(body, "Értékelés", finding.Description);
+                Field(body, "Röviden", finding.Brief); Field(body, "Következő lépés", finding.NextStep); Field(body, "Részletek", finding.Description);
                 Field(body, "Javaslat", finding.Recommendation);
             });
     }

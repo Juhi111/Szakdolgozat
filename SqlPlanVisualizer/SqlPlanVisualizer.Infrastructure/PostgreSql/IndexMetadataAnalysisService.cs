@@ -1,3 +1,4 @@
+using SqlPlanVisualizer.Core.Analysis;
 using System.Text.Json;
 using PgSqlParser;
 using SqlPlanVisualizer.Core.Interfaces;
@@ -25,15 +26,33 @@ public sealed class IndexMetadataAnalysisService(IDatabaseIndexMetadataService s
         var notices = new List<string>();
         var references = Nodes(result.Pair.Plan.Root).Where(n => n.RelationName is not null)
             .Select(n => new DatabaseTableReference(Text(n, "Schema"), n.RelationName!)).Distinct().ToList();
+        try
+        {
+            var suggestions = new SqlRewriteService(SqlRewriteRuleFactory.CreateDefault()).Suggest(origin.SqlText!);
+            references.AddRange(suggestions.Where(s => s.MetadataRequirement is not null).Select(s => new DatabaseTableReference(s.MetadataRequirement!.Column.Schema, s.MetadataRequirement.Column.Table)));
+            references = references.Distinct().ToList();
+        }
+        catch (FormatException) { notices.Add("Az SQL egy részéhez nem tudtuk feloldani az oszlopadatokat."); }
+        IDatabaseIndexMetadataService reader = service;
+        if (references.Count > 0 && service is PostgreSqlIndexMetadataService postgres)
+        {
+            var loaded = await postgres.LoadSnapshotAsync(snapshot, password, references, token);
+            reader = loaded; notices.AddRange(loaded.Errors);
+        }
         if (references.Count > 64) notices.Add("Legfeljebb 64 tábla metaadatait kérjük le.");
         foreach (var reference in references.Take(64))
         {
             token.ThrowIfCancellationRequested();
             try
             {
-                var table = await service.GetTableAsync(snapshot, password, reference, token);
+                var table = await reader.GetTableAsync(snapshot, password, reference, token);
                 if (table is null) notices.Add($"{reference.Schema}.{reference.Table}: a metaadat nem érhető el; ebből nem következik, hogy nincs index.");
-                else tables.Add(new(table, Evaluate(table, origin.SqlText!, result.Pair.Plan.Root)));
+                else if (!tables.Any(t => t.Metadata.Schema == table.Schema && t.Metadata.Table == table.Table))
+                {
+                    var observations = Evaluate(table, origin.SqlText!, result.Pair.Plan.Root).ToList();
+                    observations.AddRange(MetadataContextEvaluator.Evaluate(table, result));
+                    tables.Add(new(table, observations));
+                }
             }
             catch (Exception ex) when (ex is Npgsql.NpgsqlException or TimeoutException)
             {

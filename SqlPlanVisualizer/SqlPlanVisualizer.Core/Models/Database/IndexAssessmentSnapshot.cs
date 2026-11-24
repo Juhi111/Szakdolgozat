@@ -7,14 +7,14 @@ public sealed record IndexAssessmentItem(string Table, string Title, string Desc
 /// <summary>Az adott elemzéshez lekért metaadatok megállapításainak változatlan pillanatképe.</summary>
 public sealed class IndexAssessmentSnapshot
 {
-    public const string NotChecked = "A meglévő indexeket nem ellenőriztük. Az indexekre vonatkozó általános javaslatok alkalmazása előtt kérd le a metaadatokat.";
+    public const string NotChecked = "Az adatbázis kiegészítő adatait nem ellenőriztük. Az indexekre vonatkozó általános javaslatok alkalmazása előtt kérd le a metaadatokat.";
     public DateTimeOffset CapturedAt { get; }
     public string Source { get; }
     public IReadOnlyList<IndexAssessmentItem> Items { get; }
     public IReadOnlyList<string> Notices { get; }
     public IReadOnlyList<string> Evidence { get; }
     [JsonIgnore] public string SourceText => $"{Source}; lekérve: {CapturedAt:yyyy.MM.dd. HH:mm:ss zzz}. A terv és a metaadat külön időpontban készült; az indexek azóta változhattak.";
-    [JsonIgnore] public string Guidance => "Az alábbi adatbázis-specifikus megállapítások pontosítják az általános indexjavaslatokat. Meglévő jelölt esetén előbb annak alkalmazhatóságát vizsgáld meg. A lehetséges illeszkedés nem bizonyít indexhasználatot vagy gyorsulást.";
+    [JsonIgnore] public string Guidance => "Az alábbi adatbázisadatok pontosítják az általános javaslatokat. Meglévő jelölt esetén előbb annak alkalmazhatóságát vizsgáld meg. A lehetséges illeszkedés nem bizonyít indexhasználatot vagy gyorsulást.";
 
     [JsonConstructor]
     public IndexAssessmentSnapshot(DateTimeOffset capturedAt, string source, IReadOnlyList<IndexAssessmentItem> items, IReadOnlyList<string> notices, IReadOnlyList<string>? evidence = null)
@@ -29,5 +29,11 @@ public sealed class IndexAssessmentSnapshot
     public static IndexAssessmentSnapshot Capture(IndexMetadataReport report) => new(report.CapturedAt, report.Source,
         report.Tables.SelectMany(t => t.Observations.Select(o => new IndexAssessmentItem(t.Metadata.DisplayName, o.Title, o.Description))).ToArray(), report.Notices,
         report.Tables.SelectMany(t => t.Metadata.Indexes.Select(i => t.Metadata.DisplayName + ": " + i.Definition + " | " + i.StateText)
-            .Concat(t.Metadata.Keys.Select(k => t.Metadata.DisplayName + ": " + k.Details))).ToArray());
+            .Concat(t.Metadata.Keys.Select(k => t.Metadata.DisplayName + ": " + k.Details))
+            .Concat(t.Metadata.Columns.Select(c => t.Metadata.DisplayName + ": " + c.Description))
+            .Concat(new[] { t.Metadata.DisplayName + ": " + t.Metadata.Statistics.Description })
+            .Concat(t.Metadata.ColumnStatistics.Select(c => t.Metadata.DisplayName + ": " + c))
+            .Concat(t.Metadata.ExtendedStatistics)
+            .Concat(t.Metadata.Extensions.Select(e => "Bővítmény: " + e))
+            .Concat(t.Metadata.Settings.Select(s => s.Key + ": " + s.Value))).Distinct().ToArray());
 }

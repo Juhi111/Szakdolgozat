@@ -7,7 +7,7 @@ public partial class PdfService
 {
     private static void ComposeIndexAssessment(ColumnDescriptor column, IndexAssessmentSnapshot? snapshot)
     {
-        SectionTitle(column, "Adatbázis alapján pontosított indexjavaslatok – eredeti terv");
+        SectionTitle(column, "Adatbázis alapján pontosított javaslatok – eredeti terv");
         if (snapshot is null) { column.Item().Text(IndexAssessmentSnapshot.NotChecked); return; }
         column.Item().Text(snapshot.SourceText);
         column.Item().Text(snapshot.Guidance);
@@ -15,9 +15,13 @@ public partial class PdfService
         if (snapshot.Items.Count == 0) column.Item().Text("Nem keletkezett indexillesztési megállapítás. Ez nem jelenti, hogy nincs megfelelő index.");
         foreach (var item in snapshot.Items)
             Card(column, item.Table + " – " + item.Title, body => Field(body, "Értékelés és javaslat", item.Description));
-        if (snapshot.Evidence.Count > 0)
+    }
+    private static void ComposeMetadataEvidence(ColumnDescriptor column, IndexAssessmentSnapshot? snapshot)
+    {
+        if (snapshot is not null && snapshot.Evidence.Count > 0)
         {
-            column.Item().PaddingTop(8).Text("A lekért index- és kulcsdefiníciók").SemiBold();
+            column.Item().PageBreak();
+            column.Item().PaddingTop(8).Text("Felhasznált adatbázisadatok – részletes melléklet").SemiBold();
             foreach (var evidence in snapshot.Evidence) column.Item().Text(evidence).FontSize(8);
         }
     }

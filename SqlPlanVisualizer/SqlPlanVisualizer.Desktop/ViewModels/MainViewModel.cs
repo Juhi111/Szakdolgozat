@@ -20,7 +20,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
     /// betölti az SQL-szöveget és a végrehajtási terveket,
     /// elindítja az SQL elemzését, és megjeleníti az eredményeket.
     /// </summary>
-    public class MainViewModel : ViewModelBase
+    public partial class MainViewModel : ViewModelBase
     {
         #region fields  
 
@@ -106,10 +106,11 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 _isFetchingExplain = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(CanFetchExplain));
+                OnPropertyChanged(nameof(CanChooseAnalysisMode));
             }
         }
 
-        public bool CanFetchExplain => !IsFetchingExplain;
+        public bool CanFetchExplain => !IsFetchingExplain && !IsAnalyzing;
 
 
         /// <summary>
@@ -226,7 +227,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             OpenJsonCommand = new AsyncRelayCommand(OpenJsonAsync);
             AnalyzeCommand = new AsyncRelayCommand(AnalyzeAsync);
             DeleteContent = new AsyncRelayCommand(DeleteWindow);
-            CreateSummaryCommand = new AsyncRelayCommand(CreateSummaryAsync);
+            CreateSummaryCommand = new AsyncRelayCommand(() => CreateSummaryAsync());
             FetchEstimatedPlanCommand = new AsyncRelayCommand(() => FetchPlanAsync(false));
             FetchActualPlanCommand = new AsyncRelayCommand(() => FetchPlanAsync(true));
         }
@@ -316,8 +317,9 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         /// <summary>
         /// Ellenőrzi a kiválasztást, és eltárolja az összetartozónak jelölt elemeket.
         /// </summary>
-        private async Task CreateSummaryAsync()
+        private async Task CreateSummaryAsync(bool fromWorkflow = false)
         {
+            if (IsAnalyzing && !fromWorkflow) return;
             if (SelectedSummaryStatement is null || SelectedSummaryPlan is null)
             {
                 ReportMessage("Az összegzéshez válassz SQL-utasítást és végrehajtási tervet.");
@@ -341,15 +343,15 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 
             _summaryPair = new StatementPlanPair(SelectedSummaryStatement, SelectedSummaryPlan);
 
-            var result = _combinedAnalysisService.Analyze(
-                _summaryPair, Suggestions, PlanSuggestions);
+            var result = _preparedResults.TryGetValue(SelectedSummaryPlan, out var prepared) && ReferenceEquals(prepared.Pair.Statement, SelectedSummaryStatement)
+                ? prepared : _combinedAnalysisService.Analyze(_summaryPair, Suggestions, PlanSuggestions);
 
             string? sqlSnapshot = _analyzedSqlText;
             string? jsonSnapshot = _loadedExplainJson;
 
             OnPropertyChanged(nameof(SummaryStatus));
 
-            _summaryWindowService.Show(result, sqlSnapshot, _databaseSession, new SqlRewriteComparisonService(_databaseExplainService, _analysisService, _planAnalysisService, new PostgreSqlMetadataService()));
+            _summaryWindowService.Show(result, sqlSnapshot, _databaseSession, new SqlRewriteComparisonService(_databaseExplainService, _analysisService, _planAnalysisService, CreateMetadataReader(result)));
 
             await SaveHistoryAsync(result, sqlSnapshot, jsonSnapshot);
         }
@@ -386,7 +388,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         /// A betöltött SQL és tervek elemzését párhuzamosan futtatja.
         /// Csak a változatlan bemenethez tartozó eredményeket jeleníti meg.
         /// </summary>
-        private async Task AnalyzeAsync()
+        private async Task AnalyzeLoadedAsync()
         {
             string sql = SqlText;
             var plans = _loadedPlans.ToArray();
@@ -637,21 +639,16 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         /// <summary>
         /// Becsült vagy mért végrehajtási tervet kér le, majd elemzés nélkül betölti.
         /// </summary>
-        private async Task FetchPlanAsync(bool analyze)
+        private async Task<bool> FetchPlanAsync(bool analyze, bool fromWorkflow = false)
         {
-            if (!_databaseSession.HasConfiguration) 
-            {
-                MessageBox.Show("Először válassz adatbázis-kapcsolatot az Adatbázis-kapcsolat menüben.", "Nincs kiválasztott kapcsolat", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
+            if (IsAnalyzing && !fromWorkflow) return false;
             if (_isFetchingExplain)
-                return;
+                return false;
 
             if (!_databaseSession.HasConfiguration)
             {
                 ReportMessage("Először válassz adatbázis-kapcsolatot, és kattints a Kapcsolat használata gombra.");
-                return;
+                return false;
             }
 
             IsFetchingExplain = true;
@@ -685,17 +682,18 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                     : "Becsült végrehajtási terv lekérése…");
 
                 string json = analyze
-                    ? await _databaseExplainService.GetActualPlanAsync(connection.Options, connection.Password, sql)
-                    : await _databaseExplainService.GetEstimatedPlanAsync(connection.Options, connection.Password, sql);
+                    ? await _databaseExplainService.GetActualPlanAsync(connection.Options, connection.Password, sql, _workflowCancellation?.Token ?? default)
+                    : await _databaseExplainService.GetEstimatedPlanAsync(connection.Options, connection.Password, sql, _workflowCancellation?.Token ?? default);
 
                 if (sqlVersion != _sqlDocumentVersion || planVersion != _planDocumentVersion || sqlSnapshot != SqlText)
                 {
                     ReportMessage("A tervlekérés közben megváltozott a betöltött SQL vagy terv. A visszakapott tervet nem töltöttük be.");
-                    return;
+                    return false;
                 }
 
                 string planType = analyze ? "mért terv" : "becsült terv";
                 LoadExplainJson(json, $"adatbázis: {connection.Options.Database} – {planType}", origin);
+                return true;
             }
             catch (PostgresException ex)
             {
@@ -737,6 +735,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             {
                 IsFetchingExplain = false;
             }
+            return false;
         }
     }
 }

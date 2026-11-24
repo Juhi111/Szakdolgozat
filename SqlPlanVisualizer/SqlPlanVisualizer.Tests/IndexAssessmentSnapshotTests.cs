@@ -31,7 +31,7 @@ public class IndexAssessmentSnapshotTests
         var entry = new AnalysisHistoryMapper().Map(result, false, null, null);
         report.Tables[0].Metadata.Indexes.Clear();
         result.SetIndexAssessment(new(DateTimeOffset.Now, "new", [], []));
-        Assert.Contains("CREATE INDEX", Assert.Single(snapshot.Evidence));
+        Assert.Contains(snapshot.Evidence, e => e.Contains("CREATE INDEX"));
         Assert.Same(snapshot, entry.IndexAssessment);
         Assert.NotSame(entry.IndexAssessment, result.IndexAssessment);
     }

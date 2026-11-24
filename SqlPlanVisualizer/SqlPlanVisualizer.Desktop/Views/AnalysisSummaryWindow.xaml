@@ -23,7 +23,7 @@
                                FontWeight="SemiBold"
                                TextWrapping="Wrap"/>
 
-                    <TextBlock Text="{Binding Description}"
+                    <TextBlock Text="{Binding Brief}"
                                TextWrapping="Wrap"
                                Margin="0,8,0,0"/>
 
@@ -31,8 +31,12 @@
                                FontWeight="SemiBold"
                                Margin="0,12,0,4"/>
 
-                    <TextBlock Text="{Binding Recommendation}"
+                    <TextBlock Text="{Binding NextStep}"
                                TextWrapping="Wrap"/>
+                    <Expander Header="Mi alapján? – részletek és feltételek" Margin="0,8,0,0"><StackPanel>
+                        <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Margin="0,4"/>
+                        <TextBlock Text="{Binding Recommendation}" TextWrapping="Wrap" Margin="0,4"/>
+                    </StackPanel></Expander>
                 </StackPanel>
             </Border>
         </DataTemplate>
@@ -91,7 +95,7 @@
                            TextWrapping="Wrap"
                            Foreground="#526078"
                            Margin="0,0,0,16"/>
-                <Expander Header="Adatbázis alapján pontosított indexjavaslatok" IsExpanded="False" Margin="0,0,0,16">
+                <Expander Header="Adatbázis alapján pontosított javaslatok" IsExpanded="False" Margin="0,0,0,16">
                     <StackPanel Margin="10">
                         <TextBlock Text="{Binding IndexAssessmentStatus}" TextWrapping="Wrap" Margin="0,6"/>
                         <TextBlock Text="{Binding IndexAssessment.SourceText}" TextWrapping="Wrap" Foreground="Gray" Margin="0,6"/>
@@ -100,74 +104,27 @@
                             <Border BorderBrush="LightGray" BorderThickness="1" Padding="10" Margin="0,5"><StackPanel>
                                 <TextBlock Text="{Binding Table}" FontWeight="SemiBold"/>
                                 <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,4"/>
-                                <TextBlock Text="{Binding Description}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding Brief}" TextWrapping="Wrap"/>
                             </StackPanel></Border>
                         </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
                     </StackPanel>
                 </Expander>
 
-                <TextBlock Text="Összekapcsolt megállapítások"
-           FontSize="18"
-           FontWeight="SemiBold"
-           Margin="0,0,0,12"/>
-
-                <TextBlock Text="Nem találtunk közvetlenül összekapcsolható megállapítást."
-           TextWrapping="Wrap"
-           Margin="0,0,0,16">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Result.CombinedFindings.Count}" Value="0">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
-
-                <ItemsControl ItemsSource="{Binding Result.CombinedFindings}" Margin="0,0,0,16">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Background="#EFF6FF"
-                    BorderBrush="#93C5FD"
-                    BorderThickness="1"
-                    CornerRadius="6"
-                    Padding="16"
-                    Margin="0,0,0,10">
-                                <StackPanel>
-                                    <TextBlock Text="{Binding Title}"
-                               FontSize="16"
-                               FontWeight="SemiBold"
-                               TextWrapping="Wrap"/>
-
-                                    <TextBlock Text="SQL-megfigyelés"
-                               FontWeight="SemiBold"
-                               Margin="0,12,0,4"/>
-                                    <TextBlock Text="{Binding SqlObservation}" TextWrapping="Wrap"/>
-
-                                    <TextBlock Text="Tervmegfigyelés"
-                               FontWeight="SemiBold"
-                               Margin="0,12,0,4"/>
-                                    <TextBlock Text="{Binding PlanObservation}" TextWrapping="Wrap"/>
-
-                                    <TextBlock Text="Értékelés"
-                               FontWeight="SemiBold"
-                               Margin="0,12,0,4"/>
-                                    <TextBlock Text="{Binding Description}" TextWrapping="Wrap"/>
-
-                                    <TextBlock Text="Javaslat"
-                               FontWeight="SemiBold"
-                               Margin="0,12,0,4"/>
-                                    <TextBlock Text="{Binding Recommendation}" TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                <TextBlock Text="Mit érdemes átnézned?" FontSize="20" FontWeight="SemiBold" Margin="0,4,0,8"/>
+                <TextBlock Text="{Binding OverviewText}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                <ItemsControl ItemsSource="{Binding Overview}"><ItemsControl.ItemTemplate><DataTemplate>
+                    <Border Background="White" Padding="14" CornerRadius="6" Margin="0,0,0,10"><StackPanel>
+                        <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding Brief}" TextWrapping="Wrap" Margin="0,8"/>
+                        <TextBlock Text="{Binding NextStep}" TextWrapping="Wrap" Foreground="#174E79"/>
+                    </StackPanel></Border>
+                </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                <Expander Header="Összekapcsolt megállapítások – részletek" Margin="0,8,0,16">
+                    <ItemsControl ItemsSource="{Binding Result.CombinedFindings}" ItemTemplate="{StaticResource FindingTemplate}"/>
+                </Expander>
 
                 <Expander Header="{Binding SqlFindingsHeader}"
-                          IsExpanded="True"
+                          IsExpanded="False"
                           Margin="0,0,0,16">
                     <StackPanel Margin="0,10,0,0">
                         <TextBlock Text="Ehhez az SQL-utasításhoz nem keletkezett találat."
@@ -191,7 +148,7 @@
                 </Expander>
 
                 <Expander Header="{Binding PlanFindingsHeader}"
-                          IsExpanded="True">
+                          IsExpanded="False">
                     <StackPanel Margin="0,10,0,0">
                         <TextBlock Text="Ehhez a tervhez nem keletkezett találat."
                                    TextWrapping="Wrap"
@@ -219,7 +176,7 @@
                     Orientation="Horizontal"
                     HorizontalAlignment="Right"
                     Margin="0,16,0,0">
-            <Button Content="Indexek és kulcsok…" Click="OpenIndexes_Click" Padding="12,8" Margin="0,0,12,0"/>
+            <Button Content="Felhasznált adatbázisadatok…" Click="OpenIndexes_Click" Padding="12,8" Margin="0,0,12,0"/>
             <Button Content="SQL-javaslatok és összehasonlítás…" Click="OpenRewrites_Click" Padding="12,8" Margin="0,0,12,0"/>
             <Button Content="Mentés PDF-be"
                     MinWidth="130"

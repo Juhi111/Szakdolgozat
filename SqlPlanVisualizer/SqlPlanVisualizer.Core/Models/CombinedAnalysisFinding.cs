@@ -5,6 +5,11 @@
     /// </summary>
     public class CombinedAnalysisFinding
     {
+        [System.Text.Json.Serialization.JsonIgnore]
+        public string Brief => SqlPlanVisualizer.Core.Analysis.FindingTextCatalog.Get(RuleId, Description, Recommendation).Summary;
+        [System.Text.Json.Serialization.JsonIgnore]
+        public string NextStep => SqlPlanVisualizer.Core.Analysis.FindingTextCatalog.Get(RuleId, Description, Recommendation).NextStep;
+
         public required string RuleId { get; init; }
         public required string Title { get; init; }
         public required string SqlObservation { get; init; }

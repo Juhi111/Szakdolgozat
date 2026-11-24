@@ -37,7 +37,7 @@ public sealed class SqlRewriteComparisonService(IDatabaseExplainService explainS
             cancellationToken.ThrowIfCancellationRequested();
             return RewriteMetadataEvaluator.Evaluate(requirement.Type, column) with
             {
-                CheckedAt = DateTimeOffset.UtcNow,
+                CheckedAt = metadataService is AnalysisMetadataSnapshotReader cached ? cached.CapturedAt : DateTimeOffset.UtcNow,
                 Source = $"{snapshot.Host}:{snapshot.Port}/{snapshot.Database}; séma: {snapshot.Schema}; felhasználó: {snapshot.Username}"
             };
         }

@@ -30,7 +30,7 @@
                 <MenuItem Header="Becsült terv lekérése" Command="{Binding FetchEstimatedPlanCommand}" IsEnabled="{Binding CanFetchExplain}"/>
                 <MenuItem Header="Mért terv lekérése – SELECT futtatása" Command="{Binding FetchActualPlanCommand}"
                           IsEnabled="{Binding CanFetchExplain}"
-                          ToolTip="Végrehajtja a SELECT-et, majd betölti a mért tervet. Az elemzés külön indítható."/>
+                          ToolTip="Végrehajtja a SELECT-et, majd betölti a mért tervet. Haladó lehetőség: csak a tervet kéri le. A teljes folyamathoz használd az Elemzés indítása gombot."/>
 
             </MenuItem>
             <MenuItem Header="_Elemzés">
@@ -58,6 +58,17 @@
                 <RowDefinition Height="300" MinHeight="180"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>          
+
+            <WrapPanel Grid.Row="0" Grid.ColumnSpan="2" Margin="12,8">
+                <TextBlock Text="Elemzés módja:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <ComboBox SelectedIndex="{Binding AnalysisMode}" IsEnabled="{Binding CanChooseAnalysisMode}" Width="270" Margin="0,0,8,0">
+                    <ComboBoxItem Content="Betöltött SQL / EXPLAIN fájlok"/>
+                    <ComboBoxItem Content="Adatbázis – becsült terv"/>
+                    <ComboBoxItem Content="Adatbázis – SELECT futtatása és mérése"/>
+                </ComboBox>
+                <Button Content="Elemzés indítása" Command="{Binding AnalyzeCommand}" IsEnabled="{Binding CanChooseAnalysisMode}" Padding="16,7" Margin="0,0,8,0"/>
+                <Button Content="Megszakítás" Command="{Binding CancelAnalysisCommand}" IsEnabled="{Binding IsAnalyzing}" Padding="12,7"/>
+            </WrapPanel>
 
             <Grid Grid.Row="1" Margin="12,0,12,8" Grid.ColumnSpan="2">
 
@@ -297,13 +308,17 @@
                                                      Foreground="Gray"
                                                      Margin="0,4,0,0"/>
 
-                                        <TextBlock Text="{Binding Description}"
+                                        <TextBlock Text="{Binding Brief}"
                                                    TextWrapping="Wrap"
                                                    Margin="0,4,0,0"/>
 
-                                        <TextBlock Text="{Binding Recommendation}"
+                                        <TextBlock Text="{Binding NextStep}"
                                                    TextWrapping="Wrap"
                                                    Margin="0,4,0,0"/>
+                    <Expander Header="Mi alapján? – részletek és feltételek" Margin="0,8,0,0"><StackPanel>
+                        <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Margin="0,4"/>
+                        <TextBlock Text="{Binding Recommendation}" TextWrapping="Wrap" Margin="0,4"/>
+                    </StackPanel></Expander>
                                     </StackPanel>
                                 </DataTemplate>
                             </ListView.ItemTemplate>
@@ -343,13 +358,17 @@
                                    Foreground="Gray"
                                    Margin="0,4,0,0"/>
 
-                                    <TextBlock Text="{Binding Description}"
+                                    <TextBlock Text="{Binding Brief}"
                                    TextWrapping="Wrap"
                                    Margin="0,4,0,0"/>
 
-                                    <TextBlock Text="{Binding Recommendation}"
+                                    <TextBlock Text="{Binding NextStep}"
                                    TextWrapping="Wrap"
                                    Margin="0,4,0,0"/>
+                    <Expander Header="Mi alapján? – részletek és feltételek" Margin="0,8,0,0"><StackPanel>
+                        <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Margin="0,4"/>
+                        <TextBlock Text="{Binding Recommendation}" TextWrapping="Wrap" Margin="0,4"/>
+                    </StackPanel></Expander>
                                 </StackPanel>
                             </DataTemplate>
                         </ListView.ItemTemplate>

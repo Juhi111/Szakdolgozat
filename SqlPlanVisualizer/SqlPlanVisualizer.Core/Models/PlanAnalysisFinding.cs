@@ -6,6 +6,11 @@
     /// </summary>
     public class PlanAnalysisFinding
     {
+        [System.Text.Json.Serialization.JsonIgnore]
+        public string Brief => SqlPlanVisualizer.Core.Analysis.FindingTextCatalog.Get(RuleId, Description, Recommendation).Summary;
+        [System.Text.Json.Serialization.JsonIgnore]
+        public string NextStep => SqlPlanVisualizer.Core.Analysis.FindingTextCatalog.Get(RuleId, Description, Recommendation).NextStep;
+
         public int PlanIndex { get; set; }
         public PlanNode Node { get; }
 

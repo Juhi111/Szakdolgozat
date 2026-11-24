@@ -29,7 +29,7 @@ public sealed class DatabaseIndexMetadata
     public string KeysText => string.Join(", ", Elements.Where(e => !e.Included).OrderBy(e => e.Position).Select(e => e.Definition));
     public string IncludedText => string.Join(", ", Elements.Where(e => e.Included).OrderBy(e => e.Position).Select(e => e.Definition));
     public string StateText => $"{Method}; {(IsPrimary ? "elsődleges kulcs" : IsUnique ? "egyedi index" : "nem egyedi index")}; " +
-        $"érvényes: {IsValid}; írásra kész: {IsReady}; élő: {IsLive}; NULLS NOT DISTINCT: {NullsNotDistinct}";
+        $"érvényes: {(IsValid ? "igen" : "nem")}; írásra kész: {(IsReady ? "igen" : "nem")}; élő: {(IsLive ? "igen" : "nem")}; NULLS NOT DISTINCT: {(NullsNotDistinct ? "igen" : "nem")}";
 }
 
 public sealed class DatabaseKeyMetadata
@@ -42,7 +42,7 @@ public sealed class DatabaseKeyMetadata
     public bool InitiallyDeferred { get; init; }
     public bool Validated { get; init; }
     public List<string> Columns { get; init; } = new();
-    public string Details => $"{Name}: {Definition}; validált: {Validated}; halasztható: {Deferrable}; kezdetben halasztott: {InitiallyDeferred}";
+    public string Details => $"{Name}: {Definition}; validált: {(Validated ? "igen" : "nem")}; halasztható: {(Deferrable ? "igen" : "nem")}; kezdetben halasztott: {(InitiallyDeferred ? "igen" : "nem")}";
 }
 
 public sealed class DatabaseTableMetadata
@@ -51,6 +51,12 @@ public sealed class DatabaseTableMetadata
     public string Table { get; init; } = "";
     public List<DatabaseIndexMetadata> Indexes { get; init; } = new();
     public List<DatabaseKeyMetadata> Keys { get; init; } = new();
+    public List<ColumnAnalysisMetadata> Columns { get; init; } = new();
+    public List<ColumnStatisticsMetadata> ColumnStatistics { get; init; } = new();
+    public TableStatisticsMetadata Statistics { get; init; } = new();
+    public List<string> ExtendedStatistics { get; init; } = new();
+    public Dictionary<string, string?> Settings { get; set; } = new();
+    public List<string> Extensions { get; set; } = new();
     public string DisplayName => $"{Schema}.{Table}";
 }
 

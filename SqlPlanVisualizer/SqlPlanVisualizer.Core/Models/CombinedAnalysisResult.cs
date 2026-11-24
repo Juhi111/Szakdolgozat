@@ -32,6 +32,13 @@
             IndexAssessment = snapshot;
         }
 
+        public SqlPlanVisualizer.Core.Models.Database.IndexMetadataReport? DatabaseMetadata { get; private set; }
+        public void SetDatabaseMetadata(SqlPlanVisualizer.Core.Models.Database.IndexMetadataReport report)
+        {
+            ArgumentNullException.ThrowIfNull(report);
+            DatabaseMetadata = report;
+            SetIndexAssessment(SqlPlanVisualizer.Core.Models.Database.IndexAssessmentSnapshot.Capture(report));
+        }
         public StatementPlanPair Pair { get; }
         public IReadOnlyList<SqlAnalysisFinding> SqlFindings { get; }
         public IReadOnlyList<PlanAnalysisFinding> PlanFindings { get; }

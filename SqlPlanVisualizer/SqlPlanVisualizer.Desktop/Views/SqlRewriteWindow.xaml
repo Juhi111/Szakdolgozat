@@ -23,7 +23,7 @@
                                FontWeight="SemiBold"
                                TextWrapping="Wrap"/>
 
-                    <TextBlock Text="{Binding Description}"
+                    <TextBlock Text="{Binding Brief}"
                                TextWrapping="Wrap"
                                Margin="0,8,0,0"/>
 
@@ -31,8 +31,12 @@
                                FontWeight="SemiBold"
                                Margin="0,12,0,4"/>
 
-                    <TextBlock Text="{Binding Recommendation}"
+                    <TextBlock Text="{Binding NextStep}"
                                TextWrapping="Wrap"/>
+                    <Expander Header="Mi alapján? – részletek és feltételek" Margin="0,8,0,0"><StackPanel>
+                        <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Margin="0,4"/>
+                        <TextBlock Text="{Binding Recommendation}" TextWrapping="Wrap" Margin="0,4"/>
+                    </StackPanel></Expander>
                 </StackPanel>
             </Border>
         </DataTemplate>
@@ -72,7 +76,8 @@
                                             <TextBox Text="{Binding OriginalSql, Mode=OneWay}" IsReadOnly="True" FontFamily="Consolas" TextWrapping="Wrap" MaxHeight="180" VerticalScrollBarVisibility="Auto" Padding="8"/>
                                             <TextBlock Text="Javasolt SQL – kijelölhető és másolható" FontWeight="SemiBold" Margin="0,12,0,4"/>
                                             <TextBox Text="{Binding SuggestedSql, Mode=OneWay}" IsReadOnly="True" FontFamily="Consolas" TextWrapping="Wrap" MaxHeight="180" VerticalScrollBarVisibility="Auto" Padding="8"/>
-                                            <TextBlock Text="{Binding Explanation}" TextWrapping="Wrap" Margin="0,12,0,8"/>
+                                            <TextBlock Text="{Binding BriefExplanation}" TextWrapping="Wrap" Margin="0,12,0,8"/>
+                                            <Expander Header="Az átírás részletes magyarázata"><TextBlock Text="{Binding Explanation}" TextWrapping="Wrap" Margin="0,6"/></Expander>
                                             <TextBlock Text="Alkalmazási feltételek" FontWeight="SemiBold"/>
                                             <TextBlock Text="{Binding Preconditions}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                                         </StackPanel>
@@ -102,7 +107,7 @@
                             </WrapPanel>
                         </StackPanel>
                         <Button Content="Lekérés megszakítása" Command="{Binding CancelCommand}" IsEnabled="{Binding IsBusy}" HorizontalAlignment="Left" Padding="12,6"/>
-                        <Button Content="Típusfeltétel ellenőrzése / frissítése" Command="{Binding CheckMetadataCommand}" IsEnabled="{Binding CanSelect}" HorizontalAlignment="Left" Padding="12,8" Margin="0,8,0,8"/>
+                        <TextBlock Text="A szükséges típusfeltételeket a program automatikusan ellenőrzi a terv lekérése előtt." TextWrapping="Wrap" Margin="0,8"/>
                         <TextBlock Text="{Binding MetadataCheck.Description}" TextWrapping="Wrap" Margin="0,0,0,8"/>
                         <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Margin="0,8,0,12"/>
                         <StackPanel DataContext="{Binding Comparison}">
