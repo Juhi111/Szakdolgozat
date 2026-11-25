@@ -46,7 +46,7 @@
         <StackPanel Margin="0,0,0,16">
             <TextBlock Text="SQL-javaslatok és összehasonlítás" FontSize="24" FontWeight="SemiBold"/>
             <TextBlock Text="{Binding PairDescription}" Foreground="#526078" Margin="0,6,0,0"/>
-            <TextBlock Text="1. Ellenőrizd a javaslat feltételeit.  2. Kérj tervet vagy indíts mérést.  3. Mentsd az eredményt PDF-be." TextWrapping="Wrap" Margin="0,8,0,0"/>
+            <TextBlock Text="Válassz javaslatot, kérj tervet vagy indíts mérést, majd hasonlítsd össze az eredményeket." TextWrapping="Wrap" Margin="0,8,0,0"/>
         </StackPanel>
         <TabControl Grid.Row="1">
             <TabItem Header="SQL-javaslatok">
@@ -71,15 +71,22 @@
                                     <Border Background="White" BorderBrush="#D8DEE8" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,0,10">
                                         <StackPanel>
                                             <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap"/>
-                                            <TextBlock Text="{Binding VerificationStatus}" Foreground="#92400E" TextWrapping="Wrap" Margin="0,8,0,8"/>
+                                            <TextBlock Text="Az eredmények azonosságát még nem ellenőriztük." Foreground="#92400E" TextWrapping="Wrap" Margin="0,8,0,8"/>
                                             <TextBlock Text="Eredeti SQL" FontWeight="SemiBold" Margin="0,8,0,4"/>
                                             <TextBox Text="{Binding OriginalSql, Mode=OneWay}" IsReadOnly="True" FontFamily="Consolas" TextWrapping="Wrap" MaxHeight="180" VerticalScrollBarVisibility="Auto" Padding="8"/>
                                             <TextBlock Text="Javasolt SQL – kijelölhető és másolható" FontWeight="SemiBold" Margin="0,12,0,4"/>
                                             <TextBox Text="{Binding SuggestedSql, Mode=OneWay}" IsReadOnly="True" FontFamily="Consolas" TextWrapping="Wrap" MaxHeight="180" VerticalScrollBarVisibility="Auto" Padding="8"/>
                                             <TextBlock Text="{Binding BriefExplanation}" TextWrapping="Wrap" Margin="0,12,0,8"/>
                                             <Expander Header="Az átírás részletes magyarázata"><TextBlock Text="{Binding Explanation}" TextWrapping="Wrap" Margin="0,6"/></Expander>
-                                            <TextBlock Text="Alkalmazási feltételek" FontWeight="SemiBold"/>
-                                            <TextBlock Text="{Binding Preconditions}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                            <TextBlock Text="{Binding UserCheck}" TextWrapping="Wrap" Margin="0,8,0,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding UserCheck}" Value=""><Setter Property="Visibility" Value="Collapsed"/></DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
                                         </StackPanel>
                                     </Border>
                                 </DataTemplate>
@@ -107,8 +114,16 @@
                             </WrapPanel>
                         </StackPanel>
                         <Button Content="Lekérés megszakítása" Command="{Binding CancelCommand}" IsEnabled="{Binding IsBusy}" HorizontalAlignment="Left" Padding="12,6"/>
-                        <TextBlock Text="A szükséges típusfeltételeket a program automatikusan ellenőrzi a terv lekérése előtt." TextWrapping="Wrap" Margin="0,8"/>
-                        <TextBlock Text="{Binding MetadataCheck.Description}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                        <TextBlock Text="{Binding MetadataCheck.Message}" Foreground="#92400E" TextWrapping="Wrap" Margin="0,8">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding MetadataCheck.BlocksExecution}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
                         <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Margin="0,8,0,12"/>
                         <StackPanel DataContext="{Binding Comparison}">
                             <StackPanel.Style>
@@ -117,12 +132,8 @@
                                     <Style.Triggers><DataTrigger Binding="{Binding}" Value="{x:Null}"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers>
                                 </Style>
                             </StackPanel.Style>
-                            <TextBlock Text="{Binding EquivalenceStatus}" FontWeight="SemiBold" Foreground="#92400E" TextWrapping="Wrap"/>
-                            <TextBlock Text="{Binding TimingAssessment}" TextWrapping="Wrap" Margin="0,8,0,12"/>
-                            <TextBlock Text="Eredeti terv eredete" FontWeight="SemiBold"/>
-                            <TextBlock Text="{Binding Original.Pair.Plan.Origin.Description}" TextWrapping="Wrap" Margin="0,4,0,8"/>
-                            <TextBlock Text="Javasolt terv eredete" FontWeight="SemiBold"/>
-                            <TextBlock Text="{Binding SuggestedPlan.Origin.Description}" TextWrapping="Wrap" Margin="0,4,0,8"/>
+                            <TextBlock Text="Az eredmények azonosságát még nem ellenőriztük." FontWeight="SemiBold" Foreground="#92400E" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding TimingSummary}" TextWrapping="Wrap" Margin="0,8,0,12"/>
                         </StackPanel>
                         <DataGrid ItemsSource="{Binding Metrics}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" Margin="0,0,0,12">
                             <DataGrid.Columns>

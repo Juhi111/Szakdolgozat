@@ -98,6 +98,31 @@ public class SqlRewriteComparisonTests
         Assert.Contains("Nincs két pozitív", result.TimingAssessment);
     }
 
+    [Theory]
+    [InlineData(10, "gyorsabb")]
+    [InlineData(40, "lassabb")]
+    [InlineData(20, "közel azonos")]
+    [InlineData(20.001, "közel azonos")]
+    [InlineData(0, "Nincs elegendő")]
+    [InlineData(double.NaN, "Nincs elegendő")]
+    [InlineData(double.PositiveInfinity, "Nincs elegendő")]
+    public void TimingSummary_DescribesMeasuredDirectionAndInvalidData(double time, string expected)
+    {
+        var result = new SqlRewriteComparison(Original(), Suggestion(), new ExecutionPlan(1, new PlanNode())
+        { ExecutionTime = time, Origin = new PlanOrigin { Mode = PlanCaptureMode.Actual } }, [], []);
+        Assert.Contains(expected, result.TimingSummary);
+        Assert.DoesNotContain("localhost", result.TimingSummary);
+    }
+
+    [Fact]
+    public void TimingSummary_DoesNotPresentEstimatesAsMeasurements()
+    {
+        var result = new SqlRewriteComparison(Original(), Suggestion(), new ExecutionPlan(1, new PlanNode())
+        { ExecutionTime = 1, Origin = new PlanOrigin { Mode = PlanCaptureMode.Estimated } }, [], []);
+        Assert.Contains("futtatás és mérés szükséges", result.TimingSummary);
+        Assert.DoesNotContain("gyorsabb", result.TimingSummary);
+    }
+
     private sealed class FakeExplain : IDatabaseExplainService
     {
         public int Calls { get; private set; }
