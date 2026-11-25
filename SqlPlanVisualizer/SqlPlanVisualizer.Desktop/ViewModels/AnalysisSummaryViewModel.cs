@@ -32,7 +32,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
             {
                 try
                 {
-                    var rewrites = new SqlRewriteService(SqlRewriteRuleFactory.CreateDefault());
+                    var rewrites = new SqlRewriteService(SqlRewriteRuleFactory.CreateDefault(result.DatabaseMetadata?.Tables.Select(t => t.Metadata)));
                     RewriteSuggestions = rewrites.SuggestStatement(analyzedSql, result.Pair.Statement);
                 }
                 catch (FormatException)

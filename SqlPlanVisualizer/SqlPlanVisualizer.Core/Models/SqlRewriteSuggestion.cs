@@ -4,6 +4,7 @@ namespace SqlPlanVisualizer.Core.Models
     public sealed record SqlRewriteSuggestion
     {
         public SqlPlanVisualizer.Core.Models.Database.RewriteMetadataRequirement? MetadataRequirement { get; init; }
+        public bool RequiresRelationalMetadata { get; init; }
         public required string RuleId { get; init; }
         public required string Title { get; init; }
         public required string OriginalSql { get; init; }

@@ -58,6 +58,26 @@ namespace SqlPlanVisualizer.Desktop.Tests
             Assert.Contains(service.Analyze(new[] { statement }), f => f.RuleId == "SINGLETON_IN");
         }
 
+        [Fact]
+        public void Summary_GeneratesRelationalRewriteFromAutomaticMetadata()
+        {
+            const string sql = "SELECT c.id FROM lab.customers c WHERE c.id NOT IN (SELECT o.id FROM lab.orders o)";
+            var statement = new PostgreSqlQueryService().ParseSummary(sql).Statements[0];
+            var result = CreateResult(statement);
+            Assert.Empty(new AnalysisSummaryViewModel(result, sql).RewriteSuggestions);
+            var tables = new[] { "customers", "orders" }.Select(name => new SqlPlanVisualizer.Core.Models.Database.TableIndexReport(
+                new SqlPlanVisualizer.Core.Models.Database.DatabaseTableMetadata
+                {
+                    Schema = "lab", Table = name, RelationKind = "r", HasDescendants = false, RowSecurity = false,
+                    Columns = [new() { Name = "id", TypeName = "int8", TypeSchema = "pg_catalog", IsNullable = false }]
+                }, Array.Empty<SqlPlanVisualizer.Core.Models.Database.IndexObservation>())).ToArray();
+            result.SetDatabaseMetadata(new(DateTimeOffset.UtcNow, "test", tables, []));
+            var viewModel = new AnalysisSummaryViewModel(result, sql);
+            var suggestion = Assert.Single(viewModel.RewriteSuggestions);
+            Assert.Equal("NOT_IN_EXISTS_REWRITE", suggestion.RuleId);
+            Assert.True(suggestion.RequiresRelationalMetadata);
+        }
+
         private static CombinedAnalysisResult CreateResult(SqlStatementSummary statement) =>
             new(new StatementPlanPair(statement, new ExecutionPlan(1, new PlanNode { NodeType = "Seq Scan" })),
                 Array.Empty<SqlAnalysisFinding>(), Array.Empty<PlanAnalysisFinding>());

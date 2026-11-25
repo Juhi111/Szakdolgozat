@@ -66,10 +66,15 @@ public sealed class PostgreSqlIndexMetadataService : IDatabaseIndexMetadataServi
     private const string CatalogSql = """
         SELECT pg_catalog.jsonb_build_object(
              'Schema', n.nspname, 'Table', c.relname,
+             'RelationKind', c.relkind::text, 'RowSecurity', c.relrowsecurity,
+             'HasDescendants', EXISTS (SELECT 1 FROM pg_inherits WHERE inhparent = c.oid),
             'Columns', COALESCE((SELECT jsonb_agg(jsonb_build_object(
                 'Name', a.attname, 'TypeSchema', tn.nspname, 'TypeName', t.typname,
                 'DisplayType', format_type(a.atttypid, a.atttypmod), 'IsDomain', t.typtype = 'd',
-                'IsNullable', CASE WHEN t.typtype = 'd' THEN NULL ELSE NOT a.attnotnull END,
+                'IsNullable', CASE WHEN t.typtype = 'd' THEN NULL
+                    WHEN a.attnotnull AND EXISTS (SELECT 1 FROM pg_constraint nn WHERE nn.conrelid = c.oid
+                        AND nn.contype = 'n' AND a.attnum = ANY(nn.conkey) AND NOT nn.convalidated) THEN NULL
+                    ELSE NOT a.attnotnull END,
                 'Collation', cn.nspname || '.' || coll.collname, 'Generated', a.attgenerated::text,
                 'Identity', a.attidentity::text, 'StatisticsTarget', a.attstattarget
             ) ORDER BY a.attnum) FROM pg_attribute a JOIN pg_type t ON t.oid = a.atttypid
@@ -94,6 +99,7 @@ public sealed class PostgreSqlIndexMetadataService : IDatabaseIndexMetadataServi
                     'IsUnique', ix.indisunique, 'IsPrimary', ix.indisprimary,
                     'IsValid', ix.indisvalid, 'IsReady', ix.indisready, 'IsLive', ix.indislive,
                     'NullsNotDistinct', ix.indnullsnotdistinct,
+                    'HasDefaultOperatorClasses', (SELECT bool_and(opc.opcdefault) FROM unnest(ix.indclass) cls(oid) JOIN pg_opclass opc ON opc.oid = cls.oid),
                     'Elements', (SELECT pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(
                         'Position', k.pos, 'Column', a.attname,
                         'Definition', pg_catalog.pg_get_indexdef(ix.indexrelid, k.pos, true),

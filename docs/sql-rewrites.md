@@ -1,6 +1,6 @@
 # SQL-szabályok és átírások
 
-A `SqlRewriteRuleFactory.CreateDefault()` kilenc átíró szabálycsaládot regisztrál. Az elemzési és futtatási munkafolyamat változatlan: a javaslatok a meglévő külön ablakban jelennek meg; futtatásuk és összehasonlításuk külön felhasználói művelet.
+A `SqlRewriteRuleFactory.CreateDefault()` tizenhárom átíró szabálycsaládot regisztrál. Az elemzési és futtatási munkafolyamat változatlan: a javaslatok a meglévő külön ablakban jelennek meg; futtatásuk és összehasonlításuk külön felhasználói művelet.
 
 | Szabály | Támogatott alak | Javasolt változat |
 |---|---|---|
@@ -15,6 +15,15 @@ A `SqlRewriteRuleFactory.CreateDefault()` kilenc átíró szabálycsaládot regi
 | SingletonInRewriteRule | egyelemű IN / NOT IN | = / <> |
 | DuplicateInRewriteRule | ismétlődő IN / NOT IN literálok | ismétlések elhagyása |
 
+A négy metaadatfüggő család részletes feltételei: [Relációs átírások](relational-rewrites.md).
+
+| Új szabály | Támogatott alak | Javasolt változat |
+|---|---|---|
+| NotInExistsRewriteRule | NOT IN, két igazoltan nem NULL egész/UUID oszlop | NOT EXISTS |
+| LeftJoinAntiRewriteRule | LEFT JOIN + jobb oldali nem NULL oszlop IS NULL | NOT EXISTS |
+| RedundantDistinctRewriteRule | egyszerű SELECT, teljes elsődleges kulccsal a kimenetben | DISTINCT elhagyása |
+| DistinctJoinExistsRewriteRule | DISTINCT + INNER JOIN, csak bal oldali kimenettel és teljes PK-val | EXISTS |
+
 ## Elemzési bővítések
 
 Új SQL-találatok: `OR_EQUALITY_CHAIN`, `SINGLETON_IN`, `DUPLICATE_IN_VALUES`. Ezek olvashatósági egyszerűsítések, nem mért teljesítményhibák. WHERE és JOIN ON részekben is felismerhetők.
@@ -24,8 +33,8 @@ A `COUNT_FOR_EXISTENCE` már a fenti létezési/nemlétezési alakokat és a for
 ## Korlátok és ellenőrzés
 
 - AST-klónt módosítunk, majd deparse és újraparszolás következik. Az eredeti SQL és eredmény nem változik. Egy javaslat egy feltételt módosít; nem láncoljuk automatikusan az átírásokat.
-- Egyetlen SELECT, egy közvetlen FROM-tábla; CTE, JOIN, halmazművelet, SELECT INTO és zárolás esetén az átírók nem generálnak változatot. A WHERE-ben önálló/AND alatti feltételeket kezelünk. Az OR-szabály a teljes egyszerű OR-láncot cseréli.
-- Az oszloptípusokat, kollációkat, felhasználói függvényeket/operátorokat nem ellenőrizzük adatbázis-metaadatból. A javaslatok feltételesek, nem igazoltan egyenértékű javítások.
+- Az eredeti kilenc családban: egyetlen SELECT, egy közvetlen FROM-tábla; CTE, JOIN, halmazművelet, SELECT INTO és zárolás esetén az átírók nem generálnak változatot. A WHERE-ben önálló/AND alatti feltételeket kezelünk. Az OR-szabály a teljes egyszerű OR-láncot cseréli.
+- A támogatott típusfeltételeket adatbázis-metaadatokkal ellenőrizzük; az új relációs családok kulcs- és NULL-feltételeit futtatás előtt frissen újraellenőrizzük. A javaslatok nem jelentenek általános eredményazonossági bizonyítást.
 - A dátumos átírás előfeltétele DATE vagy TIMESTAMP WITHOUT TIME ZONE oszlop. TIMESTAMPTZ és INTERVAL esetén nincs igazolt átírás. A tesztadatbázis order_date oszlopa TIMESTAMPTZ, ezért a példák birth_date oszlopot használnak.
 - Aritmetikánál beépített egész típus és az eredeti kifejezés túlcsordulásmentessége szükséges. Konstans és új határ INT32 tartományú; szorzás/osztás nincs.
 - LIKE esetén text/varchar és megfelelő kollációs viselkedés szükséges. ILIKE, aktív wildcard, hibás escape, char(n)/citext viselkedés nem általánosítható.

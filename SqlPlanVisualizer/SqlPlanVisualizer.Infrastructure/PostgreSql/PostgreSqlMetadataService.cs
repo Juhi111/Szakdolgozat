@@ -31,7 +31,10 @@ public sealed class PostgreSqlMetadataService : IDatabaseMetadataService
         const string sql = """
             SELECT n.nspname::text, c.relname::text, a.attname::text, tn.nspname::text, t.typname::text,
                    pg_catalog.format_type(a.atttypid, a.atttypmod), t.typtype = 'd',
-                   CASE WHEN t.typtype = 'd' THEN NULL::boolean ELSE NOT a.attnotnull END
+                   CASE WHEN t.typtype = 'd' THEN NULL::boolean
+                        WHEN a.attnotnull AND EXISTS (SELECT 1 FROM pg_catalog.pg_constraint nn WHERE nn.conrelid = c.oid
+                            AND nn.contype = 'n' AND a.attnum = ANY(nn.conkey) AND NOT nn.convalidated) THEN NULL::boolean
+                        ELSE NOT a.attnotnull END
             FROM pg_catalog.pg_class c
             JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
             JOIN pg_catalog.pg_attribute a ON a.attrelid = c.oid

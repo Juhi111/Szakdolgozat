@@ -26,12 +26,20 @@ public sealed class IndexAssessmentSnapshot
         Items = Array.AsReadOnly(items.ToArray()); Notices = Array.AsReadOnly(notices.ToArray());
     }
 
+    private static string ScopeDescription(DatabaseTableMetadata table)
+    {
+        static string Flag(bool? value) => value is null ? "ismeretlen" : value.Value ? "igen" : "nem";
+        string kind = table.RelationKind switch { "r" => "tábla", "p" => "particionált tábla", "v" => "nézet", "m" => "materializált nézet", "f" => "külső tábla", _ => "ismeretlen" };
+        return $"{table.DisplayName}: típus: {kind}; vannak leszármazottak: {Flag(table.HasDescendants)}; sorbiztonság bekapcsolva: {Flag(table.RowSecurity)}";
+    }
+
     public static IndexAssessmentSnapshot Capture(IndexMetadataReport report) => new(report.CapturedAt, report.Source,
         report.Tables.SelectMany(t => t.Observations.Select(o => new IndexAssessmentItem(t.Metadata.DisplayName, o.Title, o.Description))).ToArray(), report.Notices,
         report.Tables.SelectMany(t => t.Metadata.Indexes.Select(i => t.Metadata.DisplayName + ": " + i.Definition + " | " + i.StateText)
             .Concat(t.Metadata.Keys.Select(k => t.Metadata.DisplayName + ": " + k.Details))
             .Concat(t.Metadata.Columns.Select(c => t.Metadata.DisplayName + ": " + c.Description))
-            .Concat(new[] { t.Metadata.DisplayName + ": " + t.Metadata.Statistics.Description })
+            .Concat(new[] { t.Metadata.DisplayName + ": " + t.Metadata.Statistics.Description,
+                ScopeDescription(t.Metadata) })
             .Concat(t.Metadata.ColumnStatistics.Select(c => t.Metadata.DisplayName + ": " + c))
             .Concat(t.Metadata.ExtendedStatistics)
             .Concat(t.Metadata.Extensions.Select(e => "Bővítmény: " + e))

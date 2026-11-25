@@ -107,6 +107,8 @@ public sealed class RewriteComparisonViewModel : ViewModelBase
     }
     private RewriteMetadataCheck ReadSnapshotCheck(SqlRewriteSuggestion? suggestion)
     {
+        if (suggestion?.RequiresRelationalMetadata == true)
+            return RewriteMetadataCheck.NotChecked("A javaslat a lekért kulcs- és NULL-adatokra épül. Futtatás előtt friss adatbázisadatokkal újra ellenőrizzük.");
         if (suggestion?.MetadataRequirement is not { } requirement || _original.DatabaseMetadata is not { } report)
             return RewriteMetadataCheck.NotChecked("A szükséges feltételt a terv lekérése előtt automatikusan ellenőrizzük.");
         var sourceSchema = _original.Pair.Plan.Origin?.Schema;

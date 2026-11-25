@@ -18,6 +18,7 @@ public sealed class DatabaseIndexMetadata
     public string Method { get; init; } = "";
     public string Definition { get; init; } = "";
     public string? Predicate { get; init; }
+    public bool HasDefaultOperatorClasses { get; init; }
     public bool IsUnique { get; init; }
     public bool IsPrimary { get; init; }
     public bool IsValid { get; init; }
@@ -47,6 +48,9 @@ public sealed class DatabaseKeyMetadata
 
 public sealed class DatabaseTableMetadata
 {
+    public string RelationKind { get; init; } = "";
+    public bool? HasDescendants { get; init; }
+    public bool? RowSecurity { get; init; }
     public string Schema { get; init; } = "";
     public string Table { get; init; } = "";
     public List<DatabaseIndexMetadata> Indexes { get; init; } = new();

@@ -6,7 +6,7 @@ using SqlPlanVisualizer.Core.Models.Database;
 namespace SqlPlanVisualizer.Infrastructure.PostgreSql;
 
 /// <summary>A javaslatot az eredeti tervhez tartozó kapcsolaton kéri le; az eredeti elemzést nem módosítja.</summary>
-public sealed class SqlRewriteComparisonService(IDatabaseExplainService explainService, SqlAnalysisService sqlAnalysis, PlanAnalysisService planAnalysis, IDatabaseMetadataService? metadataService = null)
+public sealed class SqlRewriteComparisonService(IDatabaseExplainService explainService, SqlAnalysisService sqlAnalysis, PlanAnalysisService planAnalysis, IDatabaseMetadataService? metadataService = null, IDatabaseIndexMetadataService? relationalMetadataService = null)
 {
     public static void ValidateSource(CombinedAnalysisResult original, SqlRewriteSuggestion suggestion, DatabaseConnectionOptions options)
     {
@@ -27,6 +27,8 @@ public sealed class SqlRewriteComparisonService(IDatabaseExplainService explainS
     {
         ValidateSource(original, suggestion, options);
         cancellationToken.ThrowIfCancellationRequested();
+        if (suggestion.RequiresRelationalMetadata || Rewriting.RelationalRewriteRule.IsRelationalRule(suggestion.RuleId))
+            return await RelationalRewritePreflight.CheckAsync(suggestion, options.Copy(), password, relationalMetadataService, cancellationToken);
         var requirement = suggestion.MetadataRequirement;
         if (requirement is null) return RewriteMetadataCheck.NotChecked("Ehhez a javaslathoz nincs feloldható, támogatott típusfeltétel.");
         if (metadataService is null) return RewriteMetadataCheck.NotChecked("A metaadat-szolgáltatás nem érhető el.");

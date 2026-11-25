@@ -30,6 +30,7 @@ public sealed class IndexMetadataAnalysisService(IDatabaseIndexMetadataService s
         {
             var suggestions = new SqlRewriteService(SqlRewriteRuleFactory.CreateDefault()).Suggest(origin.SqlText!);
             references.AddRange(suggestions.Where(s => s.MetadataRequirement is not null).Select(s => new DatabaseTableReference(s.MetadataRequirement!.Column.Schema, s.MetadataRequirement.Column.Table)));
+            references.AddRange(RelationalRewriteRule.TableReferences(origin.SqlText!));
             references = references.Distinct().ToList();
         }
         catch (FormatException) { notices.Add("Az SQL egy részéhez nem tudtuk feloldani az oszlopadatokat."); }
