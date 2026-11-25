@@ -65,7 +65,7 @@ public sealed class RewriteComparisonViewModel : ViewModelBase
             var check = await _service.CheckMetadataAsync(_original, SelectedSuggestion, connection.Options, connection.Password, cancellation.Token);
             cancellation.Token.ThrowIfCancellationRequested();
             MetadataCheck = check;
-            Status = "A metaadat-ellenőrzés befejeződött. Az eredményazonosságot ez nem bizonyítja.";
+            Status = string.Empty;
         }
         catch (OperationCanceledException) { Status = "A metaadat-ellenőrzést megszakítottuk."; }
         catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) { Status = ex.Message; }
@@ -143,10 +143,10 @@ public sealed class RewriteComparisonViewModel : ViewModelBase
             MetadataCheck = result.MetadataCheck;
             Comparison = result;
             AddMetrics(result);
-            Status = "A javaslat tervét lekértük és külön elemeztük. Az eredeti elemzés változatlan.";
+            Status = "Az összehasonlítás elkészült.";
         }
         catch (OperationCanceledException) { Status = "A tervlekérést megszakítottuk."; }
-        catch (RewriteMetadataException ex) { MetadataCheck = ex.Check; Status = ex.Message; }
+        catch (RewriteMetadataException ex) { MetadataCheck = ex.Check; Status = string.Empty; }
         catch (InvalidOperationException ex) { Status = ex.Message; }
         catch (Exception ex) when (ex is NpgsqlException or TimeoutException or JsonException or ArgumentException)
         {

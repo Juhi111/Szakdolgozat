@@ -24,6 +24,18 @@ namespace SqlPlanVisualizer.Core.Models
             "DUPLICATE_IN_REWRITE" => "Eltávolítottuk a felsorolásból az ismétlődő literálértékeket.",
             _ => Explanation
         };
+        // Csak a felhasználó által még ellenőrizendő feltételek jelennek meg a felületen.
+        public string UserCheck => RuleId switch
+        {
+            "ARITHMETIC_EQUALITY_REWRITE" => "Ellenőrizd, hogy az eredeti számítás a szélső értékeknél sem okoz túlcsordulást.",
+            "LIKE_LITERAL_REWRITE" => "Ellenőrizd, hogy a szövegek összehasonlítása ugyanúgy kezeli a kis- és nagybetűket, illetve az ékezeteket.",
+            "COUNT_EXISTENCE_REWRITE" => "Ellenőrizd, hogy a szűrés korábbi leállása nem fed el hibát vagy mellékhatást.",
+            "HAVING_GROUP_KEY_REWRITE" => "Ellenőrizd, hogy a korábbi szűrés nem változtatja meg az összesítések hibakezelését vagy mellékhatásait.",
+            "DATE_CAST_RANGE_REWRITE" or "YEAR_RANGE_REWRITE" => "Ezt a változatot csak date vagy időzóna nélküli timestamp oszlophoz használd.",
+            "NOT_IN_EXISTS_REWRITE" or "LEFT_JOIN_ANTI_REWRITE" or "REDUNDANT_DISTINCT_REWRITE" or "DISTINCT_JOIN_EXISTS_REWRITE" or
+            "OR_TO_IN_REWRITE" or "SINGLETON_IN_REWRITE" or "DUPLICATE_IN_REWRITE" => string.Empty,
+            _ => Preconditions
+        };
         public string VerificationStatus => "Ellenőrizendő javaslat – az eredményazonosság és a gyorsulás még nincs igazolva.";
     }
 }
