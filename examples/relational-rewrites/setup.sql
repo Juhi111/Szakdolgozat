@@ -1,5 +1,4 @@
--- Egyszer, pgAdminban, saját tesztadatbázison futtasd.
--- Szándékosan nincs DROP vagy IF NOT EXISTS: meglévő séma esetén ne írjunk bele.
+
 BEGIN;
 CREATE SCHEMA rewrite_lab;
 CREATE TABLE rewrite_lab.customers (customer_id bigint PRIMARY KEY, name text);

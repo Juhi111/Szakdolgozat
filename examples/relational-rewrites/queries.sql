@@ -1,4 +1,3 @@
--- Az alkalmazásba ezt a fájlt töltsd, ne a setup.sql-t.
 -- 1. Mindkét összehasonlított oszlop NOT NULL: NOT IN -> NOT EXISTS.
 SELECT c.customer_id, c.name
 FROM rewrite_lab.customers c
