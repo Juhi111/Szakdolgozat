@@ -45,6 +45,7 @@ public class SetReductionWithSpillRule : ICombinedAnalysisRule
             new CombinedAnalysisFinding
             {
                 RuleId = operation.Replace(" ", "_") + "_WITH_SPILL",
+                RelatedSqlRuleId = operation == "DISTINCT" ? "DISTINCT_USAGE" : operation == "UNION" ? "UNION_DEDUPLICATION" : null,
                 Title = operation + ": a feldolgozáshoz lemezterület is kellett",
                 SqlObservation = $"Az SQL fő lekérdezése {operation} művelettel csoportosítja az adatokat vagy távolítja el az ismétlődő sorokat.",
                 PlanObservation = finding.Description,

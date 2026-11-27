@@ -105,16 +105,18 @@ public sealed class ExplainCommandTests
 
         vm.SelectedSummaryStatement = vm.StatementsForSummary[0];
         await ExecuteAsync(vm.CreateSummaryCommand); // Must reject before opening a WPF window.
-        Assert.Contains("nem ehhez az SQL-utasításhoz", vm.StatusMessage);
+        Assert.Null(vm.SelectedSummaryPlan);
         Assert.DoesNotContain("Automatikusan párosítva", vm.SummaryStatus);
 
         await ExecuteAsync(vm.AnalyzeCommand);
-        Assert.Equal(2, vm.SelectedSummaryStatement!.StatementIndex);
-        Assert.Contains("Automatikusan párosítva", vm.SummaryStatus);
+        Assert.Equal(1, vm.SelectedSummaryStatement!.StatementIndex);
+        Assert.Null(vm.SelectedSummaryPlan);
+        Assert.DoesNotContain("Automatikusan párosítva", vm.SummaryStatus);
         vm.SqlText = "SELECT 3;";
         Assert.DoesNotContain("Automatikusan párosítva", vm.SummaryStatus);
         await ExecuteAsync(vm.AnalyzeCommand);
-        Assert.Null(vm.SelectedSummaryStatement);
+        Assert.Equal(1, vm.SelectedSummaryStatement!.StatementIndex);
+        Assert.Null(vm.SelectedSummaryPlan);
         Assert.DoesNotContain("Automatikusan párosítva", vm.SummaryStatus);
     }
 
@@ -146,6 +148,7 @@ public sealed class ExplainCommandTests
     public async Task OneClickAnalysis_RoutesModeAndStopsOnFailedPlan(int mode, bool actual)
     {
         var service = new FakeExplainService(); var vm = Create(service); vm.AnalysisMode = mode;
+        await vm.PrepareSqlAsync();
         var completion = ExecuteAsync(vm.AnalyzeCommand);
         Assert.True(vm.IsAnalyzing); Assert.Equal(actual, service.Actual); Assert.False(vm.CanChooseAnalysisMode);
         service.Response.SetException(new PostgresException("test failure", "ERROR", "ERROR", "42P01"));
@@ -165,10 +168,59 @@ public sealed class ExplainCommandTests
     public async Task OneClickAnalysis_DiscardsPlanAfterSqlChanges()
     {
         var service = new FakeExplainService(); var vm = Create(service); vm.AnalysisMode = 1;
+        await vm.PrepareSqlAsync();
         var completion = ExecuteAsync(vm.AnalyzeCommand);
         vm.SqlText = "SELECT 2"; service.Response.SetResult(PlanJson);
         await completion;
         Assert.Empty(vm.PlanRoots); Assert.Empty(vm.PlansForSummary); Assert.False(vm.IsAnalyzing);
+    }
+
+    [Fact]
+    public async Task LocalPreparation_PopulatesStatementsWithoutDatabaseAndPreservesSelection()
+    {
+        var service = new FakeExplainService();
+        var vm = Create(service);
+        vm.SqlText = "SELECT * FROM customers; SELECT 2;";
+        await Task.WhenAll(vm.PrepareSqlAsync(), vm.PrepareSqlAsync());
+        Assert.Equal(2, vm.StatementsForSummary.Count);
+        Assert.Single(vm.Suggestions);
+        Assert.Equal(0, service.Calls);
+        var second = vm.StatementsForSummary[1];
+        vm.SelectedSummaryStatement = second;
+        await ExecuteAsync(vm.AnalyzeCommand);
+        Assert.Same(second, vm.SelectedSummaryStatement);
+        Assert.Equal(0, service.Calls);
+    }
+
+    [Fact]
+    public async Task LocalPreparation_RejectsStaleResultsAndInvalidatesEditedDocument()
+    {
+        var vm = Create(new FakeExplainService());
+        vm.SqlText = "SELECT * FROM customers;";
+        var old = vm.PrepareSqlAsync();
+        vm.SqlText = "SELECT 2; SELECT 3;";
+        await Task.WhenAll(old, vm.PrepareSqlAsync());
+        Assert.Equal(2, vm.StatementsForSummary.Count);
+        Assert.Empty(vm.Suggestions);
+        vm.SqlText = "SELECT FROM";
+        Assert.Empty(vm.StatementsForSummary);
+        await vm.PrepareSqlAsync();
+        Assert.Empty(vm.StatementsForSummary);
+        Assert.Contains("Hiba", vm.StatusMessage);
+    }
+
+    [Fact]
+    public void PlanSelector_IsOnlyNeededForMultipleImportedPlans()
+    {
+        var vm = Create(new FakeExplainService());
+        var root = new SqlPlanVisualizer.Core.Models.PlanNode { NodeType = "Result" };
+        vm.PlansForSummary.Add(new(1, root));
+        Assert.False(vm.ShowPlanSelector);
+        vm.PlansForSummary.Add(new(2, root));
+        Assert.True(vm.ShowPlanSelector);
+        vm.PlansForSummary.Clear();
+        vm.PlansForSummary.Add(new(1, root) { Origin = new() { Source = SqlPlanVisualizer.Core.Models.PlanSourceKind.Database } });
+        Assert.False(vm.ShowPlanSelector);
     }
 
     private static MainViewModel Create(FakeExplainService service)

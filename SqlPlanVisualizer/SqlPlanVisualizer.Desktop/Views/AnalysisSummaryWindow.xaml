@@ -33,10 +33,17 @@
 
                     <TextBlock Text="{Binding NextStep}"
                                TextWrapping="Wrap"/>
-                    <Expander Header="Mi alapján? – részletek és feltételek" Margin="0,8,0,0"><StackPanel>
-                        <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Margin="0,4"/>
-                        <TextBlock Text="{Binding Recommendation}" TextWrapping="Wrap" Margin="0,4"/>
-                    </StackPanel></Expander>
+                    <Expander Header="{Binding EvidenceHeader}" Margin="0,8,0,0">
+                        <StackPanel><ItemsControl ItemsSource="{Binding Evidence}"><ItemsControl.ItemTemplate><DataTemplate>
+                            <StackPanel Margin="0,10,0,4">
+                                <TextBlock Text="{Binding Label}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Margin="0,4"/>
+                            </StackPanel>
+                        </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                        <ItemsControl ItemsSource="{Binding DetailRecommendations}"><ItemsControl.ItemTemplate><DataTemplate>
+                            <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,8,0,4"/>
+                        </DataTemplate></ItemsControl.ItemTemplate></ItemsControl></StackPanel>
+                    </Expander>
                 </StackPanel>
             </Border>
         </DataTemplate>
@@ -91,7 +98,7 @@
                     <TextBox Text="{Binding Result.Pair.Plan.Origin.SqlText, Mode=OneWay, TargetNullValue='Fájlból betöltött tervhez nincs igazolt SQL-forrás.'}"
                              IsReadOnly="True" FontFamily="Consolas" TextWrapping="Wrap" MaxHeight="200" VerticalScrollBarVisibility="Auto"/>
                 </Expander>
-                <TextBlock Text="A kiválasztott SQL-utasítás és terv önálló elemzési találatai."
+                <TextBlock Text="Javaslatok a kiválasztott SQL-utasításhoz, a végrehajtási terv megfigyeléseivel."
                            TextWrapping="Wrap"
                            Foreground="#526078"
                            Margin="0,0,0,16"/>
@@ -104,7 +111,7 @@
                             <Border BorderBrush="LightGray" BorderThickness="1" Padding="10" Margin="0,5"><StackPanel>
                                 <TextBlock Text="{Binding Table}" FontWeight="SemiBold"/>
                                 <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,4"/>
-                                <TextBlock Text="{Binding Brief}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding Description}" TextWrapping="Wrap"/>
                             </StackPanel></Border>
                         </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
                     </StackPanel>
@@ -112,63 +119,7 @@
 
                 <TextBlock Text="Mit érdemes átnézned?" FontSize="20" FontWeight="SemiBold" Margin="0,4,0,8"/>
                 <TextBlock Text="{Binding OverviewText}" TextWrapping="Wrap" Margin="0,0,0,12"/>
-                <ItemsControl ItemsSource="{Binding Overview}"><ItemsControl.ItemTemplate><DataTemplate>
-                    <Border Background="White" Padding="14" CornerRadius="6" Margin="0,0,0,10"><StackPanel>
-                        <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap"/>
-                        <TextBlock Text="{Binding Brief}" TextWrapping="Wrap" Margin="0,8"/>
-                        <TextBlock Text="{Binding NextStep}" TextWrapping="Wrap" Foreground="#174E79"/>
-                    </StackPanel></Border>
-                </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
-                <Expander Header="Összekapcsolt megállapítások – részletek" Margin="0,8,0,16">
-                    <ItemsControl ItemsSource="{Binding Result.CombinedFindings}" ItemTemplate="{StaticResource FindingTemplate}"/>
-                </Expander>
-
-                <Expander Header="{Binding SqlFindingsHeader}"
-                          IsExpanded="False"
-                          Margin="0,0,0,16">
-                    <StackPanel Margin="0,10,0,0">
-                        <TextBlock Text="Ehhez az SQL-utasításhoz nem keletkezett találat."
-                                   TextWrapping="Wrap"
-                                   Margin="0,0,0,10">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Result.SqlFindings.Count}" Value="0">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-
-                        <ItemsControl ItemsSource="{Binding Result.SqlFindings}"
-                                      ItemTemplate="{StaticResource FindingTemplate}"/>
-                    </StackPanel>
-                </Expander>
-
-                <Expander Header="{Binding PlanFindingsHeader}"
-                          IsExpanded="False">
-                    <StackPanel Margin="0,10,0,0">
-                        <TextBlock Text="Ehhez a tervhez nem keletkezett találat."
-                                   TextWrapping="Wrap"
-                                   Margin="0,0,0,10">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Result.PlanFindings.Count}" Value="0">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-
-                        <ItemsControl ItemsSource="{Binding Result.PlanFindings}"
-                                      ItemTemplate="{StaticResource FindingTemplate}"/>
-                    </StackPanel>
-                </Expander>
+                <ItemsControl ItemsSource="{Binding Overview}" ItemTemplate="{StaticResource FindingTemplate}"/>
             </StackPanel>
         </ScrollViewer>
 

@@ -36,6 +36,7 @@ namespace SqlPlanVisualizer.Core.Models
             "OR_TO_IN_REWRITE" or "SINGLETON_IN_REWRITE" or "DUPLICATE_IN_REWRITE" => string.Empty,
             _ => Preconditions
         };
+        public bool HasDetailedExplanation => !string.IsNullOrWhiteSpace(Explanation) && !string.Equals(BriefExplanation.Trim(), Explanation.Trim(), StringComparison.Ordinal);
         public string VerificationStatus => "Ellenőrizendő javaslat – az eredményazonosság és a gyorsulás még nincs igazolva.";
     }
 }

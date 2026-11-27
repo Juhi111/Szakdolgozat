@@ -22,6 +22,7 @@ public class RandomOrderingWithSpillRule : ICombinedAnalysisRule
             new CombinedAnalysisFinding
             {
                 RuleId = "RANDOM_ORDERING_WITH_SPILL",
+                RelatedSqlRuleId = "RANDOM_ORDERING",
                 Title = "A véletlen rendezés lemezterületet is használt",
                 SqlObservation = "A fő lekérdezés ORDER BY random() kifejezéssel kér véletlen sorrendet.",
                 PlanObservation = finding.Description,

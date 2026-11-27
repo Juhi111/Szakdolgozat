@@ -27,6 +27,8 @@ public partial class MainViewModel
         _preparedResults.Clear();
         try
         {
+            await PrepareSqlAsync();
+            if (AnalysisMode is 1 or 2 && _analyzedSqlText != SqlText) return;
             if (AnalysisMode is 1 or 2 && !await FetchPlanAsync(AnalysisMode == 2, true)) return;
             cancellation.Token.ThrowIfCancellationRequested();
             await AnalyzeLoadedAsync();
@@ -58,13 +60,14 @@ public partial class MainViewModel
             }
             cancellation.Token.ThrowIfCancellationRequested();
             if (sqlVersion != _sqlDocumentVersion || planVersion != _planDocumentVersion) return;
-            if (StatementsForSummary.Count == 1 && PlansForSummary.Count == 1 && MatchesCurrentSource(StatementsForSummary[0], PlansForSummary[0]))
+            if (AnalysisMode is 1 or 2 && SelectedSummaryStatement is { } selectedStatement && SelectedSummaryPlan is { } selectedPlan && MatchesCurrentSource(selectedStatement, selectedPlan))
             {
-                SelectedSummaryStatement = StatementsForSummary[0]; SelectedSummaryPlan = PlansForSummary[0];
                 await CreateSummaryAsync(true);
             }
             else if (PlansForSummary.Count == 0) ReportMessage("Az SQL elemzése elkészült. A javaslatokat a Javaslatok fülön találod; tervhez válassz adatbázisos módot vagy tölts be EXPLAIN fájlt.");
-            else ReportMessage("Az elemzés elkészült. Az Összegzés fülön válaszd ki az összetartozó SQL-t és tervet.");
+            else ReportMessage(SelectedSummaryPlan?.Origin?.Source == PlanSourceKind.Database
+                ? "Az elemzés elkészült. Az Összegzés készítése gombbal megnyithatod a javaslatokat."
+                : "Az elemzés elkészült. Az Összegzés fülön ellenőrizd az SQL és a betöltött terv párosítását.");
         }
         catch (OperationCanceledException) { ReportMessage("Az elemzést megszakítottuk vagy lejárt az időkerete. Új összegzés nem készült."); }
         catch (Exception) { ReportMessage("Az elemzés nem fejeződött be. Ellenőrizd a bemenetet és a kapcsolatot, majd próbáld újra."); }

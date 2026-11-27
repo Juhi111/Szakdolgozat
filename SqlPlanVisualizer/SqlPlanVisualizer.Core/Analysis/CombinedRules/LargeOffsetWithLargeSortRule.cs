@@ -20,6 +20,7 @@ public class LargeOffsetWithLargeSortRule : ICombinedAnalysisRule
             new CombinedAnalysisFinding
             {
                 RuleId = "LARGE_OFFSET_WITH_LARGE_SORT",
+                RelatedSqlRuleId = "LARGE_OFFSET",
                 Title = "A sok sort kihagyó lapozáshoz nagy rendezés tartozik",
                 SqlObservation = sql.Description,
                 PlanObservation = plan.Description,

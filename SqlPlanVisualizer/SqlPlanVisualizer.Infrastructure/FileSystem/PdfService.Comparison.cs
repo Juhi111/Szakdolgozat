@@ -13,7 +13,7 @@ public partial class PdfService
         column.Item().Background(Colors.Amber.Lighten4).Padding(10).Text(result.EquivalenceStatus);
         Field(column, "Értékelés", result.TimingAssessment);
         Field(column, "Mi változott?", result.Suggestion.BriefExplanation);
-        Field(column, "Az átírás részletes magyarázata", result.Suggestion.Explanation);
+        if (result.Suggestion.HasDetailedExplanation) Field(column, "Az átírás részletes magyarázata", result.Suggestion.Explanation);
         Field(column, "Alkalmazási feltételek", result.Suggestion.Preconditions);
         Field(column, "Metaadat-ellenőrzés a tervlekéréskor", result.MetadataCheck.Description);
         SectionTitle(column, "Eredeti SQL");

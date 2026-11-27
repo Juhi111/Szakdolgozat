@@ -26,6 +26,7 @@ public class HavingFilterWithHighRemovalRule : ICombinedAnalysisRule
             new CombinedAnalysisFinding
             {
                 RuleId = "HAVING_FILTER_WITH_HIGH_REMOVAL",
+                RelatedSqlRuleId = "ROW_FILTER_IN_HAVING",
                 Title = "Sok csoport kiesett a HAVING szűrésekor",
                 SqlObservation = "A fő lekérdezés HAVING feltétele egy csoportosító oszlopot hasonlít konstanshoz, nem egy összesített értéket vizsgál.",
                 PlanObservation = finding.Description,

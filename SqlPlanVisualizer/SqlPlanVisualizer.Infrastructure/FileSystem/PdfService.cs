@@ -96,54 +96,19 @@ namespace SqlPlanVisualizer.Infrastructure.FileSystem
                     SectionTitle(column, "Mit érdemes átnézned?");
                     column.Item().Text(AnalysisOverview.Describe(result));
                     foreach (var item in AnalysisOverview.Create(result))
-                        Card(column, item.Title, body => { Field(body, "Röviden", item.Brief); Field(body, "Következő lépés", item.NextStep); });
+                        Card(column, item.Title, body =>
+                        {
+                            Field(body, "Röviden", item.Brief);
+                            Field(body, "Következő lépés", item.NextStep);
+                            foreach (var evidence in item.Evidence)
+                            {
+                                Field(body, evidence.Label, evidence.Description);
+                            }
+                            foreach (var recommendation in item.DetailRecommendations)
+                                Field(body, "Részletes javaslat és feltételek", recommendation);
+                        });
                     ComposeIndexAssessment(column, result.IndexAssessment);
 
-                    SectionTitle(column, $"Összekapcsolt megállapítások ({result.CombinedFindings.Count})");
-                    if (result.CombinedFindings.Count == 0)
-                        column.Item().Text("Nem találtunk közvetlenül összekapcsolható megállapítást.");
-                    foreach (var finding in result.CombinedFindings)
-                    {
-                        Card(column, finding.Title, body =>
-                        {
-                            Field(body, "SQL-megfigyelés", finding.SqlObservation);
-                            Field(body, "Tervmegfigyelés", finding.PlanObservation);
-                            Field(body, "Röviden", finding.Brief);
-                            Field(body, "Következő lépés", finding.NextStep);
-                            Field(body, "Részletek", finding.Description);
-                            Field(body, "Alkalmazási feltételek", finding.Recommendation);
-                        });
-                    }
-
-                    SectionTitle(column, $"SQL-találatok ({result.SqlFindings.Count})");
-                    if (result.SqlFindings.Count == 0)
-                        column.Item().Text("Ehhez az SQL-utasításhoz nem keletkezett találat.");
-                    foreach (var finding in result.SqlFindings)
-                    {
-                        Card(column, finding.Title, body =>
-                        {
-                            Field(body, "Röviden", finding.Brief);
-                            Field(body, "Következő lépés", finding.NextStep);
-                            Field(body, "Részletek", finding.Description);
-                            Field(body, "Alkalmazási feltételek", finding.Recommendation);
-                        });
-                    }
-
-                    SectionTitle(column, $"Tervtalálatok ({result.PlanFindings.Count})");
-                    if (result.PlanFindings.Count == 0)
-                        column.Item().Text("Ehhez a tervhez nem keletkezett találat.");
-                    foreach (var finding in result.PlanFindings)
-                    {
-                        Card(column, finding.Title, body =>
-                        {
-                            string relation = string.IsNullOrWhiteSpace(finding.RelationName) ? string.Empty : $" ({finding.RelationName})";
-                            Field(body, "Művelet", finding.NodeType + relation);
-                            Field(body, "Röviden", finding.Brief);
-                            Field(body, "Következő lépés", finding.NextStep);
-                            Field(body, "Részletek", finding.Description);
-                            Field(body, "Alkalmazási feltételek", finding.Recommendation);
-                        });
-                    }
                     ComposeMetadataEvidence(column, result.IndexAssessment);
                     if (comparison is not null)
                     {

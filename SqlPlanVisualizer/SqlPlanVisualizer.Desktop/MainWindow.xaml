@@ -382,7 +382,7 @@
                            FontWeight="SemiBold"
                            Margin="0,0,0,12"/>
 
-                            <TextBlock Text="Töltsd be az SQL- és EXPLAIN JSON-fájlt, indítsd el az Elemzést, majd válaszd ki az összetartozó elemeket."
+                            <TextBlock Text="Betöltés után válassz SQL-utasítást, majd indítsd el az Elemzést. Az adatbázisból lekért tervet automatikusan hozzárendeljük; fájlból betöltött tervnél te erősíted meg a párosítást."
                            TextWrapping="Wrap"
                            Margin="0,0,0,12"/>
 
@@ -412,6 +412,9 @@
                           MinWidth="240"
                           HorizontalAlignment="Left"
                           Margin="0,0,0,12">
+                                <ComboBox.Style><Style TargetType="ComboBox"><Style.Triggers>
+                                    <DataTrigger Binding="{Binding ShowPlanSelector}" Value="False"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger>
+                                </Style.Triggers></Style></ComboBox.Style>
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <TextBlock>
@@ -422,6 +425,12 @@
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
+
+                            <TextBlock Text="{Binding PlanSelectionText}" TextWrapping="Wrap" Margin="0,0,0,12">
+                                <TextBlock.Style><Style TargetType="TextBlock"><Style.Triggers>
+                                    <DataTrigger Binding="{Binding ShowPlanSelector}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger>
+                                </Style.Triggers></Style></TextBlock.Style>
+                            </TextBlock>
 
                             <TextBlock Text="{Binding PairingInstruction}"
                                 TextWrapping="Wrap"

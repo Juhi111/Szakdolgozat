@@ -37,6 +37,7 @@ public abstract class PredicateWithHighRemovalRule : ICombinedAnalysisRule
             new CombinedAnalysisFinding
             {
                 RuleId = combinedRuleId,
+                RelatedSqlRuleId = sqlRuleId,
                 Title = title,
                 SqlObservation = $"A(z) {query.Relations[0].RelationName} tábla WHERE feltételében felismert kifejezés a párosított terv szűrésében is szerepel.",
                 PlanObservation = finding.Description,
