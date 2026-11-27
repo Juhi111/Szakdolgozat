@@ -41,6 +41,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         private SqlStatementSummary? _selectedSummaryStatement;
         private ExecutionPlan? _selectedSummaryPlan;
         private StatementPlanPair? _summaryPair;
+        public bool CanAnalyze => AnalysisMode == 0 || SelectedSummaryStatement is not null;
 
         /// <summary>
         /// Az SQL-dokumentum verziója, amellyel kiszűrhetők
@@ -107,6 +108,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(CanFetchExplain));
                 OnPropertyChanged(nameof(CanChooseAnalysisMode));
+                OnPropertyChanged(nameof(CanAnalyze));
             }
         }
 
@@ -217,7 +219,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
         /// Létrehozza az elemző szolgáltatásokat és a főablak parancsait.
         /// </summary>
         public MainViewModel(AppSettings settings, DatabaseSession databaseSession, IDatabaseExplainService databaseExplainService)
-        {
+        {  
             ArgumentNullException.ThrowIfNull(settings);
             ArgumentNullException.ThrowIfNull(databaseSession);
             ArgumentNullException.ThrowIfNull(databaseExplainService);
@@ -257,6 +259,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 SelectPlanForStatement();
                 ClearSummaryPair();
                 TryAutoPair();
+                OnPropertyChanged(nameof(CanAnalyze));
             }
         }
 

@@ -66,7 +66,7 @@
                     <ComboBoxItem Content="Adatbázis – becsült terv"/>
                     <ComboBoxItem Content="Adatbázis – SELECT futtatása és mérése"/>
                 </ComboBox>
-                <Button Content="Elemzés indítása" Command="{Binding AnalyzeCommand}" IsEnabled="{Binding CanChooseAnalysisMode}" Padding="16,7" Margin="0,0,8,0"/>
+                <Button x:Name="btnElemzes" Content="Elemzés indítása" Command="{Binding AnalyzeCommand}" IsEnabled="{Binding CanAnalyze}" Padding="16,7" Margin="0,0,8,0"/>
                 <Button Content="Megszakítás" Command="{Binding CancelAnalysisCommand}" IsEnabled="{Binding IsAnalyzing}" Padding="12,7"/>
             </WrapPanel>
 
@@ -388,7 +388,7 @@
 
                             <TextBlock Text="SQL-utasítás" Margin="0,0,0,4"/>
 
-                            <ComboBox ItemsSource="{Binding StatementsForSummary}"
+                            <ComboBox x:Name="comboBoxSQL" ItemsSource="{Binding StatementsForSummary}"
                                       SelectedItem="{Binding SelectedSummaryStatement, Mode=TwoWay}"
                                       SelectionChanged="SummaryStatementComboBox_SelectionChanged"
                                       MinWidth="240"

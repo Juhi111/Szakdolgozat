@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Input;
 using SqlPlanVisualizer.Core.Interfaces;
 using SqlPlanVisualizer.Core.Models;
@@ -13,14 +14,25 @@ public partial class MainViewModel
     private CancellationTokenSource? _workflowCancellation;
     private bool _isAnalyzing;
     private int _analysisMode;
-    public int AnalysisMode { get => _analysisMode; set { if (_isAnalyzing) return; _analysisMode = value; OnPropertyChanged(); } }
-    public bool IsAnalyzing { get => _isAnalyzing; private set { _isAnalyzing = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanChooseAnalysisMode)); OnPropertyChanged(nameof(CanFetchExplain)); } }
+    public int AnalysisMode { get => _analysisMode; set { if (_isAnalyzing) return; _analysisMode = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanAnalyze)); } }
+    public bool IsAnalyzing { get => _isAnalyzing; private set { _isAnalyzing = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanChooseAnalysisMode)); OnPropertyChanged(nameof(CanFetchExplain)); OnPropertyChanged(nameof(CanAnalyze)); } }
     public bool CanChooseAnalysisMode => !IsAnalyzing && !IsFetchingExplain;
     public ICommand CancelAnalysisCommand => new AsyncRelayCommand(() => { _workflowCancellation?.Cancel(); return Task.CompletedTask; });
 
     private async Task AnalyzeAsync()
     {
-        if (IsAnalyzing || IsFetchingExplain) return;
+        if(!_databaseSession.HasConfiguration)
+        {
+            MessageBox.Show("Válassz adatbázis-kapcsolatot, majd kérd le a tervet.", "Elemzés", MessageBoxButton.OK, MessageBoxImage.Information);            
+            return;
+        }
+        if (AnalysisMode is 1 or 2 && SelectedSummaryStatement is null)
+        {
+            MessageBox.Show("Válassz ki egy SQL-utasítást, majd indítsd el az Elemzést.", "Elemzés", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+        if (IsAnalyzing || IsFetchingExplain)
+            return;
         IsAnalyzing = true;
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(2));
         _workflowCancellation = cancellation;
