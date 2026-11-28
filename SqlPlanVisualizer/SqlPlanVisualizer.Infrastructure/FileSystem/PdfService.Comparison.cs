@@ -12,6 +12,8 @@ public partial class PdfService
         column.Item().Text(result.Suggestion.Title).FontSize(14).SemiBold();
         column.Item().Background(Colors.Amber.Lighten4).Padding(10).Text(result.EquivalenceStatus);
         Field(column, "Értékelés", result.TimingAssessment);
+        if (result.Suggestion.HasRemainingAnalysis) Field(column, "A javaslat formai elemzése", result.Suggestion.RemainingFindingsText);
+        if (result.Suggestion.AppliedSteps.Count > 0) Field(column, "Elvégzett módosítások", result.Suggestion.AppliedChanges);
         Field(column, "Mi változott?", result.Suggestion.BriefExplanation);
         if (result.Suggestion.HasDetailedExplanation) Field(column, "Az átírás részletes magyarázata", result.Suggestion.Explanation);
         Field(column, "Alkalmazási feltételek", result.Suggestion.Preconditions);

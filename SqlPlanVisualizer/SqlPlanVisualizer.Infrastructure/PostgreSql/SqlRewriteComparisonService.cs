@@ -27,6 +27,54 @@ public sealed class SqlRewriteComparisonService(IDatabaseExplainService explainS
     {
         ValidateSource(original, suggestion, options);
         cancellationToken.ThrowIfCancellationRequested();
+        if (suggestion.AppliedSteps.Count > 0 || suggestion.RuleId == SqlRewriteSuggestion.CombinedRuleId)
+            return await CheckCombinedAsync(suggestion, options.Copy(), password, cancellationToken);
+        return await CheckSingleAsync(suggestion, options, password, cancellationToken);
+    }
+
+    private async Task<RewriteMetadataCheck> CheckCombinedAsync(SqlRewriteSuggestion suggestion, DatabaseConnectionOptions options,
+        string password, CancellationToken token)
+    {
+        static RewriteMetadataCheck Invalid() => new(MetadataCheckStatus.Failed, "Az összevont javaslat lépései nem igazolhatók. Készíts új elemzést.");
+        if (suggestion.AppliedSteps.Count is < 2 or > 256) return Invalid();
+        string current = suggestion.OriginalSql;
+        var checks = new List<RewriteMetadataCheck>();
+        var rules = Rewriting.SqlRewriteRuleFactory.CreateDefault();
+        foreach (var step in suggestion.AppliedSteps)
+        {
+            token.ThrowIfCancellationRequested();
+            if (step.OriginalSql != current || step.AppliedSteps.Count != 0 || step.SuggestedSql == current) return Invalid();
+            SqlRewriteSuggestion verified = step;
+            // A kapcsolati szabályt a friss katalógusos ellenőrzés generálja újra.
+            if (!Rewriting.RelationalRewriteRule.IsRelationalRule(step.RuleId))
+            {
+                try
+                {
+                    var match = rules.SelectMany(r => r.Suggest(current))
+                        .FirstOrDefault(s => s.RuleId == step.RuleId && s.SuggestedSql == step.SuggestedSql);
+                    if (match is null) return Invalid();
+                    verified = match; // A tárolt metaadatfeltétel helyett az újra feloldott oszlopot ellenőrizzük.
+                }
+                catch (FormatException) { return Invalid(); }
+            }
+            var check = await CheckSingleAsync(verified, options, password, token);
+            checks.Add(check);
+            if (check.BlocksExecution)
+                return check with { Message = $"A(z) {checks.Count}. módosítás nem alkalmazható ({step.Title}). {check.Message}" };
+            current = verified.SuggestedSql;
+        }
+        if (current != suggestion.SuggestedSql) return Invalid();
+        bool allPassed = checks.All(c => c.Status == MetadataCheckStatus.Passed);
+        return new(allPassed ? MetadataCheckStatus.Passed : MetadataCheckStatus.Unknown,
+            $"Az összevont javaslat {checks.Count} lépését ellenőriztük. " +
+            (allPassed ? "A vizsgált metaadatfeltételek teljesülnek." : "Egyes előfeltételek kézi ellenőrzést igényelnek.") +
+            "\n" + string.Join("\n", checks.Select((c, i) => $"{i + 1}. {c.Description}")),
+            CheckedAt: DateTimeOffset.UtcNow, Source: $"{options.Host}:{options.Port}/{options.Database}");
+    }
+
+    private async Task<RewriteMetadataCheck> CheckSingleAsync(SqlRewriteSuggestion suggestion, DatabaseConnectionOptions options,
+        string password, CancellationToken cancellationToken)
+    {
         if (suggestion.RequiresRelationalMetadata || Rewriting.RelationalRewriteRule.IsRelationalRule(suggestion.RuleId))
             return await RelationalRewritePreflight.CheckAsync(suggestion, options.Copy(), password, relationalMetadataService, cancellationToken);
         var requirement = suggestion.MetadataRequirement;

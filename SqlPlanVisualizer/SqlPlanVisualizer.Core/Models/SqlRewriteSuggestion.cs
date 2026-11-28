@@ -3,6 +3,15 @@ namespace SqlPlanVisualizer.Core.Models
     /// <summary>Egy külön ellenőrizendő SQL-változat; nem igazolja az eredmények azonosságát.</summary>
     public sealed record SqlRewriteSuggestion
     {
+        public IReadOnlyList<SqlAnalysisFinding>? RemainingFindings { get; init; }
+        public bool HasRemainingAnalysis => RemainingFindings is not null;
+        public string RemainingFindingsText => RemainingFindings is null ? string.Empty : RemainingFindings.Count == 0
+            ? "A javasolt SQL-ben a jelenlegi formai szabályok nem jeleztek további találatot."
+            : "Megmaradó megfigyelések – nincs rájuk ebben a lekérdezésben alkalmazható automatikus átírás:\n" +
+                string.Join("\n", RemainingFindings.GroupBy(f => f.RuleId).Select(g => $"• {g.First().Title} ({g.Count()})"));
+        public const string CombinedRuleId = "COMBINED_REWRITE";
+        public IReadOnlyList<SqlRewriteSuggestion> AppliedSteps { get; init; } = Array.Empty<SqlRewriteSuggestion>();
+        public string AppliedChanges => AppliedSteps.Count == 0 ? Title : string.Join("\n", AppliedSteps.Select((step, i) => $"{i + 1}. {step.Title}"));
         public SqlPlanVisualizer.Core.Models.Database.RewriteMetadataRequirement? MetadataRequirement { get; init; }
         public bool RequiresRelationalMetadata { get; init; }
         public required string RuleId { get; init; }
@@ -13,6 +22,7 @@ namespace SqlPlanVisualizer.Core.Models
         public required string Preconditions { get; init; }
         public string BriefExplanation => RuleId switch
         {
+            CombinedRuleId => $"{AppliedSteps.Count} támogatott módosítást alkalmaztunk egymás után. Az át nem írható részek megmaradtak; az eredményt és a teljesítményt ellenőrizni kell.",
             "ARITHMETIC_EQUALITY_REWRITE" => "A számítást áthelyeztük az összehasonlítás másik oldalára, hogy közvetlenül az oszlopra lehessen szűrni.",
             "COUNT_EXISTENCE_REWRITE" => "A változat azt vizsgálja, van-e találat, ahelyett hogy darabszámot kérne.",
             "LIKE_LITERAL_REWRITE" => "A helyettesítő karakter nélküli keresést egyszerű összehasonlításra cseréltük.",
@@ -25,7 +35,9 @@ namespace SqlPlanVisualizer.Core.Models
             _ => Explanation
         };
         // Csak a felhasználó által még ellenőrizendő feltételek jelennek meg a felületen.
-        public string UserCheck => RuleId switch
+        public string UserCheck => AppliedSteps.Count > 0
+            ? string.Join("\n", AppliedSteps.Select(s => s.UserCheck).Where(s => !string.IsNullOrWhiteSpace(s)).Distinct())
+            : RuleId switch
         {
             "ARITHMETIC_EQUALITY_REWRITE" => "Ellenőrizd, hogy az eredeti számítás a szélső értékeknél sem okoz túlcsordulást.",
             "LIKE_LITERAL_REWRITE" => "Ellenőrizd, hogy a szövegek összehasonlítása ugyanúgy kezeli a kis- és nagybetűket, illetve az ékezeteket.",

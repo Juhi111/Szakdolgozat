@@ -78,6 +78,25 @@ namespace SqlPlanVisualizer.Desktop.Tests
             Assert.True(suggestion.RequiresRelationalMetadata);
         }
 
+        [Fact]
+        public void Summary_OffersOneCombinedCandidateAndListsRemainingFindings()
+        {
+            const string sql = "SELECT * FROM lab.t WHERE x + 1 = 2 AND y + 2 = 3";
+            var statement = new PostgreSqlQueryService().ParseSummary(sql).Statements[0];
+            var analysis = new SqlPlanVisualizer.Core.Analysis.SqlAnalysisService(new SqlPlanVisualizer.Core.Interfaces.ISqlAnalysisRule[]
+            {
+                new SqlPlanVisualizer.Core.Analysis.Rules.SelectStarRule(),
+                new SqlPlanVisualizer.Core.Analysis.Rules.ArithmeticOnColumnRule()
+            });
+            var vm = new AnalysisSummaryViewModel(CreateResult(statement), sql, sqlAnalysis: analysis);
+            var suggestion = Assert.Single(vm.RewriteSuggestions);
+            Assert.Equal(2, suggestion.AppliedSteps.Count);
+            Assert.True(suggestion.HasRemainingAnalysis);
+            Assert.Equal("SELECT_STAR", Assert.Single(suggestion.RemainingFindings!).RuleId);
+            Assert.Contains("x = 1", suggestion.SuggestedSql);
+            Assert.Contains("y = 1", suggestion.SuggestedSql);
+        }
+
         private static CombinedAnalysisResult CreateResult(SqlStatementSummary statement) =>
             new(new StatementPlanPair(statement, new ExecutionPlan(1, new PlanNode { NodeType = "Seq Scan" })),
                 Array.Empty<SqlAnalysisFinding>(), Array.Empty<PlanAnalysisFinding>());

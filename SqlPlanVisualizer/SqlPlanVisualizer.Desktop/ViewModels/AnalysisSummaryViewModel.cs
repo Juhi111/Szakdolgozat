@@ -19,7 +19,7 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
 
         public ICommand SaveResultToPdf { get; }
 
-        public AnalysisSummaryViewModel(CombinedAnalysisResult result, string? analyzedSql = null, DatabaseSession? session = null, SqlRewriteComparisonService? comparisonService = null)
+        public AnalysisSummaryViewModel(CombinedAnalysisResult result, string? analyzedSql = null, DatabaseSession? session = null, SqlRewriteComparisonService? comparisonService = null, SqlAnalysisService? sqlAnalysis = null)
         {
             ArgumentNullException.ThrowIfNull(result);
             Result = result;
@@ -33,7 +33,18 @@ namespace SqlPlanVisualizer.Desktop.ViewModels
                 try
                 {
                     var rewrites = new SqlRewriteService(SqlRewriteRuleFactory.CreateDefault(result.DatabaseMetadata?.Tables.Select(t => t.Metadata)));
-                    RewriteSuggestions = rewrites.SuggestStatement(analyzedSql, result.Pair.Statement);
+                    RewriteSuggestions = rewrites.SuggestCombinedStatement(analyzedSql, result.Pair.Statement);
+                    if (sqlAnalysis is not null)
+                        RewriteSuggestions = RewriteSuggestions.Select(suggestion =>
+                        {
+                            var summary = new PostgreSqlQueryService().ParseSummary(suggestion.SuggestedSql);
+                            if (!summary.IsSuccess) throw new FormatException("A javasolt SQL nem dolgozható fel.");
+                            return suggestion with { RemainingFindings = sqlAnalysis.Analyze(summary.Statements).AsReadOnly() };
+                        }).ToArray();
+                }
+                catch (InvalidOperationException ex)
+                {
+                    RewriteStatus = ex.Message;
                 }
                 catch (FormatException)
                 {

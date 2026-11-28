@@ -35,7 +35,7 @@ public abstract class PredicateRewriteRule : ISqlRewriteRule
             suggestions.Add(new SqlRewriteSuggestion
             {
                 MetadataRequirement = requirement, RuleId = RuleId, Title = Title, OriginalSql = sql, SuggestedSql = deparsed.Value,
-                Explanation = Explanation + " Egy változat egy feltételt módosít. Az AST-ből generált SQL formázása változhat, megjegyzései kimaradnak.",
+                Explanation = Explanation + " Ez a lépés egy feltételt módosít. Az AST-ből generált SQL formázása változhat, megjegyzései kimaradnak.",
                 Preconditions = Preconditions + " A beépített típusokat és operátorokat feltételezzük; a metaadatokat nem ellenőriztük. " +
                     "Az eredményazonosság és a gyorsulás nincs igazolva. Teszteld az eredményt és a tervet."
             });

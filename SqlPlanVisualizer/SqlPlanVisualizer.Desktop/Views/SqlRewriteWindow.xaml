@@ -76,6 +76,16 @@
                                             <TextBox Text="{Binding OriginalSql, Mode=OneWay}" IsReadOnly="True" FontFamily="Consolas" TextWrapping="Wrap" MaxHeight="180" VerticalScrollBarVisibility="Auto" Padding="8"/>
                                             <TextBlock Text="Javasolt SQL – kijelölhető és másolható" FontWeight="SemiBold" Margin="0,12,0,4"/>
                                             <TextBox Text="{Binding SuggestedSql, Mode=OneWay}" IsReadOnly="True" FontFamily="Consolas" TextWrapping="Wrap" MaxHeight="180" VerticalScrollBarVisibility="Auto" Padding="8"/>
+                                            <TextBlock Text="{Binding RemainingFindingsText}" TextWrapping="Wrap" Margin="0,10,0,0">
+                                                <TextBlock.Style><Style TargetType="TextBlock"><Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasRemainingAnalysis}" Value="False"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger>
+                                                </Style.Triggers></Style></TextBlock.Style>
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding AppliedChanges}" TextWrapping="Wrap" Margin="0,10,0,0">
+                                                <TextBlock.Style><Style TargetType="TextBlock"><Style.Triggers>
+                                                    <DataTrigger Binding="{Binding AppliedSteps.Count}" Value="0"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger>
+                                                </Style.Triggers></Style></TextBlock.Style>
+                                            </TextBlock>
                                             <TextBlock Text="{Binding BriefExplanation}" TextWrapping="Wrap" Margin="0,12,0,8"/>
                                             <Expander Header="Az átírás részletes magyarázata">
                                                 <Expander.Style><Style TargetType="Expander"><Style.Triggers>
