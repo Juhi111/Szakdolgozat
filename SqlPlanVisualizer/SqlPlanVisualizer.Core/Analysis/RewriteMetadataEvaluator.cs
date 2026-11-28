@@ -12,6 +12,9 @@ public static class RewriteMetadataEvaluator
         bool supported = requirement switch
         {
             RewriteTypeRequirement.DateOrTimestamp => column.TypeName is "date" or "timestamp",
+            RewriteTypeRequirement.DateTimestampOrTimestampTz => column.TypeName is "date" or "timestamp" or "timestamptz",
+            RewriteTypeRequirement.IntegerOrNumeric => column.TypeName is "int2" or "int4" or "int8" or "numeric",
+            RewriteTypeRequirement.Boolean => column.TypeName == "bool",
             RewriteTypeRequirement.Integer => column.TypeName is "int2" or "int4" or "int8",
             RewriteTypeRequirement.Text => column.TypeName is "text" or "varchar",
             _ => false

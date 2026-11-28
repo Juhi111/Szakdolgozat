@@ -1,7 +1,7 @@
 namespace SqlPlanVisualizer.Core.Models.Database;
 
 public sealed record DatabaseColumnReference(string? Schema, string Table, string Column);
-public enum RewriteTypeRequirement { DateOrTimestamp, Integer, Text }
+public enum RewriteTypeRequirement { DateOrTimestamp, Integer, Text, DateTimestampOrTimestampTz, Boolean, IntegerOrNumeric }
 public sealed record RewriteMetadataRequirement(DatabaseColumnReference Column, RewriteTypeRequirement Type);
 
 /// <summary>A katalógusból olvasott oszlopadat; domainnél a nullázhatóság ismeretlen lehet.</summary>

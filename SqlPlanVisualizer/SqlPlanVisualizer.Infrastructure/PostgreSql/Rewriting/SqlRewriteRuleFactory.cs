@@ -10,6 +10,7 @@ public static class SqlRewriteRuleFactory
         new ArithmeticEqualityRewriteRule(),
         new CountExistenceRewriteRule(),
         new LikeLiteralRewriteRule(),
+        new BooleanCaseRewriteRule(),
         new DateCastRangeRewriteRule(),
         new YearRangeRewriteRule(),
         new HavingGroupKeyRewriteRule(),

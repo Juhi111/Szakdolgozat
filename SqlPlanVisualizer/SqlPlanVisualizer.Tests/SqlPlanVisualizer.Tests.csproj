@@ -19,4 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\\SqlPlanVisualizer.Infrastructure\\SqlPlanVisualizer.Infrastructure.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="TestData/complex-rewrites.sql" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

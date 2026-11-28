@@ -40,7 +40,6 @@ namespace SqlPlanVisualizer.Tests
         [InlineData("SELECT * FROM orders WHERE customer_id + 1 = 2147483648")]
         [InlineData("SELECT * FROM orders WHERE customer_id::int + 1 = 100")]
         [InlineData("SELECT * FROM orders WHERE customer_id OPERATOR(public.+) 1 = 100")]
-        [InlineData("SELECT * FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE o.customer_id + 1 = 100")]
         [InlineData("WITH x AS (SELECT * FROM orders) SELECT * FROM x WHERE customer_id + 1 = 100")]
         [InlineData("SELECT * INTO copy FROM orders WHERE customer_id + 1 = 100")]
         [InlineData("SELECT * FROM orders WHERE customer_id + 1 = 100 FOR UPDATE")]

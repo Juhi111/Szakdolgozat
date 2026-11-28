@@ -9,10 +9,14 @@ public sealed class LikeLiteralRewriteRule : PredicateRewriteRule
     protected override string Title => "Wildcard nélküli LIKE egyszerűsítése";
     protected override string Explanation => "A LIKE/NOT LIKE nem tartalmazott aktív wildcardot. Az escape-karaktereket feloldva egyenlőségi vagy nemegyenlőségi összehasonlítást készítettünk. Ez elsősorban olvashatósági egyszerűsítés.";
     protected override string Preconditions => "Csak beépített text/varchar oszlopon, a LIKE és az összehasonlítás azonos kollációs viselkedése mellett használd. A char(n), citext és egyéni típusok nincsenek igazolva. ILIKE-ot nem alakítunk egyenlőséggé.";
+    private static bool SupportedOperand(Node node) => RewriteAst.Column(node) ||
+        node.FuncCall is { } f && RewriteAst.Name(f) is "lower" or "upper" && f.Args.Count == 1 &&
+        RewriteAst.Column(f.Args[0]) && f.Over is null && f.AggFilter is null && !f.AggDistinct && f.AggOrder.Count == 0;
+
     protected override Node? Rewrite(Node predicate)
     {
         var e = predicate.AExpr;
-        if (e?.Kind != A_Expr_Kind.AexprLike || e.Name.Count != 1 || !RewriteAst.Column(e.Lexpr)) return null;
+        if (e?.Kind != A_Expr_Kind.AexprLike || e.Name.Count != 1 || !SupportedOperand(e.Lexpr)) return null;
         string? op = e.Name[0].String?.Sval;
         if (op is not ("~~" or "!~~")) return null;
         Node patternNode = e.Rexpr;

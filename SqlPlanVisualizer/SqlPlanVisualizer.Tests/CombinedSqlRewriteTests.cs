@@ -51,9 +51,10 @@ public class CombinedSqlRewriteTests
     {
         const string sql = "SELECT DISTINCT * FROM szakdoga_lab.customers c WHERE lower(c.email) LIKE '%gmail.com' AND upper(c.city) LIKE 'BUDAPEST' AND c.customer_id + 10 > 100 AND CAST(c.registered_at AS date) >= DATE '2023-01-01' AND EXTRACT(YEAR FROM c.registered_at) <= 2026 AND c.first_name || ' ' || c.last_name LIKE '%a%' AND CASE WHEN c.marketing_opt_in THEN 1 ELSE 0 END = 1 LIMIT 100";
         var suggestion = Engine().SuggestCombined(sql)!;
-        Assert.Equal("ARITHMETIC_EQUALITY_REWRITE", suggestion.RuleId);
+        Assert.Equal(5, suggestion.AppliedSteps.Count);
         Assert.Contains("customer_id > 90", suggestion.SuggestedSql);
-        Assert.Contains("upper(c.city) LIKE 'BUDAPEST'", suggestion.SuggestedSql);
+        Assert.Contains("upper(c.city) = 'BUDAPEST'", suggestion.SuggestedSql);
+        Assert.Contains("marketing_opt_in IS TRUE", suggestion.SuggestedSql);
         Assert.Contains("SELECT DISTINCT *", suggestion.SuggestedSql);
         Assert.Contains("LIMIT 100", suggestion.SuggestedSql);
     }

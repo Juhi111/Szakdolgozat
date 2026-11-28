@@ -56,12 +56,61 @@ internal static class RewriteAst
     public static bool Supported(SelectStmt? select) => select is not null && select.Op == SetOperation.SetopNone &&
         select.WithClause is null && select.IntoClause is null && select.LockingClause.Count == 0 &&
         select.FromClause.Count == 1 && select.FromClause[0].RangeVar is not null;
+    // Each predicate retains its own SELECT scope. A correlated reference is not
+    // silently resolved against another scope's table.
+    public static List<SelectStmt> QueryScopes(ParseResult parsed)
+    {
+        var scopes = new List<SelectStmt>();
+        new PostgreSqlAstWalker().Walk(parsed, 1, entry =>
+        {
+            if (entry.Node is SelectStmt select && select.WithClause is null && select.IntoClause is null &&
+                select.LockingClause.Count == 0 && select.Op == SetOperation.SetopNone && DirectRelations(select) is not null)
+                scopes.Add(select);
+        });
+        // CTE names can shadow unqualified tables, including in nested queries.
+        return Contains(parsed, n => n is SelectStmt { WithClause: not null }) ? new() : scopes;
+    }
+
+    public static List<RangeVar>? DirectRelations(SelectStmt select)
+    {
+        var relations = new List<RangeVar>();
+        bool Visit(Node node)
+        {
+            if (node.RangeVar is { } relation && relation.Alias?.Colnames.Count is not > 0)
+            { relations.Add(relation); return true; }
+            return node.JoinExpr is { Alias: null, IsNatural: false } join && join.UsingClause.Count == 0 && Visit(join.Larg) && Visit(join.Rarg);
+        }
+        return select.FromClause.Count > 0 && select.FromClause.All(Visit) ? relations : null;
+    }
+
     public static bool Contains(IMessage node, Func<IMessage, bool> predicate)
     {
         bool found = false;
         new PostgreSqlAstWalker().Walk(node, 1, entry => { if (predicate(entry.Node)) found = true; });
         return found;
     }
+    public static List<(Node Node, Action<Node> Replace)> PredicateSlots(SelectStmt select)
+    {
+        var result = Slots(select);
+        void VisitPredicate(Node? node, Action<Node> replace)
+        {
+            if (node is null) return;
+            if (node.BoolExpr is { Boolop: BoolExprType.AndExpr } boolean)
+            {
+                for (int i = 0; i < boolean.Args.Count; i++) { int index = i; VisitPredicate(boolean.Args[i], n => boolean.Args[index] = n); }
+            }
+            else result.Add((node, replace));
+        }
+        void VisitJoin(Node node)
+        {
+            if (node.JoinExpr is not { } join) return;
+            VisitPredicate(join.Quals, n => join.Quals = n);
+            VisitJoin(join.Larg); VisitJoin(join.Rarg);
+        }
+        foreach (var from in select.FromClause) VisitJoin(from);
+        return result;
+    }
+
     public static List<(Node Node, Action<Node> Replace)> Slots(SelectStmt select, bool having = false)
     {
         var result = new List<(Node, Action<Node>)>();

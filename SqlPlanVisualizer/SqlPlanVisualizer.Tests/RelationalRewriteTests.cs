@@ -31,6 +31,15 @@ public class RelationalRewriteTests
             .Where(s => s.RequiresRelationalMetadata).ToArray();
 
     [Theory]
+    [InlineData("SELECT DISTINCT c.* FROM lab.customers c")]
+    [InlineData("SELECT DISTINCT c.id FROM lab.customers c ORDER BY c.id")]
+    [InlineData("SELECT DISTINCT c.id FROM lab.customers c LIMIT 1")]
+    [InlineData("SELECT DISTINCT c.id FROM lab.customers c OFFSET 1")]
+    [InlineData("SELECT DISTINCT c.id FROM lab.customers c WHERE c.id > 1")]
+    public void Distinct_WithFiltersOrderingAndStar_UsesPrimaryKey(string sql) =>
+        Assert.Equal("REDUNDANT_DISTINCT_REWRITE", Assert.Single(Suggest(sql)).RuleId);
+
+    [Theory]
     [InlineData(NotIn, "NOT_IN_EXISTS_REWRITE")]
     [InlineData(Anti, "LEFT_JOIN_ANTI_REWRITE")]
     [InlineData(Distinct, "REDUNDANT_DISTINCT_REWRITE")]
@@ -93,13 +102,8 @@ public class RelationalRewriteTests
     [Theory]
     [InlineData("SELECT DISTINCT c.name FROM lab.customers c")]
     [InlineData("SELECT DISTINCT ON (c.id) c.id FROM lab.customers c")]
-    [InlineData("SELECT DISTINCT c.* FROM lab.customers c")]
     [InlineData("SELECT DISTINCT c.id + 1 FROM lab.customers c")]
     [InlineData("SELECT DISTINCT c.id, random() FROM lab.customers c")]
-    [InlineData("SELECT DISTINCT c.id FROM lab.customers c ORDER BY c.id")]
-    [InlineData("SELECT DISTINCT c.id FROM lab.customers c LIMIT 1")]
-    [InlineData("SELECT DISTINCT c.id FROM lab.customers c OFFSET 1")]
-    [InlineData("SELECT DISTINCT c.id FROM lab.customers c WHERE c.id > 1")]
     [InlineData("WITH x AS (SELECT 1) SELECT DISTINCT c.id FROM lab.customers c")]
     [InlineData("SELECT DISTINCT c.id FROM customers c")]
     [InlineData("SELECT DISTINCT id FROM lab.customers")]

@@ -9,7 +9,7 @@ public sealed class ArithmeticEqualityRewriteRule : PredicateRewriteRule
     protected override string RuleId => "ARITHMETIC_EQUALITY_REWRITE";
     protected override string Title => "Az oszlopon végzett összeadás vagy kivonás áthelyezése";
     protected override string Explanation => "A konstanssal végzett összeadást vagy kivonást áthelyeztük a másik oldalra. Az oszlop önmagában szerepelhet a szűrésben. A fordított összehasonlítás irányát is megőrizzük.";
-    protected override string Preconditions => "Az oszlop beépített egész típusú legyen. Az eredeti művelet nem okozhat túlcsordulást vagy más hibát; " +
+    protected override string Preconditions => "Az oszlop beépített egész vagy pontos numeric típusú legyen. Az eredeti művelet nem okozhat túlcsordulást vagy más hibát; " +
         "az átírás különben a hibaviselkedést is megváltoztathatja. Egyéni típusokhoz és lebegőpontos adatokhoz nem igazolt. " +
         "A konstansok és az új határ int32 tartományban maradnak. Szorzást/osztást nem írunk át.";
     protected override Node? Rewrite(Node predicate)

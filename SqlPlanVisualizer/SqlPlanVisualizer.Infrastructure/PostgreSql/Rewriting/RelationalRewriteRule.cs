@@ -14,6 +14,7 @@ public abstract class RelationalRewriteRule(IEnumerable<DatabaseTableMetadata>? 
     protected abstract string Title { get; }
     protected abstract string Explanation { get; }
     protected abstract bool Rewrite(SelectStmt select);
+    protected virtual bool Supports(SelectStmt select) => Simple(select);
     public static bool IsRelationalRule(string id) => id is "NOT_IN_EXISTS_REWRITE" or "LEFT_JOIN_ANTI_REWRITE" or "REDUNDANT_DISTINCT_REWRITE" or "DISTINCT_JOIN_EXISTS_REWRITE";
 
     public IReadOnlyList<SqlRewriteSuggestion> Suggest(string sql)
@@ -22,20 +23,28 @@ public abstract class RelationalRewriteRule(IEnumerable<DatabaseTableMetadata>? 
         ParseResult parsed;
         try { parsed = RewriteAst.Parse(sql); }
         catch (FormatException) { return Array.Empty<SqlRewriteSuggestion>(); }
-        if (parsed.Stmts.Count != 1 || parsed.Stmts[0].Stmt.SelectStmt is not { } select || !Simple(select) || !Rewrite(select))
-            return Array.Empty<SqlRewriteSuggestion>();
-        var output = Parser.Deparse(parsed);
-        if (output.Error is not null || string.IsNullOrWhiteSpace(output.Value)) return Array.Empty<SqlRewriteSuggestion>();
-        try { RewriteAst.Parse(output.Value); }
-        catch (FormatException) { return Array.Empty<SqlRewriteSuggestion>(); }
-        return new[] { new SqlRewriteSuggestion
+        if (parsed.Stmts.Count != 1 || parsed.Stmts[0].Stmt.SelectStmt is null) return Array.Empty<SqlRewriteSuggestion>();
+        var result = new List<SqlRewriteSuggestion>();
+        var scopes = RewriteAst.QueryScopes(parsed);
+        for (int i = 0; i < scopes.Count; i++)
         {
-            RuleId = RuleId, Title = Title, OriginalSql = sql, SuggestedSql = output.Value, Explanation = Explanation,
-            RequiresRelationalMetadata = true,
-            Preconditions = "A javaslat az azonosított táblák aktuális kulcs-, típus- és NULL-adataira épül. Futás előtt ezeket újra ellenőrizzük. " +
-                "Csak sémával megadott, közvetlen táblákat és egyszerű oszlophivatkozásokat támogatunk; öröklődést, partíciókat és sorbiztonsági szabályokat nem. " +
-                "Az eredmények sorrendje ORDER BY nélkül nem garantált; a gyorsulást külön méréssel ellenőrizd."
-        } };
+            var candidate = parsed.Clone();
+            var select = RewriteAst.QueryScopes(candidate)[i];
+            if (!Supports(select) || !Rewrite(select)) continue;
+            var output = Parser.Deparse(candidate);
+            if (output.Error is not null || string.IsNullOrWhiteSpace(output.Value)) continue;
+            try { RewriteAst.Parse(output.Value); }
+            catch (FormatException) { continue; }
+            result.Add(new SqlRewriteSuggestion
+            {
+                RuleId = RuleId, Title = Title, OriginalSql = sql, SuggestedSql = output.Value, Explanation = Explanation,
+                RequiresRelationalMetadata = true,
+                Preconditions = "A javaslat az azonosított táblák aktuális kulcs-, típus- és NULL-adataira épül. Futás előtt ezeket újra ellenőrizzük. " +
+                    "Csak sémával megadott, közvetlen táblákat és egyszerű oszlophivatkozásokat támogatunk; öröklődést, partíciókat és sorbiztonsági szabályokat nem. " +
+                    "Az eredmények sorrendje ORDER BY nélkül nem garantált; LIMIT/OFFSET esetén a kiválasztott sorok is eltérhetnek teljes rendezés nélkül. A gyorsulást külön méréssel ellenőrizd."
+            });
+        }
+        return result;
     }
 
     public static IReadOnlyList<DatabaseTableReference> TableReferences(string sql)
@@ -74,7 +83,7 @@ public abstract class RelationalRewriteRule(IEnumerable<DatabaseTableMetadata>? 
     protected static bool SameEqualityType(ColumnAnalysisMetadata? a, ColumnAnalysisMetadata? b) => KeyType(a) && KeyType(b) && a!.TypeName == b!.TypeName;
     protected static bool Projection(SelectStmt s, RangeVar relation, DatabaseTableMetadata table) => s.TargetList.Count > 0 && s.TargetList.All(target =>
         target.ResTarget is { } t && t.Indirection.Count == 0 && Column(t.Val, relation, table) is { TypeSchema: "pg_catalog", IsDomain: false } c &&
-        c.TypeName is "int2" or "int4" or "int8" or "uuid" or "text" or "varchar" or "bool" or "numeric" or "date" or "timestamp" or "timestamptz");
+        c.TypeName is "int2" or "int4" or "int8" or "uuid" or "text" or "varchar" or "bpchar" or "bool" or "numeric" or "date" or "timestamp" or "timestamptz");
 
     protected static bool UniqueProjection(SelectStmt s, RangeVar relation, DatabaseTableMetadata table)
     {

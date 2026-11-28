@@ -51,7 +51,7 @@ public class RewriteMetadataTests
     {
         var suggestions = new ArithmeticEqualityRewriteRule().Suggest("SELECT x FROM lab.t c WHERE c.x + 1 = 2 AND c.y + 2 = 3");
         Assert.Equal(new[] { "x", "y" }, suggestions.Select(s => s.MetadataRequirement!.Column.Column));
-        Assert.Null(Assert.Single(new ArithmeticEqualityRewriteRule().Suggest("SELECT x FROM lab.t c WHERE t.x + 1 = 2")).MetadataRequirement);
+        Assert.Empty(new ArithmeticEqualityRewriteRule().Suggest("SELECT x FROM lab.t c WHERE t.x + 1 = 2"));
         Assert.Equal("\"strange\"\"schema\".\"table.name\"", PostgreSqlMetadataService.RelationName(new("strange\"schema", "table.name", "x")));
     }
 
@@ -61,7 +61,7 @@ public class RewriteMetadataTests
     public async Task FailedMetadata_BlocksBothExplainModesBeforeExecution(bool analyze)
     {
         var fake = new FakeExplain();
-        var service = Service(fake, new FakeMetadata { Value = Column("timestamptz") });
+        var service = Service(fake, new FakeMetadata { Value = Column("interval") });
         var suggestion = Suggestion();
         var error = await Assert.ThrowsAsync<RewriteMetadataException>(() => service.CompareAsync(Original(suggestion), suggestion, Options(), "secret", analyze));
         Assert.True(error.Check.BlocksExecution);
@@ -81,7 +81,7 @@ public class RewriteMetadataTests
         Assert.NotNull(result.MetadataCheck.CheckedAt);
         Assert.Contains("db", result.MetadataCheck.Source!);
         Assert.DoesNotContain("secret", result.MetadataCheck.Description);
-        metadata.Value = Column("timestamptz");
+        metadata.Value = Column("interval");
         await Assert.ThrowsAsync<RewriteMetadataException>(() => service.CompareAsync(original, suggestion, Options(), "secret", false));
         Assert.Equal(2, metadata.Calls);
         Assert.Equal(1, fake.Calls);

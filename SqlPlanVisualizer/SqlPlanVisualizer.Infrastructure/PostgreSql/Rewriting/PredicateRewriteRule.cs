@@ -4,7 +4,7 @@ using SqlPlanVisualizer.Core.Models;
 
 namespace SqlPlanVisualizer.Infrastructure.PostgreSql.Rewriting;
 
-/// <summary>Egyetlen felső szintű WHERE-feltételt cserél egy klónozott AST-ben.</summary>
+/// <summary>Egy SELECT saját WHERE/ON feltételét cserél egy klónozott AST-ben.</summary>
 public abstract class PredicateRewriteRule : ISqlRewriteRule
 {
     protected abstract string RuleId { get; }
@@ -17,28 +17,34 @@ public abstract class PredicateRewriteRule : ISqlRewriteRule
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sql);
         var parsed = RewriteAst.Parse(sql);
-        if (parsed.Stmts.Count != 1 || !RewriteAst.Supported(parsed.Stmts[0].Stmt.SelectStmt))
+        if (parsed.Stmts.Count != 1 || parsed.Stmts[0].Stmt.SelectStmt is null)
             return Array.Empty<SqlRewriteSuggestion>();
         var suggestions = new List<SqlRewriteSuggestion>();
-        int count = RewriteAst.Slots(parsed.Stmts[0].Stmt.SelectStmt).Count;
-        for (int i = 0; i < count; i++)
+        var scopes = RewriteAst.QueryScopes(parsed);
+        for (int scopeIndex = 0; scopeIndex < scopes.Count; scopeIndex++)
         {
-            var candidate = parsed.Clone();
-            var slot = RewriteAst.Slots(candidate.Stmts[0].Stmt.SelectStmt)[i];
-            var requirement = RewriteColumnResolver.Resolve(RuleId, candidate.Stmts[0].Stmt.SelectStmt, slot.Node);
-            var replacement = Rewrite(slot.Node);
-            if (replacement is null) continue;
-            slot.Replace(replacement);
-            var deparsed = Parser.Deparse(candidate);
-            if (deparsed.Error is not null || string.IsNullOrWhiteSpace(deparsed.Value)) continue;
-            RewriteAst.Parse(deparsed.Value);
-            suggestions.Add(new SqlRewriteSuggestion
+            int count = RewriteAst.PredicateSlots(scopes[scopeIndex]).Count;
+            for (int i = 0; i < count; i++)
             {
-                MetadataRequirement = requirement, RuleId = RuleId, Title = Title, OriginalSql = sql, SuggestedSql = deparsed.Value,
-                Explanation = Explanation + " Ez a lépés egy feltételt módosít. Az AST-ből generált SQL formázása változhat, megjegyzései kimaradnak.",
-                Preconditions = Preconditions + " A beépített típusokat és operátorokat feltételezzük; a metaadatokat nem ellenőriztük. " +
-                    "Az eredményazonosság és a gyorsulás nincs igazolva. Teszteld az eredményt és a tervet."
-            });
+                var candidate = parsed.Clone();
+                var scope = RewriteAst.QueryScopes(candidate)[scopeIndex];
+                var slot = RewriteAst.PredicateSlots(scope)[i];
+                var requirement = RewriteColumnResolver.Resolve(RuleId, scope, slot.Node);
+                if (RewriteColumnResolver.RequiresTypeCheck(RuleId) && requirement is null) continue;
+                var replacement = Rewrite(slot.Node);
+                if (replacement is null) continue;
+                slot.Replace(replacement);
+                var deparsed = Parser.Deparse(candidate);
+                if (deparsed.Error is not null || string.IsNullOrWhiteSpace(deparsed.Value)) continue;
+                RewriteAst.Parse(deparsed.Value);
+                suggestions.Add(new SqlRewriteSuggestion
+                {
+                    MetadataRequirement = requirement, RuleId = RuleId, Title = Title, OriginalSql = sql, SuggestedSql = deparsed.Value,
+                    Explanation = Explanation + " Ez a lépés egy feltételt módosít. Az AST-ből generált SQL formázása változhat, megjegyzései kimaradnak.",
+                    Preconditions = Preconditions + " A beépített típusokat és operátorokat feltételezzük; a metaadatokat nem ellenőriztük. " +
+                        "Az eredményazonosság és a gyorsulás nincs igazolva. Teszteld az eredményt és a tervet."
+                });
+            }
         }
         return suggestions;
     }
